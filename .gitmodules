@@ -1,0 +1,3 @@
+[submodule "book"]
+	path = book
+	url = https://github.com/NASA-EarthRISE/EarthRISE-Applied-Artificial-Intelligence-and-Deep-Learning-Book.git
