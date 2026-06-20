@@ -1,0 +1,4 @@
+format:
+  html:
+    include-after-body:
+      - _includes/chat.html

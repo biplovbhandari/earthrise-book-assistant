@@ -219,6 +219,4 @@ __marimo__/
 
 # Project-specific
 _book/
-configs/*.env
-!configs/*.env.example
 .DS_Store

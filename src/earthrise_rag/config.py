@@ -23,6 +23,8 @@ class Settings(BaseSettings):
     llm_api_key: SecretStr = SecretStr("")
     llm_model: str = ""
 
+    book_html_dir: str = "_book"
+
     app_env: str = "development"
 
 
