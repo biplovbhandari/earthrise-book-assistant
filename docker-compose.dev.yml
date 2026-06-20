@@ -2,6 +2,8 @@ services:
   app:
     volumes:
       - .:/app
+      - ./_book:/app/book_html:ro
     environment:
       - PYTHONPATH=/app:/app/src
+      - BOOK_HTML_DIR=/app/book_html
     command: uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload

@@ -11,6 +11,9 @@ services:
     env_file: .env
     volumes:
       - models_cache:/models
+      - book_html:/app/book_html:ro
+    environment:
+      - BOOK_HTML_DIR=/app/book_html
     restart: unless-stopped
 
   qdrant:
@@ -28,6 +31,17 @@ services:
       retries: 5
     restart: unless-stopped
 
+  quarto-builder:
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.quarto
+    profiles: ["build"]
+    volumes:
+      - ./book:/book:ro
+      - ./widget:/widget:ro
+      - book_html:/output
+
 volumes:
   models_cache:
   qdrant_data:
+  book_html:

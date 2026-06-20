@@ -405,7 +405,7 @@ Chat widget calls `/ask` on the same origin. No CORS needed. No API key in brows
 
 | File | Purpose |
 |---|---|
-| `widget/_quarto-chat.yml` | Quarto profile overlay — adds `include-after-body: [widget/chat.html]` |
+| `widget/_quarto-chat.yml` | Quarto profile overlay — adds `include-after-body: [_includes/chat.html]` |
 | `widget/chat.html` | Chat UI — calls `/ask` on same origin, renders markdown, shows citations |
 
 ### Render flow

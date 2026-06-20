@@ -1,0 +1,27 @@
+FROM python:3.12-slim
+
+# ARG QUARTO_VERSION=1.6.42
+ARG QUARTO_VERSION=1.9.38
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    git \
+    xz-utils \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN ARCH=$(dpkg --print-architecture) \
+    && curl -sL "https://github.com/quarto-dev/quarto-cli/releases/download/v${QUARTO_VERSION}/quarto-${QUARTO_VERSION}-linux-${ARCH}.deb" \
+       -o /tmp/quarto.deb \
+    && dpkg -i /tmp/quarto.deb \
+    && rm /tmp/quarto.deb
+
+RUN quarto install tinytex --no-prompt
+
+RUN pip install --no-cache-dir jupyter
+
+WORKDIR /work
+
+COPY infra/docker/scripts/render_book.sh /usr/local/bin/render_book.sh
+RUN chmod +x /usr/local/bin/render_book.sh
+
+ENTRYPOINT ["/usr/local/bin/render_book.sh"]
