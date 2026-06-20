@@ -24,6 +24,8 @@ class Settings(BaseSettings):
     llm_model: str = ""
 
     book_html_dir: str = "_book"
+    book_source_dir: str = "book"
+    book_commit_sha: str = ""
 
     app_env: str = "development"
 

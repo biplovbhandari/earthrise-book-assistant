@@ -39,6 +39,22 @@ services:
       - ./widget:/widget:ro
       - book_html:/output
 
+  indexer:
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.indexer
+    profiles: ["build"]
+    depends_on:
+      qdrant:
+        condition: service_healthy
+    env_file: .env
+    environment:
+      - BOOK_SOURCE_DIR=/book
+      - BOOK_COMMIT_SHA=${BOOK_COMMIT_SHA:-unknown}
+    volumes:
+      - ./book:/book:ro
+      - models_cache:/models
+
 volumes:
   models_cache:
   qdrant_data:
