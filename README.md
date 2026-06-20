@@ -8,6 +8,11 @@ Book viewer and RAG chat assistant for the [EarthRISE Applied AI and Deep Learni
 cd earthrise-book-assistant
 git submodule update --init --recursive
 cp .env.example .env
+```
+
+## Running with Docker
+
+```bash
 docker compose build app quarto-builder                  # build images
 docker compose --profile build run --rm quarto-builder   # render the book
 docker compose up -d                                     # start app + qdrant
@@ -17,26 +22,26 @@ docker compose up -d                                     # start app + qdrant
 - API health: http://localhost:8000/health
 - Qdrant dashboard: http://localhost:6333/dashboard
 
-To re-render the book after content changes:
+To re-render after book content changes:
 
 ```bash
 docker compose --profile build run --rm quarto-builder
 ```
 
-To stop everything:
+Code changes require `docker compose build app`. For hot reload in Docker:
 
 ```bash
-docker compose down
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up
 ```
 
-## Development
+To stop: `docker compose down`
 
-Run qdrant in Docker, app locally with hot reload:
+## Local Development
 
 ```bash
 uv sync --group dev
 docker compose up qdrant -d                    # vector DB only
-uv run uvicorn api.main:app --reload           # app
+uv run uvicorn api.main:app --reload           # app with hot reload
 uv run pytest -v                               # tests
 ```
 
@@ -56,9 +61,6 @@ earthrise-book-assistant/
 │   ├── Dockerfile.app
 │   ├── Dockerfile.quarto
 │   └── scripts/render_book.sh
-├── configs/                     # Environment config templates
-│   ├── local.env.example
-│   └── prod.env.example
 ├── tests/
 ├── system-design/               # Architecture docs
 ├── book/                        # Git submodule (book source)
