@@ -1,4 +1,3 @@
-import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -29,6 +28,6 @@ def health():
 
 # --- API routes above this line ---
 # --- Static book HTML below (catch-all, must be last) ---
-_book_html_dir = Path(os.environ.get("BOOK_HTML_DIR", "_book"))
+_book_html_dir = Path(get_settings().book_html_dir)
 _book_html_dir.mkdir(parents=True, exist_ok=True)
 app.mount("/", StaticFiles(directory=_book_html_dir, html=True), name="book")

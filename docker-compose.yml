@@ -11,9 +11,7 @@ services:
     env_file: .env
     volumes:
       - models_cache:/models
-      - book_html:/app/book_html:ro
-    environment:
-      - BOOK_HTML_DIR=/app/book_html
+      - book_html:/app/_book:ro
     restart: unless-stopped
 
   qdrant:
