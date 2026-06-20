@@ -13,16 +13,29 @@ cp .env.example .env
 ## Running with Docker
 
 ```bash
-docker compose build app quarto-builder                  # build images
-docker compose --profile build run --rm quarto-builder   # render the book
-docker compose up -d                                     # start app + qdrant
+docker compose build app quarto-builder indexer            # build images
+docker compose --profile build run --rm quarto-builder     # render the book
+docker compose up -d                                       # start app + qdrant
 ```
 
 - Book: http://localhost:8000/
 - API health: http://localhost:8000/health
 - Qdrant dashboard: http://localhost:6333/dashboard
 
-To re-render after book content changes:
+### Index book content
+
+```bash
+# Docker
+BOOK_COMMIT_SHA=$(git -C book rev-parse HEAD) docker compose --profile build run --rm indexer
+
+# Local
+uv sync --group indexer
+QDRANT_URL=http://localhost:6333 HF_HOME=.cache/huggingface BOOK_COMMIT_SHA=$(git -C book rev-parse HEAD) uv run python scripts/index_book.py
+```
+
+Check the Qdrant dashboard for indexed chunks. Logs written to `logs/`.
+
+### Re-render book
 
 ```bash
 docker compose --profile build run --rm quarto-builder
@@ -51,20 +64,25 @@ uv run pytest -v                               # tests
 earthrise-book-assistant/
 ├── src/earthrise_rag/           # Python package (RAG logic)
 │   ├── config.py                # Pydantic BaseSettings, env-driven
-│   └── models/                  # Chunk, ScoredChunk, Document
+│   ├── models/                  # Chunk, ScoredChunk, Document, IndexResult
+│   └── indexing/                # Parsers, chunkers, embedder, vector store, pipeline
 ├── api/                         # FastAPI app (thin handlers)
-│   └── main.py                  # /health + static book serving
+│   ├── main.py                  # /health + static book serving
+│   └── dependencies.py          # Adapter wiring (lazy imports)
+├── scripts/
+│   └── index_book.py            # CLI: index book content into Qdrant
 ├── widget/                      # Chat widget (injected into book pages)
 │   ├── chat.html                # Widget HTML
 │   └── _quarto-chat.yml         # Quarto profile overlay
 ├── infra/docker/                # Dockerfiles + scripts
 │   ├── Dockerfile.app
 │   ├── Dockerfile.quarto
+│   ├── Dockerfile.indexer
 │   └── scripts/render_book.sh
 ├── tests/
 ├── system-design/               # Architecture docs
 ├── book/                        # Git submodule (book source)
-├── docker-compose.yml           # App + Qdrant + quarto-builder
+├── docker-compose.yml           # App + Qdrant + quarto-builder + indexer
 ├── docker-compose.dev.yml       # Dev overrides (hot reload)
 ├── .env.example                 # Config template
 └── pyproject.toml
