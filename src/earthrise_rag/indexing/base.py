@@ -1,49 +1,39 @@
 from __future__ import annotations
 
-from typing import Any, Protocol, runtime_checkable
+from typing import Protocol, runtime_checkable
 
 from earthrise_rag.models.chunk import Chunk
 from earthrise_rag.models.document import Document
-from earthrise_rag.models.scored_chunk import ScoredChunk
 
 
 @runtime_checkable
 class Parser(Protocol):
-    def parse(self, actual_path: str, source_path: str) -> Document: ...
+    """Reads a source file and produces a structured Document."""
+
+    def parse(self, actual_path: str, source_path: str) -> Document:
+        """Parse a source file into a Document.
+
+        Args:
+            actual_path: Filesystem path to the file (for reading).
+            source_path: Repo-relative path (stored in metadata).
+
+        Returns:
+            Parsed document with title, content, and metadata.
+        """
+        ...
 
 
 @runtime_checkable
 class ChunkingStrategy(Protocol):
-    def chunk(self, document: Document) -> list[Chunk]: ...
+    """Splits a Document into indexable Chunks."""
 
+    def chunk(self, document: Document) -> list[Chunk]:
+        """Split a document into chunks.
 
-@runtime_checkable
-class Embedder(Protocol):
-    def embed_documents(self, texts: list[str]) -> list[list[float]]: ...
+        Args:
+            document: Parsed document to chunk.
 
-    def embed_query(self, text: str) -> list[float]: ...
-
-    def get_dimension(self) -> int: ...
-
-
-@runtime_checkable
-class VectorStore(Protocol):
-    def upsert(self, chunks: list[Chunk], vectors: list[list[float]]) -> None: ...
-
-    def search_dense(
-        self,
-        vector: list[float],
-        top_k: int = 10,
-        filters: dict[str, Any] | None = None,
-    ) -> list[ScoredChunk]: ...
-
-    def search_sparse(
-        self,
-        text: str,
-        top_k: int = 10,
-        filters: dict[str, Any] | None = None,
-    ) -> list[ScoredChunk]: ...
-
-    def get_by_ids(self, ids: list[str]) -> list[Chunk]: ...
-
-    def delete_by_source(self, source_path: str) -> None: ...
+        Returns:
+            List of chunks with content, metadata, and parent/child links.
+        """
+        ...

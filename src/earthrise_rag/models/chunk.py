@@ -7,6 +7,8 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class Chunk(BaseModel):
+    """A unit of indexed content with metadata and parent/child relationships."""
+
     model_config = ConfigDict(frozen=True)
 
     id: str = Field(default_factory=lambda: str(uuid4()))

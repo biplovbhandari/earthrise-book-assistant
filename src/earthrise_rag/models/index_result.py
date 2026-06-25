@@ -7,6 +7,8 @@ from pydantic import BaseModel, Field
 
 
 class IndexResult(BaseModel):
+    """Result of indexing a single source file."""
+
     source_path: str
     status: Literal["success", "skipped", "failed"]
     chunks_indexed: int = 0

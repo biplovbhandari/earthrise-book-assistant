@@ -3,7 +3,8 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
-from earthrise_rag.indexing.base import ChunkingStrategy, Embedder, Parser, VectorStore
+from earthrise_rag.indexing.base import ChunkingStrategy, Parser
+from earthrise_rag.interfaces import Embedder, VectorStore
 from earthrise_rag.models.index_result import IndexResult
 
 logger = logging.getLogger(__name__)
@@ -13,6 +14,8 @@ _STUB_WORD_LIMIT = 50
 
 
 class IndexingPipeline:
+    """Orchestrates parse → chunk → embed → store for a single source file."""
+
     def __init__(
         self,
         parsers: dict[str, Parser],
@@ -28,6 +31,15 @@ class IndexingPipeline:
         self.commit_sha = commit_sha
 
     def index_source(self, actual_path: str, source_path: str) -> IndexResult:
+        """Parse, chunk, embed, and upsert a single source file.
+
+        Args:
+            actual_path: Filesystem path to read the file.
+            source_path: Repo-relative path stored in metadata.
+
+        Returns:
+            IndexResult with status, chunk count, and any error.
+        """
         ext = Path(actual_path).suffix.lower()
 
         if ext not in self.parsers:
