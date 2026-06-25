@@ -59,6 +59,9 @@ class FakeVectorStore:
     def get_by_ids(self, ids):
         return []
 
+    def count(self) -> int:
+        return sum(len(chunks) for chunks, _ in self.upserted)
+
 
 def _make_pipeline(parser=None, chunker=None, store=None):
     store = store or FakeVectorStore()

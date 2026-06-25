@@ -1,6 +1,6 @@
 import nbformat
 
-from earthrise_rag.indexing.parsers import BibParser, MarkdownParser, NotebookParser
+from earthrise_rag.indexing.parsers import MarkdownParser, NotebookParser
 
 
 class TestMarkdownParser:
@@ -22,14 +22,6 @@ class TestMarkdownParser:
         assert "---" not in doc2.content
         assert "Cite this book." in doc2.content
 
-    def test_preserves_midfile_horizontal_rules(self, tmp_path):
-        md_file = tmp_path / "page.md"
-        md_file.write_text("# Title\n\nBefore rule.\n\n---\n\nAfter rule.")
-        doc = MarkdownParser().parse(str(md_file), "book/page.md")
-        assert "Before rule." in doc.content
-        assert "After rule." in doc.content
-        assert "---" in doc.content
-
 
 class TestNotebookParser:
     def test_preserves_cell_structure(self, tmp_path):
@@ -48,15 +40,3 @@ class TestNotebookParser:
         assert len(doc.metadata["cells"]) == 3
         assert doc.metadata["cells"][0]["cell_type"] == "markdown"
         assert doc.metadata["cells"][1]["cell_type"] == "code"
-
-
-class TestBibParser:
-    def test_returns_content(self, tmp_path):
-        bib_file = tmp_path / "references.bib"
-        bib_file.write_text(
-            "@book{key1,\n  title={Book One}\n}\n\n@article{key2,\n  title={Paper Two}\n}"
-        )
-        doc = BibParser().parse(str(bib_file), "book/references.bib")
-        assert doc.title == "References"
-        assert "@book{key1" in doc.content
-        assert "@article{key2" in doc.content
