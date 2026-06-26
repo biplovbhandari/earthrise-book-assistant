@@ -1,10 +1,12 @@
 from functools import lru_cache
 
-from pydantic import SecretStr
+from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
+    """Application settings loaded from environment variables and .env files."""
+
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     embedding_provider: str = "local"
@@ -15,7 +17,8 @@ class Settings(BaseSettings):
     qdrant_url: str = "http://qdrant:6333"
     qdrant_collection: str = "earthrise_book"
 
-    retrieval_strategy: str = "hybrid"
+    retrieval_strategy: str = "dense"
+    retrieval_top_k: int = Field(8, ge=1, le=50)
     reranker_provider: str = "noop"
 
     llm_provider: str = "openai_compatible"
