@@ -9,7 +9,7 @@ Detailed component interfaces, adapters, and data models. For the high-level ove
 | Module | When | Triggered by | Interface |
 |---|---|---|---|
 | **IndexingPipeline** | Offline (CPU default, GPU optional) | `scripts/index_book.py` | `index_source(source_path) → IndexResult` |
-| **QueryPipeline** | Online (per-request) | FastAPI `/ask`, `/search` | `ask(question, filters) → Answer` / `search(question, filters) → list[ScoredChunk]` |
+| **QueryPipeline** | Online (per-request) | FastAPI `/ask`, `/search` | `ask(question, filters) → Answer` / `search(question, top_k, filters) → list[ScoredChunk]` |
 
 Shared adapters (Embedder, VectorStore) injected into both.
 
@@ -50,6 +50,14 @@ graph TB
 graph LR
   Q["retrieve(question, top_k, filters)"]
 
+  subgraph DenseStrategy
+    D_Embed[Embed query]
+    D_Dense[Dense vector<br>top_k]
+    D_Rerank[Reranker<br>NoOp passthrough]
+
+    D_Embed --> D_Dense --> D_Rerank
+  end
+
   subgraph HybridStrategy
     Embed[Embed query]
     Dense[Dense vector<br>top 30]
@@ -70,15 +78,17 @@ graph LR
     Expand["Expand children → parents<br>via VectorStore.get_by_ids()"]
   end
 
-  Q --> Embed
-  Rerank -->|"hybrid: direct"| Out["list[ScoredChunk]"]
+  Q --> D_Embed
+  D_Rerank --> Out["list[ScoredChunk]"]
+  Rerank -.->|"hybrid: direct"| Out
   Rerank -.->|"parent_child only"| Expand
   Expand -.-> Out
 ```
 
 `RETRIEVAL_STRATEGY` env var controls which strategy is instantiated:
-- `hybrid` (default): `HybridStrategy(embedder, store, reranker)` — no parent expansion
-- `parent_child`: `ParentChildStrategy(inner=HybridStrategy(...), store=store)` — expands child results to parents for richer LLM context
+- `dense` (default): `DenseStrategy(embedder, store, reranker)` — embed query → dense vector search → rerank
+- `hybrid`: `HybridStrategy(embedder, store, reranker)` — dense + sparse/BM25, merged via Reciprocal Rank Fusion
+- `parent_child`: `ParentChildStrategy(inner=<strategy>, store=store)` — expands child results to parents for richer LLM context
 
 `/search` calls `QueryPipeline.search()` which delegates to `RetrievalStrategy.retrieve()`. `/ask` calls `QueryPipeline.ask()` which pipes retrieval results through ContextBuilder → LLMClient → CitationBuilder.
 
@@ -96,7 +106,7 @@ classDiagram
 
   class QueryPipeline {
     +ask(question, filters) Answer
-    +search(question, filters) list~ScoredChunk~
+    +search(question, top_k, filters) list~ScoredChunk~
   }
 
   class RetrievalStrategy {
@@ -128,6 +138,7 @@ classDiagram
     +search_sparse(text, top_k, filters) list~ScoredChunk~
     +get_by_ids(ids) list~Chunk~
     +delete_by_source(source_path) None
+    +count() int
   }
 
   class Embedder {
@@ -147,6 +158,7 @@ classDiagram
   Embedder <|-- LocalEmbeddingModel
   Reranker <|-- NoOpReranker
   Reranker <|-- LocalCrossEncoderReranker
+  RetrievalStrategy <|-- DenseStrategy
   RetrievalStrategy <|-- HybridStrategy
 
   ParentChildStrategy *-- RetrievalStrategy : inner
@@ -278,6 +290,7 @@ IndexResult:
 Pipelines:
   indexing: IndexingPipeline | None
   query: QueryPipeline | None
+  vector_store: VectorStore | None
 ```
 
 ### API Request/Response Shapes
@@ -307,11 +320,14 @@ Response: { status: str, version: str }
 | **Registry** | File extension → adapter map (see below) | Parser, ChunkingStrategy |
 | **Direct** | One adapter, no indirection | ContextBuilder, CitationBuilder |
 
-Top-level entry point:
+Two entry points:
 
 ```python
+def create_indexing_pipeline(config: Settings) -> IndexingPipeline:
+    """CLI (scripts/index_book.py). No retrieval wiring, create_if_missing=True."""
+
 def create_pipelines(config: Settings) -> Pipelines:
-    """Config → fully-wired pipelines. Called once at FastAPI startup."""
+    """FastAPI startup. Query side only, create_if_missing=False."""
 ```
 
 ### Registry Mappings
@@ -350,7 +366,8 @@ Pydantic `BaseSettings`, reads from environment variables and `.env` files.
 | `VECTOR_STORE_PROVIDER` | VectorStore factory | `"qdrant"` |
 | `QDRANT_URL` | Qdrant endpoint | `"http://qdrant:6333"` |
 | `QDRANT_COLLECTION` | Collection name | `"earthrise_book"` |
-| `RETRIEVAL_STRATEGY` | Strategy factory | `"hybrid"` |
+| `RETRIEVAL_STRATEGY` | Strategy factory | `"dense"` |
+| `RETRIEVAL_TOP_K` | Default result count | `8` |
 | `RERANKER_PROVIDER` | Reranker factory | `"noop"` |
 | `LLM_PROVIDER` | LLMClient factory | `"openai_compatible"` |
 | `LLM_BASE_URL` | LLM endpoint | `"https://proxy.fast.luna.nasa.gov/v1"` |

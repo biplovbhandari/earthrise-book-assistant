@@ -82,7 +82,7 @@ graph TD
   subgraph Sources
     Book[Book repo<br>.md .qmd .ipynb .bib]
     Videos[YouTube lectures]
-    Future[Future: Figures, PDFs]
+    Other[Figures, PDFs]
   end
 
   subgraph "indexer (offline)"
@@ -95,10 +95,10 @@ graph TD
 
   Book --> Parse
   Videos --> Parse
-  Future -.-> Parse
+  Other -.-> Parse
   Parse --> Chunk --> Embed --> Store
 
-  style Future fill:#f5f5f5,stroke-dasharray: 5 5
+  style Other fill:#f5f5f5,stroke-dasharray: 5 5
   style Videos fill:#f5f5f5,stroke-dasharray: 5 5
   style Store fill:#fdebd0
 ```
@@ -144,13 +144,14 @@ graph LR
     C1[Qdrant]
   end
   subgraph Retrieval
-    D1[Hybrid<br>dense + BM25] -->|"wrapped by"| D2[Parent/Child<br>decorator]
+    D0[Dense<br>vector search] ~~~ D1[Hybrid<br>dense + BM25]
+    D1 -->|"wrapped by"| D2[Parent/Child<br>decorator]
   end
 
   style A1 fill:#d5f5e3
   style B1 fill:#d5f5e3
   style C1 fill:#d5f5e3
-  style D1 fill:#d5f5e3
+  style D0 fill:#d5f5e3
   style A2 fill:#f5f5f5
   style B2 fill:#f5f5f5
   style D2 fill:#d6eaf8
@@ -183,7 +184,7 @@ Chat widget calls `/ask` on the same origin — no CORS, no API key in browser.
 | `/search` | POST | Retrieval-only — ranked chunks with metadata |
 | `/ask` | POST | Full RAG — generated answer + citations |
 
-**Planned:**
+Additional endpoints:
 - `/feedback` — user rating on answer quality
 - `/log` — analytics data forwarding
 
@@ -191,7 +192,7 @@ Chat widget calls `/ask` on the same origin — no CORS, no API key in browser.
 
 ## Analytics & Economic Impact Assessment (EIA)
 
-Planned GA4 custom events and Google Sheets integration for the Economic Impact Assessment.
+GA4 custom events and Google Sheets integration for the Economic Impact Assessment.
 
 | Event | Trigger | Purpose |
 |---|---|---|
