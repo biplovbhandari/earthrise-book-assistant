@@ -66,7 +66,11 @@ def main() -> int:
 
     pipelines = create_pipelines(settings)
 
-    if pipelines.query is None or pipelines.vector_store is None or pipelines.vector_store.count() == 0:
+    if (
+        pipelines.query is None
+        or pipelines.vector_store is None
+        or pipelines.vector_store.count() == 0
+    ):
         print("Error: no indexed data found. Run the indexer first.", file=sys.stderr)
         return 1
 
