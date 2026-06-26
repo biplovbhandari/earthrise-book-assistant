@@ -97,13 +97,13 @@ class QdrantStore:
         top_k: int = 10,
         filters: dict[str, Any] | None = None,
     ) -> list[ScoredChunk]:
-        from qdrant_client.models import FieldCondition, Filter, MatchValue
+        from qdrant_client.models import Condition, FieldCondition, Filter, MatchValue
 
         _TOP_LEVEL_FIELDS = {"source_type", "content_type", "chunk_type"}
 
         query_filter = None
         if filters:
-            conditions = [
+            conditions: list[Condition] = [
                 FieldCondition(
                     key=k if k in _TOP_LEVEL_FIELDS else f"metadata.{k}",
                     match=MatchValue(value=v),
@@ -156,7 +156,7 @@ class QdrantStore:
         )
 
         offset = None
-        ids_to_delete: list[str] = []
+        ids_to_delete: list = []
 
         while True:
             result = self._client.scroll(
