@@ -5,10 +5,11 @@ WORKDIR /app
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
 COPY pyproject.toml uv.lock ./
-RUN uv sync --frozen --no-dev --no-editable
+RUN uv sync --frozen --no-dev --no-install-project
 
 COPY src/ src/
 COPY api/ api/
+RUN uv sync --frozen --no-dev
 
 ENV HF_HOME=/models
 ENV PYTHONUNBUFFERED=1

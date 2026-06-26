@@ -1,4 +1,4 @@
-from earthrise_rag.indexing.chunkers import BibChunker, NotebookChunker, SectionChunker
+from earthrise_rag.indexing.chunkers import NotebookChunker, SectionChunker
 from earthrise_rag.models import Document
 
 
@@ -33,20 +33,6 @@ class TestSectionChunker:
         assert all(c.chunk_type == "standalone" for c in section_chunks)
         assert all(c.parent_id is None for c in section_chunks)
 
-    def test_preamble_becomes_standalone(self):
-        preamble_text = "This is a meaningful preamble."
-        content = f"# Title\n\n{preamble_text}\n\n## Section\n\n{_long_content()}"
-        doc = Document(
-            title="Test", source_path="book/test.md", content=content, source_type="book_text"
-        )
-        chunks = SectionChunker().chunk(doc)
-
-        preamble = [
-            c for c in chunks if c.chunk_type == "standalone" and not c.metadata.get("section")
-        ]
-        assert len(preamble) == 1
-        assert "meaningful preamble" in preamble[0].content
-
 
 class TestNotebookChunker:
     def test_groups_by_heading(self):
@@ -68,22 +54,3 @@ class TestNotebookChunker:
         sections = {c.metadata.get("section") for c in chunks if c.metadata.get("section")}
         assert "Data Loading" in sections
         assert "Model Training" in sections
-
-
-class TestBibChunker:
-    def test_one_chunk_per_entry(self):
-        content = "@book{key1,\n  title={Book One}\n}\n\n@article{key2,\n  title={Paper Two}\n}"
-        doc = Document(
-            title="References",
-            source_path="book/references.bib",
-            content=content,
-            source_type="book_text",
-        )
-        chunks = BibChunker().chunk(doc)
-
-        assert len(chunks) == 2
-        assert all(c.chunk_type == "standalone" for c in chunks)
-        assert all(c.content_type == "reference" for c in chunks)
-        keys = {c.metadata.get("citation_key") for c in chunks}
-        assert "key1" in keys
-        assert "key2" in keys

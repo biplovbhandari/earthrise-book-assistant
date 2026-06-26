@@ -2,6 +2,8 @@ from __future__ import annotations
 
 
 class LocalEmbeddingModel:
+    """Embedding adapter using sentence-transformers models loaded locally."""
+
     def __init__(self, model_name: str, cache_dir: str = "/models") -> None:
         from sentence_transformers import SentenceTransformer
 

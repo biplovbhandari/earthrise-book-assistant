@@ -90,10 +90,9 @@ def main() -> int:
 
     chapter_files = _extract_chapters(quarto_config)
 
-    from api.dependencies import create_pipelines
+    from api.dependencies import create_indexing_pipeline
 
-    pipelines = create_pipelines(settings)
-    pipeline = pipelines.indexing
+    pipeline = create_indexing_pipeline(settings)
 
     results: list[IndexResult] = []
 

@@ -6,6 +6,8 @@ from pydantic import BaseModel, Field
 
 
 class Document(BaseModel):
+    """Parsed source file content before chunking."""
+
     title: str
     source_path: str
     content: str
