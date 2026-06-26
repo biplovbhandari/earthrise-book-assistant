@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     qdrant_collection: str = "earthrise_book"
 
     retrieval_strategy: str = "dense"
-    retrieval_top_k: int = Field(8, ge=1, le=50)
+    retrieval_top_k: int = Field(default=8, ge=1, le=50)
     reranker_provider: str = "noop"
 
     llm_provider: str = "openai_compatible"
