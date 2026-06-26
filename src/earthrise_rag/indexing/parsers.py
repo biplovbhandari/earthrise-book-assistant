@@ -17,6 +17,8 @@ def _read_text(path: str) -> str:
 
 
 class MarkdownParser:
+    """Parses .md and .qmd files, stripping anchored YAML frontmatter."""
+
     def parse(self, actual_path: str, source_path: str) -> Document:
         text = _read_text(actual_path)
         metadata: dict = {}
@@ -50,6 +52,8 @@ class MarkdownParser:
 
 
 class NotebookParser:
+    """Parses .ipynb files, preserving cell structure in metadata."""
+
     def parse(self, actual_path: str, source_path: str) -> Document:
         import nbformat
 
@@ -102,6 +106,8 @@ class NotebookParser:
 
 
 class BibParser:
+    """Parses .bib files as plain text for splitting by BibChunker."""
+
     def parse(self, actual_path: str, source_path: str) -> Document:
         text = _read_text(actual_path)
         return Document(

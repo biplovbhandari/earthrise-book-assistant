@@ -12,7 +12,15 @@ _BATCH_SIZE = 100
 
 
 class QdrantStore:
-    def __init__(self, url: str, collection_name: str, dense_dim: int) -> None:
+    """Qdrant-backed vector store with dense search and metadata filtering."""
+
+    def __init__(
+        self,
+        url: str,
+        collection_name: str,
+        dense_dim: int,
+        create_if_missing: bool = True,
+    ) -> None:
         from qdrant_client import QdrantClient
         from qdrant_client.models import Distance, VectorParams
 
@@ -20,9 +28,9 @@ class QdrantStore:
         self._collection = collection_name
         self._dense_dim = dense_dim
 
-        self._ensure_collection(Distance, VectorParams)
+        self._ensure_collection(Distance, VectorParams, create_if_missing)
 
-    def _ensure_collection(self, Distance, VectorParams) -> None:
+    def _ensure_collection(self, Distance, VectorParams, create_if_missing: bool) -> None:
         collections = [c.name for c in self._client.get_collections().collections]
 
         if self._collection in collections:
@@ -46,7 +54,7 @@ class QdrantStore:
                 raise ValueError(
                     f"Collection '{self._collection}' exists but has no 'dense' named vector."
                 )
-        else:
+        elif create_if_missing:
             self._client.create_collection(
                 collection_name=self._collection,
                 vectors_config={
@@ -55,6 +63,11 @@ class QdrantStore:
             )
             logger.info(
                 "Created collection '%s' (dense_dim=%d).", self._collection, self._dense_dim
+            )
+        else:
+            logger.info(
+                "Collection '%s' does not exist yet; query path will return not-ready.",
+                self._collection,
             )
 
     def upsert(self, chunks: list[Chunk], vectors: list[list[float]]) -> None:
@@ -122,11 +135,18 @@ class QdrantStore:
         top_k: int = 10,
         filters: dict[str, Any] | None = None,
     ) -> list[ScoredChunk]:
-        raise NotImplementedError("Sparse search added in Phase 3.")
+        raise NotImplementedError("Sparse search coming soon.")
 
     def get_by_ids(self, ids: list[str]) -> list[Chunk]:
         points = self._client.retrieve(collection_name=self._collection, ids=ids)
         return [Chunk.model_validate(p.payload) for p in points]
+
+    def count(self) -> int:
+        try:
+            result = self._client.count(collection_name=self._collection, exact=False)
+            return result.count
+        except Exception:
+            return 0
 
     def delete_by_source(self, source_path: str) -> None:
         from qdrant_client.models import FieldCondition, Filter, MatchValue

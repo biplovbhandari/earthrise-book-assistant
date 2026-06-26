@@ -92,6 +92,8 @@ def _split_paragraphs(text: str, target_words: int) -> list[str]:
 
 
 class SectionChunker:
+    """Splits markdown by ## headings into parent/child or standalone chunks."""
+
     def chunk(self, document: Document) -> list[Chunk]:
         chunks: list[Chunk] = []
         commit_sha = document.metadata.get("commit_sha", "")
@@ -178,6 +180,8 @@ class SectionChunker:
 
 
 class NotebookChunker:
+    """Chunks notebooks by grouping cells under ## headings."""
+
     def chunk(self, document: Document) -> list[Chunk]:
         chunks: list[Chunk] = []
         commit_sha = document.metadata.get("commit_sha", "")
@@ -351,6 +355,8 @@ class NotebookChunker:
 
 
 class BibChunker:
+    """Splits BibTeX content into one standalone chunk per entry."""
+
     def chunk(self, document: Document) -> list[Chunk]:
         chunks: list[Chunk] = []
         commit_sha = document.metadata.get("commit_sha", "")
