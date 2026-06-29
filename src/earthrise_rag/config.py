@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     llm_base_url: str = "https://proxy.fast.luna.nasa.gov/v1"
     llm_api_key: SecretStr = SecretStr("")
     llm_model: str = ""
+    llm_timeout_seconds: float = Field(default=60.0, ge=1.0, le=300.0)
 
     book_html_dir: str = "_book"
     book_source_dir: str = "book"
