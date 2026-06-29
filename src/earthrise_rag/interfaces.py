@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Protocol, runtime_checkable
 
+from earthrise_rag.models.citation import Citation
 from earthrise_rag.models.chunk import Chunk
 from earthrise_rag.models.scored_chunk import ScoredChunk
 
@@ -152,5 +153,61 @@ class Reranker(Protocol):
 
         Returns:
             Reranked list of scored chunks.
+        """
+        ...
+
+
+@runtime_checkable
+class LLMClient(Protocol):
+    """Generates text from a chat message list."""
+
+    def chat(
+        self,
+        messages: list[dict[str, str]],
+        temperature: float = 0.3,
+        max_tokens: int = 1024,
+    ) -> str:
+        """Generate a text response from a chat message list.
+
+        Args:
+            messages: List of message dicts with 'role' and 'content' keys.
+            temperature: Sampling temperature (0.0 = deterministic).
+            max_tokens: Maximum tokens in the generated response.
+
+        Returns:
+            The generated text content.
+        """
+        ...
+
+
+@runtime_checkable
+class ContextBuilder(Protocol):
+    """Assembles retrieval chunks into an LLM message list."""
+
+    def build(self, question: str, chunks: list[ScoredChunk]) -> list[dict[str, str]]:
+        """Assemble retrieved chunks into a message list for the LLM.
+
+        Args:
+            question: The user's natural language question.
+            chunks: Ranked chunks from retrieval.
+
+        Returns:
+            List of message dicts (system + user) ready for LLMClient.chat().
+        """
+        ...
+
+
+@runtime_checkable
+class CitationBuilder(Protocol):
+    """Extracts citation metadata from retrieval chunks."""
+
+    def build(self, chunks: list[ScoredChunk]) -> list[Citation]:
+        """Extract citation metadata from retrieved chunks.
+
+        Args:
+            chunks: Ranked chunks from retrieval.
+
+        Returns:
+            List of citations, one per chunk.
         """
         ...
