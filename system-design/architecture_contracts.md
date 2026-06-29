@@ -183,11 +183,10 @@ classDiagram
 
   class LLMClient {
     +chat(messages, temperature, max_tokens) str
-    +stream(messages, temperature, max_tokens) Iterator~str~
   }
 
   class ContextBuilder {
-    +build(chunks) str
+    +build(question, chunks) list~dict~
   }
 
   class CitationBuilder {
@@ -249,17 +248,6 @@ Answer:
   answer: str                                # LLM-generated response
   sources: list[ScoredChunk]
   citations: list[Citation]
-  video_refs: list[VideoRef]                 # empty list until video transcripts are indexed
-```
-
-### VideoRef
-
-```
-VideoRef:
-  video_id: str                              # YouTube video ID
-  title: str
-  timestamp_seconds: int
-  watch_link: str                            # https://youtube.com/watch?v=...&t=...
 ```
 
 ### Citation
@@ -270,7 +258,6 @@ Citation:
   source_path: str
   chapter: str
   section: str
-  url: str
 ```
 
 ### IndexResult
@@ -305,7 +292,7 @@ Request:  { question: str, top_k?: int, filters?: { chapter?: str, source_type?:
 Response: { chunks: list[ScoredChunk] }
 
 # GET /health
-Response: { status: str, version: str }
+Response: { status: str, version: str, generation: str }
 ```
 
 ---
@@ -373,6 +360,7 @@ Pydantic `BaseSettings`, reads from environment variables and `.env` files.
 | `LLM_BASE_URL` | LLM endpoint | `"https://proxy.fast.luna.nasa.gov/v1"` |
 | `LLM_API_KEY` | Auth (`SecretStr`) | `""` |
 | `LLM_MODEL` | Model name | `""` |
+| `LLM_TIMEOUT_SECONDS` | LLM request timeout | `60.0` |
 | `APP_ENV` | Environment | `"development"` |
 
 `.env` files are gitignored. Example config files are committed as templates.

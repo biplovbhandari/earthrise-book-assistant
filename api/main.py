@@ -9,6 +9,7 @@ from earthrise_rag import __version__
 from earthrise_rag.config import get_settings
 
 from api.dependencies import create_pipelines
+from api.routes.ask import router as ask_router
 from api.routes.search import router as search_router
 
 logger = logging.getLogger(__name__)
@@ -34,9 +35,20 @@ app = FastAPI(
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "version": __version__}
+    pipelines = getattr(app.state, "pipelines", None)
+    generation_ready = (
+        pipelines is not None
+        and pipelines.query is not None
+        and pipelines.query._llm_client is not None
+    )
+    return {
+        "status": "ok",
+        "version": __version__,
+        "generation": "ready" if generation_ready else "unavailable",
+    }
 
 
+app.include_router(ask_router)
 app.include_router(search_router)
 
 # --- Static book HTML below (catch-all, must be last) ---

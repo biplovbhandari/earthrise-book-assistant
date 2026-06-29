@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
@@ -8,6 +9,8 @@ from earthrise_rag.config import Settings
 if TYPE_CHECKING:
     from earthrise_rag.interfaces import VectorStore
     from earthrise_rag.query import QueryPipeline
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -80,6 +83,34 @@ def _create_retrieval_strategy(config: Settings, embedder, store, reranker):
     raise ValueError(f"Unknown retrieval_strategy: {config.retrieval_strategy}")
 
 
+def _create_llm_client(config: Settings):
+    """Build the LLM client from config (provider pattern)."""
+    from earthrise_rag.generation.llm_client import OpenAICompatibleClient
+
+    if config.llm_provider == "openai_compatible":
+        return OpenAICompatibleClient(
+            base_url=config.llm_base_url,
+            api_key=config.llm_api_key.get_secret_value(),
+            model=config.llm_model,
+            timeout=config.llm_timeout_seconds,
+        )
+    raise ValueError(f"Unknown llm_provider: {config.llm_provider}")
+
+
+def _create_context_builder():
+    """Build the context builder (direct pattern, single adapter)."""
+    from earthrise_rag.generation.context_builder import DefaultContextBuilder
+
+    return DefaultContextBuilder()
+
+
+def _create_citation_builder():
+    """Build the citation builder (direct pattern, single adapter)."""
+    from earthrise_rag.citations.citation_builder import DefaultCitationBuilder
+
+    return DefaultCitationBuilder()
+
+
 def create_indexing_pipeline(config: Settings):
     """Build the indexing pipeline for CLI use (create_if_missing=True)."""
     from earthrise_rag.indexing.pipeline import IndexingPipeline
@@ -105,7 +136,26 @@ def create_pipelines(config: Settings) -> Pipelines:
     reranker = _create_reranker(config)
     strategy = _create_retrieval_strategy(config, embedder, store, reranker)
 
+    context_builder = None
+    llm_client = None
+    citation_builder = None
+    try:
+        context_builder = _create_context_builder()
+        llm_client = _create_llm_client(config)
+        citation_builder = _create_citation_builder()
+    except Exception:
+        logger.warning(
+            "LLM client creation failed; /ask will return 503 but /search is unaffected",
+            exc_info=True,
+        )
+
     return Pipelines(
-        query=QueryPipeline(strategy),
+        query=QueryPipeline(
+            strategy=strategy,
+            context_builder=context_builder,
+            llm_client=llm_client,
+            citation_builder=citation_builder,
+            top_k=config.retrieval_top_k,
+        ),
         vector_store=store,
     )

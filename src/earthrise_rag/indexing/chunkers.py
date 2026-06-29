@@ -3,7 +3,7 @@ from __future__ import annotations
 import hashlib
 import logging
 import re
-from typing import Any
+from typing import Any, Literal
 
 from earthrise_rag.models.chunk import Chunk
 from earthrise_rag.models.document import Document
@@ -37,7 +37,7 @@ def _make_chunk(
     content: str,
     source_path: str,
     content_type: str,
-    chunk_type: str,
+    chunk_type: Literal["parent", "child", "standalone"],
     parent_id: str | None,
     commit_sha: str,
     extra_metadata: dict[str, Any] | None = None,

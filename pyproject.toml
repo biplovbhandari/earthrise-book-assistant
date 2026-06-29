@@ -11,6 +11,7 @@ dependencies = [
     "uvicorn[standard]>=0.34",
     "sentence-transformers>=3.0",
     "qdrant-client>=1.12",
+    "openai>=1.0",
 ]
 
 [dependency-groups]
@@ -24,6 +25,7 @@ dev = [
     "ruff>=0.11",
     "nbformat>=5.10",
     "pyyaml>=6.0",
+    "pyright>=1.1.411",
 ]
 
 [build-system]
@@ -41,6 +43,7 @@ pythonVersion = "3.12"
 venvPath = "."
 venv = ".venv"
 extraPaths = ["src"]
+exclude = ["dev/", "book/", "**/node_modules", "**/__pycache__", "**/.*", ".venv"]
 
 [tool.ruff]
 target-version = "py312"

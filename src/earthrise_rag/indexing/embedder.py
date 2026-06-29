@@ -19,4 +19,7 @@ class LocalEmbeddingModel:
         return embedding.tolist()
 
     def get_dimension(self) -> int:
-        return self._model.get_sentence_embedding_dimension()
+        dim = self._model.get_embedding_dimension()
+        if dim is None:
+            raise RuntimeError(f"Model {self._model_name} has no embedding dimension")
+        return dim

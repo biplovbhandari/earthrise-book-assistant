@@ -1,0 +1,97 @@
+from unittest.mock import MagicMock
+
+from fastapi.testclient import TestClient
+
+from earthrise_rag.models import Chunk, ScoredChunk
+from earthrise_rag.models.answer import Answer
+from earthrise_rag.models.citation import Citation
+
+
+def _make_scored_chunk(content="U-Net architecture", score=0.95):
+    chunk = Chunk(
+        content=content,
+        content_hash="abc",
+        source_type="book_text",
+        content_type="concept",
+        metadata={
+            "source_path": "book/03_Segmentation/index.qmd",
+            "chapter": "03",
+            "section": "U-Net",
+        },
+    )
+    return ScoredChunk(chunk=chunk, score=score, ranking_method="dense")
+
+
+def _make_answer(chunks=None):
+    if chunks is None:
+        chunks = [_make_scored_chunk()]
+    return Answer(
+        answer="U-Net is a convolutional neural network [1].",
+        sources=chunks,
+        citations=[
+            Citation(
+                chunk_id=sc.chunk.id,
+                source_path=sc.chunk.metadata.get("source_path", ""),
+                chapter=sc.chunk.metadata.get("chapter", ""),
+                section=sc.chunk.metadata.get("section", ""),
+            )
+            for sc in chunks
+        ],
+    )
+
+
+def _make_fake_pipelines(ask_result=None, count=100):
+    from api.dependencies import Pipelines
+
+    query = MagicMock()
+    query.ask.return_value = ask_result or _make_answer()
+    query._llm_client = MagicMock()
+
+    store = MagicMock()
+    store.count.return_value = count
+
+    return Pipelines(query=query, vector_store=store)  # type: ignore[arg-type]
+
+
+def _create_client(monkeypatch, pipelines=None):
+    fake = pipelines if pipelines is not None else _make_fake_pipelines()
+    monkeypatch.setattr(
+        "api.main.create_pipelines",
+        lambda config: fake,
+    )
+    from api.main import app
+
+    return TestClient(app)
+
+
+class TestAsk:
+    def test_valid_query_returns_answer(self, monkeypatch):
+        client = _create_client(monkeypatch)
+        with client:
+            resp = client.post("/ask", json={"question": "What is U-Net?"})
+        assert resp.status_code == 200
+        body = resp.json()
+        assert "answer" in body
+        assert "sources" in body
+        assert "citations" in body
+        assert len(body["sources"]) == 1
+        assert len(body["citations"]) == 1
+
+    def test_pipelines_none_returns_503(self, monkeypatch):
+        monkeypatch.setattr(
+            "api.main.create_pipelines",
+            MagicMock(side_effect=Exception("Qdrant down")),
+        )
+        from api.main import app
+
+        with TestClient(app, raise_server_exceptions=False) as client:
+            resp = client.post("/ask", json={"question": "test"})
+        assert resp.status_code == 503
+
+    def test_llm_failure_returns_503(self, monkeypatch):
+        pipelines = _make_fake_pipelines()
+        pipelines.query.ask.side_effect = Exception("LLM timeout")  # type: ignore[union-attr]
+        client = _create_client(monkeypatch, pipelines)
+        with client:
+            resp = client.post("/ask", json={"question": "test"})
+        assert resp.status_code == 503
