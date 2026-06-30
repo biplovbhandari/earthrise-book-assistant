@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from earthrise_rag.config import Settings
@@ -11,6 +12,8 @@ if TYPE_CHECKING:
     from earthrise_rag.query import QueryPipeline
 
 logger = logging.getLogger(__name__)
+
+VIDEO_CHAPTER_MAP_PATH = Path("data/video_chapter_map.yml")
 
 
 @dataclass
@@ -43,25 +46,79 @@ def _create_vector_store(config: Settings, dense_dim: int, create_if_missing: bo
     raise ValueError(f"Unknown vector_store_provider: {config.vector_store_provider}")
 
 
+def _load_video_chapter_map() -> dict[str, dict]:
+    """Load the video-to-chapter mapping from data/video_chapter_map.yml.
+
+    A broken or missing mapping file must never crash the factory -- all
+    error paths return an empty dict so VideoChunker falls back gracefully.
+    yaml is imported lazily because pyyaml lives in the indexer/dev groups
+    only and is not available in the API image.
+    """
+    import yaml
+
+    map_path = VIDEO_CHAPTER_MAP_PATH
+    if not map_path.exists():
+        return {}
+
+    try:
+        with open(map_path, encoding="utf-8") as f:
+            data = yaml.safe_load(f)
+    except yaml.YAMLError as e:
+        logger.warning("Failed to parse data/video_chapter_map.yml: %s", e)
+        return {}
+
+    if not isinstance(data, dict):
+        return {}
+
+    videos = data.get("videos")
+    if not isinstance(videos, dict):
+        return {}
+
+    chapter_map: dict[str, dict] = {}
+    for video_id, entry in videos.items():
+        if not isinstance(entry, dict):
+            logger.warning("Skipping video entry %r in chapter map: not a dict", video_id)
+            continue
+        chapter_map[video_id] = entry
+
+    return chapter_map
+
+
 def _create_parsers() -> dict:
-    from earthrise_rag.indexing.parsers import BibParser, MarkdownParser, NotebookParser
+    from earthrise_rag.indexing.parsers import (
+        BibParser,
+        MarkdownParser,
+        NotebookParser,
+        PdfParser,
+        TranscriptParser,
+    )
 
     return {
         ".md": MarkdownParser(),
         ".qmd": MarkdownParser(),
         ".ipynb": NotebookParser(),
         ".bib": BibParser(),
+        ".pdf": PdfParser(),
+        ".json": TranscriptParser(),
     }
 
 
 def _create_chunkers() -> dict:
-    from earthrise_rag.indexing.chunkers import BibChunker, NotebookChunker, SectionChunker
+    from earthrise_rag.indexing.chunkers import (
+        BibChunker,
+        NotebookChunker,
+        PdfChunker,
+        SectionChunker,
+        VideoChunker,
+    )
 
     return {
         ".md": SectionChunker(),
         ".qmd": SectionChunker(),
         ".ipynb": NotebookChunker(),
         ".bib": BibChunker(),
+        ".pdf": PdfChunker(),
+        ".json": VideoChunker(chapter_map=_load_video_chapter_map()),
     }
 
 

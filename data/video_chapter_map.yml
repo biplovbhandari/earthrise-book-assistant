@@ -1,0 +1,20 @@
+# Maps YouTube video IDs to book chapters.
+# chapter: directory name from book/ (e.g. "03_Semantic_Segmentation")
+# lesson: subdirectory name (e.g. "01__Crop_Mapping"), maps to section in citations
+
+videos:
+  l3Tv5UBlw9I:
+    chapter: "03_Semantic_Segmentation"
+    lesson: "01__Crop_Mapping"
+  DnPosJ6IJ0Y:
+    chapter: "03_Semantic_Segmentation"
+    lesson: "03__Clay_Deforestation_Segmentation_Model"
+  0mqivFOlF1k:
+    chapter: "05_Time_Series"
+    lesson: "01__Soybean_Yield_Prediction"
+  e6lqjTUAvmI:
+    chapter: "06_Eco_Process_Sim"
+    lesson: "01__Active_Fire_Detection"
+  kINuYpZroPA:
+    chapter: "10_Future"
+    lesson: "01__Evaluating_Foundation_Models_Trained_with_Earth_Observation_Data"
