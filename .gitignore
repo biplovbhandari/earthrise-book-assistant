@@ -222,6 +222,7 @@ _book/
 logs/
 .cache/
 .DS_Store
+data/audio/
 
 # Local dev
 dev/

@@ -53,6 +53,7 @@ services:
       - BOOK_COMMIT_SHA=${BOOK_COMMIT_SHA:-unknown}
     volumes:
       - ./book:/book:ro
+      - ./data:/app/data
       - models_cache:/models
 
 volumes:
