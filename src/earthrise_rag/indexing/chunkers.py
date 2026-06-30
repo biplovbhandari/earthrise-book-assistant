@@ -14,6 +14,10 @@ _SECTION_RE = re.compile(r"^##\s+", re.MULTILINE)
 _WORD_LIMIT_CHILD = 500
 _STANDALONE_THRESHOLD = 600
 _NOTEBOOK_PARENT_CAP = 3000
+_PDF_PARENT_CAP = 3000
+_VIDEO_PARENT_DURATION = 240  # ~4 min parent segments
+_VIDEO_CHILD_DURATION = 45  # ~45s child segments
+_YOUTUBE_WATCH_URL = "https://www.youtube.com/watch?v="
 
 
 def _content_hash(text: str) -> str:
@@ -42,6 +46,7 @@ def _make_chunk(
     commit_sha: str,
     extra_metadata: dict[str, Any] | None = None,
     section: str = "",
+    source_type: Literal["book_text", "video_transcript"] = "book_text",
 ) -> Chunk:
     metadata = {
         "chapter": _chapter_from_path(source_path),
@@ -55,7 +60,7 @@ def _make_chunk(
     return Chunk(
         content=content,
         content_hash=_content_hash(content),
-        source_type="book_text",
+        source_type=source_type,
         content_type=content_type,
         metadata=metadata,
         chunk_type=chunk_type,
@@ -388,3 +393,200 @@ class BibChunker:
 
         logger.info("  BibChunker: %d entries from %s", len(chunks), source_path)
         return chunks
+
+
+class PdfChunker:
+    """Chunks PDF text by paragraphs with parent/child structure."""
+
+    def chunk(self, document: Document) -> list[Chunk]:
+        chunks: list[Chunk] = []
+        commit_sha = document.metadata.get("commit_sha", "")
+        source_path = document.source_path
+        text = document.content
+
+        if not text or not text.strip():
+            return []
+
+        word_count = _word_count(text)
+
+        if word_count < _STANDALONE_THRESHOLD:
+            logger.info("  PDF: %d words → standalone", word_count)
+            chunks.append(
+                _make_chunk(
+                    content=text,
+                    source_path=source_path,
+                    content_type="paper",
+                    chunk_type="standalone",
+                    parent_id=None,
+                    commit_sha=commit_sha,
+                )
+            )
+            logger.info("  PdfChunker: %d chunks from %s", len(chunks), source_path)
+            return chunks
+
+        # Split into parent-sized groups, then each parent into children.
+        # _split_paragraphs caps each group at the target word count, so PDFs
+        # exceeding _PDF_PARENT_CAP naturally produce multiple parents.
+        parent_segments = _split_paragraphs(text, _PDF_PARENT_CAP)
+        logger.info(
+            "  PDF: %d words → %d parent segment(s)",
+            word_count,
+            len(parent_segments),
+        )
+
+        for parent_text in parent_segments:
+            if not parent_text.strip():
+                continue
+
+            parent = _make_chunk(
+                content=parent_text,
+                source_path=source_path,
+                content_type="paper",
+                chunk_type="parent",
+                parent_id=None,
+                commit_sha=commit_sha,
+            )
+            chunks.append(parent)
+
+            child_segments = _split_paragraphs(parent_text, _WORD_LIMIT_CHILD)
+            logger.info(
+                "  Parent: %d words → %d children",
+                _word_count(parent_text),
+                len(child_segments),
+            )
+            for child_text in child_segments:
+                if child_text.strip():
+                    chunks.append(
+                        _make_chunk(
+                            content=child_text,
+                            source_path=source_path,
+                            content_type="paper",
+                            chunk_type="child",
+                            parent_id=parent.id,
+                            commit_sha=commit_sha,
+                        )
+                    )
+
+        logger.info("  PdfChunker: %d chunks from %s", len(chunks), source_path)
+        return chunks
+
+
+class VideoChunker:
+    """Chunks video transcripts into timed parent/child segments."""
+
+    def __init__(self, chapter_map: dict[str, dict] | None = None) -> None:
+        self.chapter_map = chapter_map
+
+    def chunk(self, document: Document) -> list[Chunk]:
+        chunks: list[Chunk] = []
+        commit_sha = document.metadata.get("commit_sha", "")
+        source_path = document.source_path
+        segments = document.metadata.get("segments", [])
+
+        if not segments:
+            return []
+
+        video_id = document.metadata.get("video_id", "")
+        mapping = self.chapter_map.get(video_id, {}) if self.chapter_map else {}
+        chapter = mapping.get("chapter", "")
+        section = mapping.get("lesson", "")
+
+        parent_groups = self._group_by_duration(segments, _VIDEO_PARENT_DURATION)
+        logger.info(
+            "  VideoChunker: %d parent groups from %s",
+            len(parent_groups),
+            source_path,
+        )
+
+        for parent_group in parent_groups:
+            parent_text = " ".join(seg["text"] for seg in parent_group)
+            if not parent_text.strip():
+                continue
+
+            timestamp_seconds = parent_group[0]["start"]
+            timestamp_end = parent_group[-1]["end"]
+            watch_link = f"{_YOUTUBE_WATCH_URL}{video_id}&t={int(timestamp_seconds)}s"
+            extra_metadata = {
+                "chapter": chapter,
+                "section": section,
+                "watch_link": watch_link,
+                "timestamp_seconds": timestamp_seconds,
+                "timestamp_end": timestamp_end,
+                "video_id": video_id,
+            }
+
+            parent = _make_chunk(
+                content=parent_text,
+                source_path=source_path,
+                content_type="video_segment",
+                chunk_type="parent",
+                parent_id=None,
+                commit_sha=commit_sha,
+                extra_metadata=extra_metadata,
+                source_type="video_transcript",
+            )
+            chunks.append(parent)
+
+            child_groups = self._group_by_duration(parent_group, _VIDEO_CHILD_DURATION)
+            for child_group in child_groups:
+                child_text = " ".join(seg["text"] for seg in child_group)
+                if not child_text.strip():
+                    continue
+
+                child_ts = child_group[0]["start"]
+                child_te = child_group[-1]["end"]
+                child_watch_link = f"{_YOUTUBE_WATCH_URL}{video_id}&t={int(child_ts)}s"
+                child_extra_metadata = {
+                    "chapter": chapter,
+                    "section": section,
+                    "watch_link": child_watch_link,
+                    "timestamp_seconds": child_ts,
+                    "timestamp_end": child_te,
+                    "video_id": video_id,
+                }
+
+                chunks.append(
+                    _make_chunk(
+                        content=child_text,
+                        source_path=source_path,
+                        content_type="video_segment",
+                        chunk_type="child",
+                        parent_id=parent.id,
+                        commit_sha=commit_sha,
+                        extra_metadata=child_extra_metadata,
+                        source_type="video_transcript",
+                    )
+                )
+
+        logger.info("  VideoChunker: %d chunks from %s", len(chunks), source_path)
+        return chunks
+
+    def _group_by_duration(self, segments: list[dict], target_duration: float) -> list[list[dict]]:
+        """Groups segments into windows whose wall-clock span reaches target_duration.
+
+        Each window closes as soon as seg["end"] - window_start >= target_duration.
+        Remaining segments form the last group.
+        """
+        groups: list[list[dict]] = []
+        current: list[dict] = []
+        window_start = 0.0
+
+        for seg in segments:
+            if not current:
+                window_start = seg["start"]
+
+            if current and seg["start"] - window_start >= target_duration:
+                groups.append(current)
+                current = []
+                window_start = seg["start"]
+
+            current.append(seg)
+
+            if seg["end"] - window_start >= target_duration:
+                groups.append(current)
+                current = []
+
+        if current:
+            groups.append(current)
+
+        return groups

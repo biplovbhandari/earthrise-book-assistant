@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import json
 import logging
 import re
+from pathlib import Path
 
 from earthrise_rag.models.document import Document
 
@@ -116,4 +118,74 @@ class BibParser:
             content=text,
             metadata={},
             source_type="book_text",
+        )
+
+
+class PdfParser:
+    """Parses PDF files using pdfplumber for text extraction."""
+
+    def parse(self, actual_path: str, source_path: str) -> Document:
+        import pdfplumber
+
+        pages: list[str] = []
+        with pdfplumber.open(actual_path) as pdf:
+            pdf_metadata = dict(pdf.metadata) if pdf.metadata else {}
+            page_count = len(pdf.pages)
+            for page in pdf.pages:
+                text = page.extract_text()
+                if text:
+                    pages.append(text)
+
+        content = "\n\n".join(pages)
+        raw_title = pdf_metadata.get("Title")
+        title = raw_title if raw_title else Path(actual_path).stem.replace("_", " ")
+
+        return Document(
+            title=title,
+            source_path=source_path,
+            content=content,
+            metadata={
+                "page_count": page_count,
+                "pdf_metadata": pdf_metadata,
+            },
+            source_type="book_text",
+        )
+
+
+class TranscriptParser:
+    """Parses JSON transcript files produced by scripts/transcribe.py."""
+
+    def parse(self, actual_path: str, source_path: str) -> Document:
+        with open(actual_path, encoding="utf-8") as f:
+            data = json.load(f)
+
+        for key in ("video_id", "segments"):
+            if key not in data:
+                raise ValueError(
+                    f"Transcript file {actual_path!r} is missing required key: {key!r}"
+                )
+
+        video_id = data["video_id"]
+        segments = data["segments"]
+
+        for i, seg in enumerate(segments):
+            for field in ("start", "end", "text"):
+                if field not in seg:
+                    raise ValueError(
+                        f"Transcript {actual_path!r} segment {i} is missing required field: {field!r}"
+                    )
+
+        content = " ".join(seg["text"] for seg in segments)
+
+        return Document(
+            title=data.get("title", source_path),
+            source_path=source_path,
+            content=content,
+            metadata={
+                "video_id": video_id,
+                "url": data.get("url", ""),
+                "duration_seconds": data.get("duration_seconds"),
+                "segments": segments,
+            },
+            source_type="video_transcript",
         )
