@@ -8,7 +8,7 @@ Detailed component interfaces, adapters, and data models. For the high-level ove
 
 | Module | When | Triggered by | Interface |
 |---|---|---|---|
-| **IndexingPipeline** | Offline (CPU default, GPU optional) | `scripts/index_book.py` | `index_source(source_path) → IndexResult` |
+| **IndexingPipeline** | Offline (CPU default, GPU optional) | `scripts/index_book.py` | `index_source(actual_path, source_path) → IndexResult` |
 | **QueryPipeline** | Online (per-request) | FastAPI `/ask`, `/search` | `ask(question, filters) → Answer` / `search(question, top_k, filters) → list[ScoredChunk]` |
 
 Shared adapters (Embedder, VectorStore) injected into both.
@@ -101,7 +101,7 @@ graph LR
 ```mermaid
 classDiagram
   class IndexingPipeline {
-    +index_source(source_path) IndexResult
+    +index_source(actual_path, source_path) IndexResult
   }
 
   class QueryPipeline {
@@ -174,7 +174,7 @@ classDiagram
 ```mermaid
 classDiagram
   class Parser {
-    +parse(source_path) Document
+    +parse(actual_path, source_path) Document
   }
 
   class ChunkingStrategy {
@@ -196,9 +196,12 @@ classDiagram
   Parser <|-- MarkdownParser
   Parser <|-- NotebookParser
   Parser <|-- BibParser
-  Parser <|-- YoutubeParser
+  Parser <|-- PdfParser
+  Parser <|-- TranscriptParser
   ChunkingStrategy <|-- SectionChunker
   ChunkingStrategy <|-- NotebookChunker
+  ChunkingStrategy <|-- BibChunker
+  ChunkingStrategy <|-- PdfChunker
   ChunkingStrategy <|-- VideoChunker
   LLMClient <|-- OpenAICompatibleClient
 ```
@@ -215,7 +218,7 @@ Chunk (Pydantic BaseModel, frozen):
   content: str
   content_hash: str                          # dedup / change detection
   source_type: "book_text" | "video_transcript"
-  content_type: str                          # concept, code_cell, figure, reference, video_segment, chapter_summary
+  content_type: str                          # concept, code_cell, figure, reference, video_segment, paper, chapter_summary
   metadata: dict[str, Any]                   # chapter, section, heading_path, url, source_path, commit_sha, etc.
   chunk_type: "parent" | "child" | "standalone"
   parent_id: str | None                      # if chunk_type == "child"
@@ -264,11 +267,12 @@ Citation:
 
 ```
 IndexResult:
-  status: "success" | "partial_failure"
+  source_path: str
+  status: "success" | "skipped" | "failed"
   chunks_indexed: int
-  failed_sources: list[str]
+  error: str | None
   embeddings_model: str
-  timestamp: str
+  timestamp: datetime
 ```
 
 ### Pipelines
@@ -326,7 +330,8 @@ Parser registry (by file extension):
 | `.md`, `.qmd` | MarkdownParser |
 | `.ipynb` | NotebookParser |
 | `.bib` | BibParser |
-| YouTube URL | YoutubeParser |
+| `.pdf` | PdfParser |
+| `.json` | TranscriptParser |
 
 ChunkingStrategy registry (same keys as parser):
 
@@ -334,8 +339,9 @@ ChunkingStrategy registry (same keys as parser):
 |---|---|
 | `.md`, `.qmd` | SectionChunker |
 | `.ipynb` | NotebookChunker |
-| `.bib` | SectionChunker (small, no parent/child) |
-| YouTube URL | VideoChunker |
+| `.bib` | BibChunker |
+| `.pdf` | PdfChunker |
+| `.json` | VideoChunker |
 
 Unknown keys raise `ValueError` listing supported types.
 
@@ -388,6 +394,7 @@ Managed via `docker-compose.yml` at repo root. Offline containers use `profiles:
 | `book_html` | Rendered _book/ output | quarto-builder (writes), app (reads) |
 | `qdrant_data` | Vector storage | qdrant |
 | `models_cache` | HuggingFace model weights (~1-4GB) | app, indexer |
+| `data/` | Video chapter maps, transcripts | indexer |
 
 ---
 
@@ -435,6 +442,7 @@ The `indexer` reads from `book_source` but does not clone or pull — depends on
 | Code cell | Notebook code + explanation | chapter, section, cell_index, url |
 | Figure | Caption + surrounding text | chapter, section, figure_id |
 | Reference | BibTeX entry + context | citation_key |
+| Paper | PDF content | chapter, source_path |
 | Video segment | Transcript with timestamp | video_id, timestamp_seconds, watch_link |
 | Chapter summary | Generated or authored summary | chapter |
 
