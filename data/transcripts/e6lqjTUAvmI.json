@@ -1,0 +1,2818 @@
+{
+  "video_id": "e6lqjTUAvmI",
+  "title": "e6lqjTUAvmI",
+  "duration_seconds": 2988.3,
+  "url": "https://www.youtube.com/watch?v=e6lqjTUAvmI",
+  "segments": [
+    {
+      "start": 0.0,
+      "end": 9.0,
+      "text": " Hello and welcome to the walkthrough for the tutorial of Understanding Understanding Active Fire Detection Using Uncertainty with Bayesian Neural Networks."
+    },
+    {
+      "start": 9.0,
+      "end": 17.0,
+      "text": " This chapter is from section 6, Ecological Processes and Simulations from the Applied Artificial Intelligence in Deep Learning Learning book."
+    },
+    {
+      "start": 17.0,
+      "end": 26.0,
+      "text": " Any of the figures you are about to see in this presentation came directly from the chapter and we'll have their figure reference number indicated for you to search them for more information."
+    },
+    {
+      "start": 26.56,
+      "end": 32.32,
+      "text": " My name is Julia. I am one of the chapter authors. I'm also a forest fire modeling specialist with"
+    },
+    {
+      "start": 32.32,
+      "end": 37.36,
+      "text": " the Canadian Forestry Service. My current work is around developing algorithms for"
+    },
+    {
+      "start": 37.36,
+      "end": 42.16,
+      "text": " detecting and describing active fires within Canada, specifically using satellite observed"
+    },
+    {
+      "start": 42.16,
+      "end": 46.400000000000006,
+      "text": " hotspots, and I also have some experience designing and training deep learning models"
+    },
+    {
+      "start": 46.400000000000006,
+      "end": 51.92,
+      "text": " with a focus on the classification neural net. The objective of this chapter was to explore"
+    },
+    {
+      "start": 51.92,
+      "end": 57.36,
+      "text": " application potential of deep learning in regards to active fire monitoring, specifically through"
+    },
+    {
+      "start": 57.36,
+      "end": 62.56,
+      "text": " the use of satellite detected hotspots. All of the hotspot data in this tutorial came from"
+    },
+    {
+      "start": 62.56,
+      "end": 67.6,
+      "text": " Beers and Moda's active fire products, which are available to download for free from NASA firms."
+    },
+    {
+      "start": 70.0,
+      "end": 74.72,
+      "text": " In the interest of computational time for this exercise, we're just going to focus on a single"
+    },
+    {
+      "start": 74.72,
+      "end": 80.96000000000001,
+      "text": " day of fire activity, which will be September 23, 2003. We're also going to restrict it spatially"
+    },
+    {
+      "start": 80.96,
+      "end": 86.16,
+      "text": " to Canada? By restricting our fire activity to Canada, we can use some of the available fire"
+    },
+    {
+      "start": 86.16,
+      "end": 92.39999999999999,
+      "text": " perimeters, such as the National Burned Area and the Canadian National Fire Database, to assign the"
+    },
+    {
+      "start": 92.39999999999999,
+      "end": 97.91999999999999,
+      "text": " classifications to the hotspots. Hotspots are classified as either positive, meaning that the"
+    },
+    {
+      "start": 97.91999999999999,
+      "end": 104.08,
+      "text": " hotspot, once it has been buffered to account for satellite resolution, fell within a fire perimeter"
+    },
+    {
+      "start": 104.08,
+      "end": 111.14,
+      "text": " that was recorded within one of these data sets, or it is not positive, meaning that NASA firms"
+    },
+    {
+      "start": 111.14,
+      "end": 116.72,
+      "text": " is reporting a hotspot labeled as fire, but neither of these data sets support that there"
+    },
+    {
+      "start": 116.72,
+      "end": 122.36,
+      "text": " was an active fire in the location at the time of detection. I would like to take this moment"
+    },
+    {
+      "start": 122.36,
+      "end": 128.44,
+      "text": " to point out that although it is Canadian fire data and perimeters being used for this demonstration,"
+    },
+    {
+      "start": 128.8,
+      "end": 133.3,
+      "text": " this methodology was specifically designed to be applied to any region. For example,"
+    },
+    {
+      "start": 133.3,
+      "end": 135.84,
+      "text": " Well, VIRS and MODIS ActiveFire are global products,"
+    },
+    {
+      "start": 135.98000000000002,
+      "end": 138.34,
+      "text": " which means wherever the area of interest is,"
+    },
+    {
+      "start": 138.64000000000001,
+      "end": 141.72,
+      "text": " there is a firm's download that can provide you with the hotspot data."
+    },
+    {
+      "start": 142.4,
+      "end": 146.52,
+      "text": " That being said, we didn't limit this code to processing only firm's data either."
+    },
+    {
+      "start": 146.86,
+      "end": 149.94,
+      "text": " By some slight modifications to the data input functions"
+    },
+    {
+      "start": 149.94,
+      "end": 152.62,
+      "text": " to recognize data from an alternative source,"
+    },
+    {
+      "start": 153.18,
+      "end": 156.98000000000002,
+      "text": " all the rest of the methodology could be applied to any data set"
+    },
+    {
+      "start": 156.98000000000002,
+      "end": 159.9,
+      "text": " that is featuring ActiveFire stored as point data."
+    },
+    {
+      "start": 159.9,
+      "end": 176.8,
+      "text": " So as long as the practitioner has access to hotspot source, as well as some perimeters or just ways to confirm the presence or absence of an active fire, there is no reason to be focusing on firms downloaded hotspots or Canadian fire perimeters."
+    },
+    {
+      "start": 177.24,
+      "end": 184.08,
+      "text": " You can go ahead and apply this to whatever problem you have that fits the parameters of fire point data."
+    },
+    {
+      "start": 184.08,
+      "end": 190.32000000000002,
+      "text": " The main intent for this tutorial was to pass on the theoretical knowledge, which we've contained"
+    },
+    {
+      "start": 190.32000000000002,
+      "end": 197.04000000000002,
+      "text": " mainly within the chapter discussing deep learning, fire, Bayesian neural nets, as well as some"
+    },
+    {
+      "start": 197.04000000000002,
+      "end": 201.60000000000002,
+      "text": " practical coding knowledge, how to bring these models to life, which are going to be shown in"
+    },
+    {
+      "start": 201.60000000000002,
+      "end": 206.8,
+      "text": " the notebook, which is what I will walk through you today. Our aim was to give a user just a"
+    },
+    {
+      "start": 206.8,
+      "end": 210.96,
+      "text": " reliable starting place for designing your own model to be able to address your own problem"
+    },
+    {
+      "start": 210.96,
+      "end": 216.16,
+      "text": " regarding active fire detection. The deep learning library that's going to be featured in this"
+    },
+    {
+      "start": 216.16,
+      "end": 222.64000000000001,
+      "text": " tutorial is Keras and the work of this tutorial is heavily based off of the Keras Bayesian Neural"
+    },
+    {
+      "start": 222.64000000000001,
+      "end": 227.92000000000002,
+      "text": " Networks tutorial. That being said, you do not have to be familiar with that tutorial or even"
+    },
+    {
+      "start": 227.92000000000002,
+      "end": 233.68,
+      "text": " have worked with Keras at all in order to use our code. The tutorial that we have created for you"
+    },
+    {
+      "start": 233.68,
+      "end": 237.76000000000002,
+      "text": " starts all the way at the beginning with setting up the environment, installing the packages."
+    },
+    {
+      "start": 238.64,
+      "end": 243.04,
+      "text": " Another point of note is that the original Keras tutorial was written for Keras 2."
+    },
+    {
+      "start": 243.67999999999998,
+      "end": 248.88,
+      "text": " At the time of recording this, Keras 3 is now the default version, so some of those Keras 2"
+    },
+    {
+      "start": 248.88,
+      "end": 254.16,
+      "text": " functions are depreciated and that tutorial will not run as expected. Therefore, we have gone ahead"
+    },
+    {
+      "start": 254.16,
+      "end": 259.76,
+      "text": " and updated all of the functions to be compatible with the Keras 3 environment. Another modification"
+    },
+    {
+      "start": 259.76,
+      "end": 266.08,
+      "text": " that we made is in the tutorial, they were using a regression analysis. The data we are going to"
+    },
+    {
+      "start": 266.08,
+      "end": 271.32,
+      "text": " to present to you, the presence absence of fire data, is more suited for a classification analysis."
+    },
+    {
+      "start": 272.15999999999997,
+      "end": 277.8,
+      "text": " In order to make the code run a classification analysis, some minor changes were done to model"
+    },
+    {
+      "start": 277.8,
+      "end": 283.38,
+      "text": " architecture as well as the loss values used by the model. If a difference between a regression"
+    },
+    {
+      "start": 283.38,
+      "end": 287.94,
+      "text": " and a classification analysis is something that interests you, I invite you to compare the codes"
+    },
+    {
+      "start": 287.94,
+      "end": 292.97999999999996,
+      "text": " with an R function to the codes in that tutorial, and a link to that tutorial is provided right"
+    },
+    {
+      "start": 292.98,
+      "end": 298.3,
+      "text": " within the notebook. We did our best to preserve the function names between their naming structure"
+    },
+    {
+      "start": 298.3,
+      "end": 303.32,
+      "text": " and our naming structure to allow you to perform these kind of comparisons and get to know"
+    },
+    {
+      "start": 303.32,
+      "end": 309.22,
+      "text": " the code in a deeper level. In addition to these modifications, we have also included"
+    },
+    {
+      "start": 309.22,
+      "end": 315.62,
+      "text": " some novel functions to expand on the abilities not featured in the original. These include"
+    },
+    {
+      "start": 315.62,
+      "end": 321.94,
+      "text": " the inclusion of additional model architectures. We've included the functions and the pipeline"
+    },
+    {
+      "start": 321.94,
+      "end": 327.2,
+      "text": " to be able to perform hyperparameter tuning. We've included some additional evaluation metrics"
+    },
+    {
+      "start": 327.2,
+      "end": 333.08,
+      "text": " and even figures to generate more in-depth evaluations, as well as to give you a more"
+    },
+    {
+      "start": 333.08,
+      "end": 337.42,
+      "text": " detailed interpretation of exactly what your model might be doing."
+    },
+    {
+      "start": 339.32,
+      "end": 345.1,
+      "text": " In order to really demonstrate to you the different aspects of this code, we designed two"
+    },
+    {
+      "start": 345.1,
+      "end": 350.24,
+      "text": " case studies. Each case study is both a representation of a real application potential"
+    },
+    {
+      "start": 350.24,
+      "end": 354.34000000000003,
+      "text": " that deep learning Bayesian neural nets could have regarding active fire,"
+    },
+    {
+      "start": 354.6,
+      "end": 358.14,
+      "text": " but they're also set up in a way to really demonstrate to the user"
+    },
+    {
+      "start": 358.14,
+      "end": 362.5,
+      "text": " how to walk through the design of a deep learning problem,"
+    },
+    {
+      "start": 362.84000000000003,
+      "end": 366.68,
+      "text": " about how decisions that are made can impact the results."
+    },
+    {
+      "start": 368.68,
+      "end": 372.02,
+      "text": " Through this tutorial, we're going to be using three different data sets."
+    },
+    {
+      "start": 372.18,
+      "end": 374.62,
+      "text": " We're going to be training two different versions of the Bayesian neural net,"
+    },
+    {
+      "start": 374.62,
+      "end": 377.76,
+      "text": " and at the end, there'll be five unique deep learning models."
+    },
+    {
+      "start": 377.76,
+      "end": 391.09999999999997,
+      "text": " Brief overview, the goal of case study A was just to see if a supervised Bayesian neural network can be used to predict whether satellite-detected hotspots can be correlated to confirmed fires on the ground."
+    },
+    {
+      "start": 391.68,
+      "end": 405.34,
+      "text": " And the purpose of this was to serve as a representation for the user as to how much effort put into dataset preparation, model structure, hyperparameter tuning can affect the model performance down the line."
+    },
+    {
+      "start": 405.34,
+      "end": 414.34,
+      "text": " The second case study we'll present to you is to test a hypothesis, specifically the hypothesis that the source of reported hotspots,"
+    },
+    {
+      "start": 414.34,
+      "end": 423.34,
+      "text": " so whether it was vires detected or motus detected in our case, can impact a trained model's ability to then correctly classify said hotspot."
+    },
+    {
+      "start": 423.34,
+      "end": 429.34,
+      "text": " This will also serve as an example of how having a defined study goal can really influence model selection,"
+    },
+    {
+      "start": 429.34,
+      "end": 435.52,
+      "text": " because we're going to be comparing two different variations of the Bayesian neural net, point and probabilistic."
+    },
+    {
+      "start": 435.71999999999997,
+      "end": 441.5,
+      "text": " And we're going to demonstrate to you that it's not just about the end result of the model,"
+    },
+    {
+      "start": 441.73999999999995,
+      "end": 445.52,
+      "text": " but if you choose a model that is particularly suited to your task,"
+    },
+    {
+      "start": 445.52,
+      "end": 449.73999999999995,
+      "text": " you might be able to use features that that version of the model has that others don't"
+    },
+    {
+      "start": 449.73999999999995,
+      "end": 454.26,
+      "text": " in order to assist with your validation and interpretation of the results."
+    },
+    {
+      "start": 455.0,
+      "end": 457.65999999999997,
+      "text": " This is just a very high overview of our study designs,"
+    },
+    {
+      "start": 457.66,
+      "end": 462.22,
+      "text": " and I will be going into much more details as they become relevant walking our way through the"
+    },
+    {
+      "start": 462.22,
+      "end": 468.06,
+      "text": " notebook with you. However, I do highly, highly suggest that you take the time to read our chapter."
+    },
+    {
+      "start": 468.06,
+      "end": 476.94000000000005,
+      "text": " It can be found in section six before you start applying your own problems to this methodology."
+    },
+    {
+      "start": 476.94000000000005,
+      "end": 481.26000000000005,
+      "text": " In that chapter, we go into much further details regarding how the raw data was processed,"
+    },
+    {
+      "start": 481.26000000000005,
+      "end": 487.34000000000003,
+      "text": " to even be sustainable for model training, why we chose a Bayesian neural network versus any"
+    },
+    {
+      "start": 487.34,
+      "end": 492.71999999999997,
+      "text": " other neural network are deep learning, the specific model architectures we used, why they"
+    },
+    {
+      "start": 492.71999999999997,
+      "end": 498.44,
+      "text": " were chosen, some more in-depth explanation on what the result figures mean, how they can be"
+    },
+    {
+      "start": 498.44,
+      "end": 503.21999999999997,
+      "text": " interpreted, and we also included some limitations and applicational impacts that we identified"
+    },
+    {
+      "start": 503.21999999999997,
+      "end": 508.82,
+      "text": " while working with this data. This tutorial, on the other hand, is mostly going to be focused on"
+    },
+    {
+      "start": 508.82,
+      "end": 513.6,
+      "text": " the code. Very shortly I'll be pulling it up screen so you can follow along with me and I'll"
+    },
+    {
+      "start": 513.6,
+      "end": 518.5600000000001,
+      "text": " be talking you through why we coded the things the way they did, what they contribute to the workflow."
+    },
+    {
+      "start": 522.4,
+      "end": 528.88,
+      "text": " Hello and welcome to our notebook. The link to this notebook can be found through the book's"
+    },
+    {
+      "start": 528.88,
+      "end": 536.64,
+      "text": " website and as well on the GitHub. Feel free to download this from the GitHub, save it yourself,"
+    },
+    {
+      "start": 536.64,
+      "end": 540.32,
+      "text": " make the modifications you need, and use it as the basis to start your own project."
+    },
+    {
+      "start": 540.32,
+      "end": 550.32,
+      "text": " Also included up on the GitHub is going to be any of the input data I'm working with, as well as model files, so you can run this alongside me."
+    },
+    {
+      "start": 550.32,
+      "end": 558.32,
+      "text": " Before I begin running the notebook, I'm just going to draw your attention to some notes at the beginning about some common issues that can come up."
+    },
+    {
+      "start": 558.32,
+      "end": 561.32,
+      "text": " The first is regarding Python versioning."
+    },
+    {
+      "start": 561.32,
+      "end": 569.5400000000001,
+      "text": " This code at the time of writing was in the Python 3.10 environment, which was the default"
+    },
+    {
+      "start": 569.5400000000001,
+      "end": 573.32,
+      "text": " at the time for Colab when you called a Python environment."
+    },
+    {
+      "start": 573.32,
+      "end": 578.44,
+      "text": " Since that time, Colab has updated which Python environment it calls by default."
+    },
+    {
+      "start": 578.44,
+      "end": 584.58,
+      "text": " And that means that some of the libraries used in this version no longer work with the"
+    },
+    {
+      "start": 584.58,
+      "end": 586.5,
+      "text": " updated Python version."
+    },
+    {
+      "start": 586.5,
+      "end": 592.42,
+      "text": " make sure that codes such as this or other ones you make can continue to run in Colab even as"
+    },
+    {
+      "start": 592.42,
+      "end": 599.54,
+      "text": " Colab updates its default environments we will be resetting the environment back to 3.110 the"
+    },
+    {
+      "start": 599.54,
+      "end": 604.18,
+      "text": " environment the code was expected to run in and that is something I will show you how to do during"
+    },
+    {
+      "start": 604.18,
+      "end": 610.18,
+      "text": " the workflow. The other thing I would like to draw your attention to is that the code was intended to"
+    },
+    {
+      "start": 610.18,
+      "end": 615.38,
+      "text": " be run start to finish meaning that even if you have a section at the bottom that you're interested"
+    },
+    {
+      "start": 615.38,
+      "end": 620.1,
+      "text": " in, please still take the time to run all the functions at the beginning of the code. This is"
+    },
+    {
+      "start": 620.1,
+      "end": 623.76,
+      "text": " because there are functions that are defined in the beginning of the code, but will continue to"
+    },
+    {
+      "start": 623.76,
+      "end": 628.68,
+      "text": " be called throughout the entire workflow. So if you do not activate the cells at the beginning of"
+    },
+    {
+      "start": 628.68,
+      "end": 633.4,
+      "text": " this code, you may get an error that one of your functions is undefined. Just go back up to the top"
+    },
+    {
+      "start": 633.4,
+      "end": 639.52,
+      "text": " and run that code cell. Finally, the difference between Colab and Jupyter. This tutorial was"
+    },
+    {
+      "start": 639.52,
+      "end": 644.24,
+      "text": " constructed with the assumption that it would be being run within the Colab environment to allow a"
+    },
+    {
+      "start": 644.24,
+      "end": 646.34,
+      "text": " user to take advantage of the computing resources"
+    },
+    {
+      "start": 646.34,
+      "end": 648.5600000000001,
+      "text": " that Google Colab can provide."
+    },
+    {
+      "start": 648.5600000000001,
+      "end": 651.5600000000001,
+      "text": " And we highly recommend users who are new to Python"
+    },
+    {
+      "start": 651.5600000000001,
+      "end": 654.32,
+      "text": " stick with the option of just running it in the Colab"
+    },
+    {
+      "start": 654.32,
+      "end": 656.26,
+      "text": " as it negates their need to have to set up"
+    },
+    {
+      "start": 656.26,
+      "end": 657.96,
+      "text": " Python on your local machine, make"
+    },
+    {
+      "start": 657.96,
+      "end": 660.5600000000001,
+      "text": " sure all of the libraries are downloaded, installed, et"
+    },
+    {
+      "start": 660.5600000000001,
+      "end": 661.7,
+      "text": " cetera."
+    },
+    {
+      "start": 661.7,
+      "end": 664.34,
+      "text": " Therefore, that is the default option of the code"
+    },
+    {
+      "start": 664.34,
+      "end": 665.94,
+      "text": " that it will run in Colab."
+    },
+    {
+      "start": 665.94,
+      "end": 667.7,
+      "text": " However, we do recognize that there"
+    },
+    {
+      "start": 667.7,
+      "end": 670.12,
+      "text": " are some advanced users that may prefer"
+    },
+    {
+      "start": 670.12,
+      "end": 673.04,
+      "text": " to be running these kind of workflows locally."
+    },
+    {
+      "start": 673.04,
+      "end": 688.12,
+      "text": " Therefore, throughout the code, there are a couple places where we have included the instructions for if you are one of those advanced users that wishes to run this code locally, where you need to change or omit certain lines because they are specific to the Colab."
+    },
+    {
+      "start": 688.24,
+      "end": 695.76,
+      "text": " I will draw your attention to where those places are as we work our way through the code, but I'm not going to actually run the code on a local machine."
+    },
+    {
+      "start": 695.76,
+      "end": 700.72,
+      "text": " I'm going to stick to the Colab space as that is where we assume most of our users will work"
+    },
+    {
+      "start": 700.72,
+      "end": 707.68,
+      "text": " and it is what we originally designed for. With that, let's begin running the code."
+    },
+    {
+      "start": 708.88,
+      "end": 717.6,
+      "text": " So first make sure the flag is set to C for Colab. We're going to go ahead and just hit run all."
+    },
+    {
+      "start": 719.36,
+      "end": 725.52,
+      "text": " All right, so very first cell of the code, uploading those files for training the models."
+    },
+    {
+      "start": 725.76,
+      "end": 733.38,
+      "text": " See the code will buffer here. It does require user interaction to move past this step."
+    },
+    {
+      "start": 733.96,
+      "end": 741.02,
+      "text": " So you can either choose files, and if you were to click here, it's going to open a window to your machine,"
+    },
+    {
+      "start": 741.02,
+      "end": 743.64,
+      "text": " and you can click navigate through and find your files."
+    },
+    {
+      "start": 744.4399999999999,
+      "end": 748.16,
+      "text": " I actually have already added the files to my system."
+    },
+    {
+      "start": 748.48,
+      "end": 754.48,
+      "text": " There is a couple minute delay as the files upload, so I just went ahead and did this before the tutorial to save us some time."
+    },
+    {
+      "start": 755.76,
+      "end": 761.84,
+      "text": " And here as on the side where it says files, confirming that I have everything in the location"
+    },
+    {
+      "start": 761.84,
+      "end": 768.3199999999999,
+      "text": " ready to go. So I'm going to hit the cancel upload button. My files are already present in the contact"
+    },
+    {
+      "start": 768.3199999999999,
+      "end": 773.76,
+      "text": " folder. We're going to move on to the next section. This was what I was talking about, about running"
+    },
+    {
+      "start": 773.76,
+      "end": 782.8,
+      "text": " locally. So our code actually doesn't use a GPU. In order to make this the most accessible and not"
+    },
+    {
+      "start": 782.8,
+      "end": 787.76,
+      "text": " have to rely on having resources whether it's in the google cloud space or on your local machine"
+    },
+    {
+      "start": 787.76,
+      "end": 793.4399999999999,
+      "text": " we created a code that runs purely off of the cpu that being said if you have a gpu you might be"
+    },
+    {
+      "start": 793.4399999999999,
+      "end": 796.8,
+      "text": " interested in using it that would be one of the reasons that you would want to take it out of"
+    },
+    {
+      "start": 796.8,
+      "end": 800.9599999999999,
+      "text": " colab and run it on your space here's the instructions we've provided you with the"
+    },
+    {
+      "start": 800.9599999999999,
+      "end": 809.04,
+      "text": " yaml files the csvs and you can go ahead and do that yourself we are going to for this tutorial"
+    },
+    {
+      "start": 809.04,
+      "end": 816.4,
+      "text": " keep it set as C because that is where we're going. Next in the code is this frequently asked questions."
+    },
+    {
+      "start": 817.28,
+      "end": 823.12,
+      "text": " I won't go through this word for word just because it's here for you to read, but know that if you're"
+    },
+    {
+      "start": 823.12,
+      "end": 829.04,
+      "text": " having problems with uploading the files, finding your files, if you want to know can we use these"
+    },
+    {
+      "start": 829.04,
+      "end": 833.76,
+      "text": " on different data sets? Yes, I discussed that earlier. Please, please use this on as many data sets as you"
+    },
+    {
+      "start": 833.76,
+      "end": 841.12,
+      "text": " can. Questions about time. This notebook in general will take about two hours to run. I am going to"
+    },
+    {
+      "start": 841.12,
+      "end": 846.24,
+      "text": " be loading in some pre-trained models so that way you and I don't have to sit here while the models"
+    },
+    {
+      "start": 846.24,
+      "end": 851.36,
+      "text": " run for two hours. But just to let you know that if you are running the code from scratch, which I"
+    },
+    {
+      "start": 851.36,
+      "end": 855.04,
+      "text": " highly highly suggest you do, even though I'm going to provide you with pre-trained models,"
+    },
+    {
+      "start": 855.04,
+      "end": 858.8,
+      "text": " still try to make your own. It's worth the experience. But this is just to give you some"
+    },
+    {
+      "start": 858.8,
+      "end": 865.12,
+      "text": " context about what to expect. We've got help boxes sprinkled throughout the code for areas"
+    },
+    {
+      "start": 865.12,
+      "end": 871.28,
+      "text": " where common questions came up. And as I mentioned, the GPU time, as well as some crashing."
+    },
+    {
+      "start": 872.3199999999999,
+      "end": 876.8,
+      "text": " All right. And with that, let's talk about loading these pre-trained models."
+    },
+    {
+      "start": 878.64,
+      "end": 886.4,
+      "text": " Once again, if you load in the pre-trained models, you can either set it to true,"
+    },
+    {
+      "start": 886.4,
+      "end": 892.9399999999999,
+      "text": " or if I'm not, if I want to train this from scratch, I will just edit this and put it as false"
+    },
+    {
+      "start": 892.9399999999999,
+      "end": 899.5799999999999,
+      "text": " and that negates the rest of the code of loading the rest of the code. But for our case, we're"
+    },
+    {
+      "start": 899.5799999999999,
+      "end": 905.16,
+      "text": " going to set this to true and I again loaded the model files already to save us a bit of upload"
+    },
+    {
+      "start": 905.16,
+      "end": 911.18,
+      "text": " time. But it's the same step as loading your input data. Just choose the file or in my case,"
+    },
+    {
+      "start": 911.18,
+      "end": 916.54,
+      "text": " cancel the upload. All right. And with that, let's get to the good stuff. Right off the bat,"
+    },
+    {
+      "start": 916.92,
+      "end": 923.3399999999999,
+      "text": " Python 3.12. If you were paying attention and gold stars for you at the beginning of this code,"
+    },
+    {
+      "start": 923.42,
+      "end": 930.2399999999999,
+      "text": " I mentioned that this is a Python 3.10 code. Interestingly enough, this was Python 11 a"
+    },
+    {
+      "start": 930.2399999999999,
+      "end": 935.9399999999999,
+      "text": " couple of days ago. So Google is just going to constantly update. And this is a really useful"
+    },
+    {
+      "start": 935.9399999999999,
+      "end": 940.28,
+      "text": " skill for probably other notebooks too, is just knowing how to go back to the version that your"
+    },
+    {
+      "start": 940.28,
+      "end": 944.52,
+      "text": " code was intended for. So this code will not move past this"
+    },
+    {
+      "start": 944.52,
+      "end": 947.6,
+      "text": " box, this requires some user interference. So if you notice"
+    },
+    {
+      "start": 947.6,
+      "end": 950.62,
+      "text": " the codes been running a while, you're like, what's up, go check"
+    },
+    {
+      "start": 950.62,
+      "end": 953.04,
+      "text": " and make sure that you actually entered the data in this box,"
+    },
+    {
+      "start": 953.04,
+      "end": 959.9,
+      "text": " because sometimes you might be stuck here. So I want 3.110,"
+    },
+    {
+      "start": 960.4399999999999,
+      "end": 963.9599999999999,
+      "text": " which corresponds to selection one, I'm going to go ahead and"
+    },
+    {
+      "start": 963.9599999999999,
+      "end": 967.28,
+      "text": " just enter, type the number one there using my keyboard, hit"
+    },
+    {
+      "start": 967.28,
+      "end": 972.8399999999999,
+      "text": " Enter. And there we go. Okay, next code confirming that the"
+    },
+    {
+      "start": 973.6,
+      "end": 978.86,
+      "text": " version change took effect. And now we are in installing all of"
+    },
+    {
+      "start": 978.86,
+      "end": 982.4599999999999,
+      "text": " our libraries getting the environment set up. Nothing for"
+    },
+    {
+      "start": 982.4599999999999,
+      "end": 988.54,
+      "text": " you to do here. Go ahead and let it run. environment are in this"
+    },
+    {
+      "start": 989.22,
+      "end": 993.1999999999999,
+      "text": " downloading all the packages we need. And the next step will be"
+    },
+    {
+      "start": 993.1999999999999,
+      "end": 995.88,
+      "text": " the import statement. I'm actually going to go ahead and"
+    },
+    {
+      "start": 995.88,
+      "end": 1001.8,
+      "text": " pause. This can take about three to five minutes, maybe a little longer depending on your internet."
+    },
+    {
+      "start": 1002.14,
+      "end": 1005.88,
+      "text": " So I'm just going to leave us here and I'll rejoin you when my environment is set up."
+    },
+    {
+      "start": 1007.16,
+      "end": 1014.12,
+      "text": " Hello and welcome back. My environment is ready. This helpful box here is what's letting me know"
+    },
+    {
+      "start": 1014.12,
+      "end": 1020.66,
+      "text": " that it's confirming that TensorFlow and TensorFlow Keras have been loaded in the versions."
+    },
+    {
+      "start": 1020.66,
+      "end": 1028.8999999999999,
+      "text": " If you do find any errors in a code, this is a great spot to go back for debugging to make sure that you are loading the correct versions."
+    },
+    {
+      "start": 1030.22,
+      "end": 1033.34,
+      "text": " And with that, we are going to get into case study A."
+    },
+    {
+      "start": 1034.06,
+      "end": 1041.52,
+      "text": " Case study A, as a reminder, was the very top level case study of just answering the question,"
+    },
+    {
+      "start": 1041.52,
+      "end": 1049.0,
+      "text": " can VIRS active fire products be used to train a model that can reliably predict whether or not"
+    },
+    {
+      "start": 1049.0,
+      "end": 1059.6399999999999,
+      "text": " a future observed hotspot fell within a documented perimeter or not. And the first step of this,"
+    },
+    {
+      "start": 1059.6399999999999,
+      "end": 1065.2,
+      "text": " before we start training any models, is going to be defining an epoch. We will set our epoch to be"
+    },
+    {
+      "start": 1065.2,
+      "end": 1072.5,
+      "text": " 30. If you would like some more background on why we chose 30, what is an epoch, anything like that,"
+    },
+    {
+      "start": 1073.0800000000002,
+      "end": 1077.92,
+      "text": " please go check out the chapter. There's a whole section on epochs, but for the right now context,"
+    },
+    {
+      "start": 1078.32,
+      "end": 1085.44,
+      "text": " epoch is the number of times the model will retrain itself during the training process. So"
+    },
+    {
+      "start": 1085.44,
+      "end": 1090.32,
+      "text": " choosing an epoch, you need a number large enough that the model will go through enough renditions"
+    },
+    {
+      "start": 1090.32,
+      "end": 1092.54,
+      "text": " to sufficiently train itself."
+    },
+    {
+      "start": 1092.8999999999999,
+      "end": 1094.8,
+      "text": " But if you take too large of a number,"
+    },
+    {
+      "start": 1094.9399999999998,
+      "end": 1097.22,
+      "text": " then you're just using up a computational time"
+    },
+    {
+      "start": 1097.22,
+      "end": 1100.08,
+      "text": " and resources that once the model's trained, it's trained."
+    },
+    {
+      "start": 1100.22,
+      "end": 1102.8799999999999,
+      "text": " There's a finite amount of training that can be received."
+    },
+    {
+      "start": 1103.62,
+      "end": 1106.0,
+      "text": " So that is a huge part of designing"
+    },
+    {
+      "start": 1106.0,
+      "end": 1107.28,
+      "text": " your own deep learning study"
+    },
+    {
+      "start": 1107.28,
+      "end": 1109.2,
+      "text": " is playing around with the epochs"
+    },
+    {
+      "start": 1109.2,
+      "end": 1111.82,
+      "text": " and finding that sweet spot of giving your models"
+    },
+    {
+      "start": 1111.82,
+      "end": 1114.7,
+      "text": " enough of them to receive sufficient training,"
+    },
+    {
+      "start": 1115.0,
+      "end": 1119.26,
+      "text": " but not so many that it's becoming unreasonable"
+    },
+    {
+      "start": 1119.26,
+      "end": 1126.22,
+      "text": " for you to be running this code. So the very first model you can think of is almost a default model"
+    },
+    {
+      "start": 1126.22,
+      "end": 1133.3799999999999,
+      "text": " or a model that had minimal user customization or input. The architecture of the model was as close"
+    },
+    {
+      "start": 1133.3799999999999,
+      "end": 1140.18,
+      "text": " to the original tutorials models as we could get with the appropriate modifications and the data"
+    },
+    {
+      "start": 1140.18,
+      "end": 1147.48,
+      "text": " that's going to be used for the training of this model is as unprocessed as possible. We still"
+    },
+    {
+      "start": 1147.48,
+      "end": 1153.64,
+      "text": " obviously had to add classifications. We did remove any spots where it was an immediate"
+    },
+    {
+      "start": 1154.84,
+      "end": 1160.6,
+      "text": " erroneous data as in like a field was corrupt, something like that. But beyond that, we did not"
+    },
+    {
+      "start": 1160.6,
+      "end": 1167.72,
+      "text": " apply any of the techniques usually recommended for deep learning data preparation. If you want"
+    },
+    {
+      "start": 1167.72,
+      "end": 1173.88,
+      "text": " more details on exactly how we prepared this data, go to the chapter. There's a whole section on it"
+    },
+    {
+      "start": 1173.88,
+      "end": 1179.48,
+      "text": " where we walk you through how we came from downloading to firms and generating the CSV files"
+    },
+    {
+      "start": 1179.48,
+      "end": 1186.2,
+      "text": " that we've provided with you to run the tutorial. So here we go. Now we're going to get into the"
+    },
+    {
+      "start": 1186.2,
+      "end": 1191.16,
+      "text": " function defining. So these functions are based off the structure provided for the tutorial"
+    },
+    {
+      "start": 1191.96,
+      "end": 1199.3200000000002,
+      "text": " by Keras. So if you want to learn some more, here is confirming our data loaded in,"
+    },
+    {
+      "start": 1199.32,
+      "end": 1205.56,
+      "text": " in, got our class, everything's good. Back to defining more functions. As I was saying,"
+    },
+    {
+      "start": 1205.56,
+      "end": 1209.7,
+      "text": " if you want to learn more about like what these functions do, we've added some comments"
+    },
+    {
+      "start": 1209.7,
+      "end": 1216.5,
+      "text": " here. But I do highly suggest that you take a look at things like TensorFlow layers, distribution,"
+    },
+    {
+      "start": 1216.5,
+      "end": 1221.3,
+      "text": " lambda, that has documentation, spend some time, go ahead and just comb your way through"
+    },
+    {
+      "start": 1221.3,
+      "end": 1227.22,
+      "text": " that documentation. And there is so much information contained in there by those authors letting"
+    },
+    {
+      "start": 1227.22,
+      "end": 1233.98,
+      "text": " you know what this does, why to choose it, you can really glean a lot seeing what the different"
+    },
+    {
+      "start": 1233.98,
+      "end": 1240.52,
+      "text": " variables are. Here are just more helper functions. This is the function that stitches everything"
+    },
+    {
+      "start": 1240.52,
+      "end": 1246.82,
+      "text": " together. Here's a function that lets everything actually run in the experiment. So you're"
+    },
+    {
+      "start": 1246.82,
+      "end": 1254.08,
+      "text": " literally compiling the model, training the model, saving the validation loss. One of our first helper"
+    },
+    {
+      "start": 1254.08,
+      "end": 1259.4399999999998,
+      "text": " boxes. This is in regards to whether or not you want to train your models from scratch versus"
+    },
+    {
+      "start": 1259.4399999999998,
+      "end": 1264.6399999999999,
+      "text": " reading and save models. Highly, highly recommend you do at least one scratch train run. It's super"
+    },
+    {
+      "start": 1264.6399999999999,
+      "end": 1270.8799999999999,
+      "text": " important and it'll give you a lot of context. That being said, we recognize that these models"
+    },
+    {
+      "start": 1270.8799999999999,
+      "end": 1275.6799999999998,
+      "text": " are not fast. They can take 40 minutes, maybe an hour to train and could be even more depending on"
+    },
+    {
+      "start": 1275.6799999999998,
+      "end": 1282.24,
+      "text": " your data. So our code is designed that the first time a model is trained from scratch,"
+    },
+    {
+      "start": 1282.24,
+      "end": 1287.48,
+      "text": " it will automatically save those model weights to an output folder."
+    },
+    {
+      "start": 1287.78,
+      "end": 1289.88,
+      "text": " That way you can train your model from scratch."
+    },
+    {
+      "start": 1290.18,
+      "end": 1294.8,
+      "text": " You if you want to change something or you want to add a new visualization,"
+    },
+    {
+      "start": 1294.8,
+      "end": 1297.54,
+      "text": " a new metric, you don't always if you're not trying to update"
+    },
+    {
+      "start": 1297.54,
+      "end": 1301.04,
+      "text": " the model training yourself, you just maybe want to add an evaluation metric"
+    },
+    {
+      "start": 1301.34,
+      "end": 1304.2,
+      "text": " or even just to show somebody to recreate your results."
+    },
+    {
+      "start": 1304.48,
+      "end": 1307.0,
+      "text": " The model files are going to automatically be saved"
+    },
+    {
+      "start": 1307.38,
+      "end": 1310.64,
+      "text": " and they will be showing up in this folder if you go to look for them."
+    },
+    {
+      "start": 1312.24,
+      "end": 1319.7,
+      "text": " We, however, as this text is reminded, selected to read and save models because that will just make this go much faster."
+    },
+    {
+      "start": 1320.36,
+      "end": 1323.28,
+      "text": " So this step was skipped and we're here."
+    },
+    {
+      "start": 1327.46,
+      "end": 1332.0,
+      "text": " And I've done that for all three we've read in our saved models."
+    },
+    {
+      "start": 1332.6200000000001,
+      "end": 1336.1200000000001,
+      "text": " And now it's time to compute our predictions."
+    },
+    {
+      "start": 1336.6,
+      "end": 1338.58,
+      "text": " So we've got some more functions here."
+    },
+    {
+      "start": 1338.58,
+      "end": 1340.14,
+      "text": " These are the evaluation functions."
+    },
+    {
+      "start": 1340.14,
+      "end": 1349.18,
+      "text": " one of the first things I want to draw your attention to is the epoch curve. So as I"
+    },
+    {
+      "start": 1349.18,
+      "end": 1354.7800000000002,
+      "text": " mentioned before, we want to pick a number of epochs that makes this curve become level."
+    },
+    {
+      "start": 1355.92,
+      "end": 1361.2800000000002,
+      "text": " 30 seems like a good number. It didn't take too long to run in my opinion. It only took me a"
+    },
+    {
+      "start": 1361.2800000000002,
+      "end": 1366.14,
+      "text": " couple minutes when I ran it live. So I'm going to stick with 30. And that's the kind of thought"
+    },
+    {
+      "start": 1366.14,
+      "end": 1369.7800000000002,
+      "text": " process that us the authors had as we were creating this notebook. Tried out a bunch of"
+    },
+    {
+      "start": 1369.78,
+      "end": 1376.84,
+      "text": " different numbers. We found that 30 was reliable, but it didn't take us too long. Next, we're going"
+    },
+    {
+      "start": 1376.84,
+      "end": 1382.76,
+      "text": " to get into model two. Model two is where we're going to implement some deep learning data"
+    },
+    {
+      "start": 1382.76,
+      "end": 1391.16,
+      "text": " preparation steps, specifically called balancing a data set. So when it comes to,"
+    },
+    {
+      "start": 1391.16,
+      "end": 1401.74,
+      "text": " here is a graph showing the balance of our two class. Class one in this case represents fire"
+    },
+    {
+      "start": 1401.74,
+      "end": 1408.5800000000002,
+      "text": " and class two represents false positive hot spots that were not found within defined fires."
+    },
+    {
+      "start": 1409.28,
+      "end": 1414.02,
+      "text": " This is a very unbalanced data set and that is actually quite commonly the case in deep learning"
+    },
+    {
+      "start": 1414.02,
+      "end": 1421.02,
+      "text": " especially if you're doing deep learning in the space of ecology, biology, natural resources,"
+    },
+    {
+      "start": 1421.16,
+      "end": 1425.3600000000001,
+      "text": " is the world does not perfectly distribute itself."
+    },
+    {
+      "start": 1425.3600000000001,
+      "end": 1426.76,
+      "text": " And that can be a problem."
+    },
+    {
+      "start": 1426.76,
+      "end": 1428.8000000000002,
+      "text": " And I actually will be showing you an example"
+    },
+    {
+      "start": 1428.8000000000002,
+      "end": 1432.1200000000001,
+      "text": " because we just trained model one using the raw data,"
+    },
+    {
+      "start": 1432.1200000000001,
+      "end": 1433.3400000000001,
+      "text": " which is on our left here,"
+    },
+    {
+      "start": 1433.3400000000001,
+      "end": 1436.5800000000002,
+      "text": " where there is orders of magnitude more of one class"
+    },
+    {
+      "start": 1436.5800000000002,
+      "end": 1437.44,
+      "text": " than the other."
+    },
+    {
+      "start": 1437.44,
+      "end": 1439.0400000000002,
+      "text": " I'm gonna show you what that looks like."
+    },
+    {
+      "start": 1439.0400000000002,
+      "end": 1440.1000000000001,
+      "text": " Versus model two,"
+    },
+    {
+      "start": 1440.1000000000001,
+      "end": 1442.1200000000001,
+      "text": " we are gonna keep the exact same architecture."
+    },
+    {
+      "start": 1442.1200000000001,
+      "end": 1443.5,
+      "text": " Everything's gonna be the same."
+    },
+    {
+      "start": 1443.5,
+      "end": 1445.6000000000001,
+      "text": " The only thing we are gonna change"
+    },
+    {
+      "start": 1445.6000000000001,
+      "end": 1447.02,
+      "text": " is we're gonna balance the data,"
+    },
+    {
+      "start": 1447.02,
+      "end": 1449.68,
+      "text": " meaning I'm gonna randomly sample class one"
+    },
+    {
+      "start": 1449.68,
+      "end": 1452.92,
+      "text": " so that there's the same number of representation for both."
+    },
+    {
+      "start": 1452.92,
+      "end": 1454.98,
+      "text": " And hold on, you're about to see,"
+    },
+    {
+      "start": 1454.98,
+      "end": 1456.74,
+      "text": " that's gonna make a huge difference."
+    },
+    {
+      "start": 1458.02,
+      "end": 1461.68,
+      "text": " So same thing, reading in the files,"
+    },
+    {
+      "start": 1461.68,
+      "end": 1465.98,
+      "text": " saving, we've selected save models, et cetera, et cetera."
+    },
+    {
+      "start": 1468.0800000000002,
+      "end": 1471.78,
+      "text": " Curve is looking good, no complaints there."
+    },
+    {
+      "start": 1471.78,
+      "end": 1473.14,
+      "text": " And before I show you the results,"
+    },
+    {
+      "start": 1473.14,
+      "end": 1474.8200000000002,
+      "text": " we're gonna go to model three."
+    },
+    {
+      "start": 1474.8200000000002,
+      "end": 1476.6200000000001,
+      "text": " Model three is where I'm gonna introduce"
+    },
+    {
+      "start": 1476.6200000000001,
+      "end": 1478.54,
+      "text": " hyperparameter tuning for you guys."
+    },
+    {
+      "start": 1478.54,
+      "end": 1482.26,
+      "text": " So for model three, we did redefine our epochs as larger."
+    },
+    {
+      "start": 1483.22,
+      "end": 1486.8,
+      "text": " And that's something we just felt it needed based on looking at the charts."
+    },
+    {
+      "start": 1487.46,
+      "end": 1492.08,
+      "text": " We are going to define some extra functions here to help with our tuning."
+    },
+    {
+      "start": 1493.2,
+      "end": 1494.56,
+      "text": " Just go through this."
+    },
+    {
+      "start": 1495.6399999999999,
+      "end": 1497.78,
+      "text": " Again, this is the really powerful one."
+    },
+    {
+      "start": 1497.82,
+      "end": 1499.1599999999999,
+      "text": " It does take a few minutes."
+    },
+    {
+      "start": 1500.32,
+      "end": 1501.1399999999999,
+      "text": " Read it in."
+    },
+    {
+      "start": 1501.72,
+      "end": 1505.1,
+      "text": " And now we're going to get into hyperparameter tuning."
+    },
+    {
+      "start": 1505.6999999999998,
+      "end": 1508.6999999999998,
+      "text": " So for that, I'm actually going to jump us back to the presentation."
+    },
+    {
+      "start": 1509.1399999999999,
+      "end": 1514.6599999999999,
+      "text": " When you run this code live, these figures will just appear in the notebook."
+    },
+    {
+      "start": 1515.24,
+      "end": 1518.04,
+      "text": " But in the interest of time, this would have taken 45 minutes to generate."
+    },
+    {
+      "start": 1518.58,
+      "end": 1521.3799999999999,
+      "text": " I'm just going to show you what it looks like."
+    },
+    {
+      "start": 1521.9399999999998,
+      "end": 1526.1399999999999,
+      "text": " So this is, we need to choose our hyperparameters."
+    },
+    {
+      "start": 1526.8799999999999,
+      "end": 1532.02,
+      "text": " And the way you read this graph is across the x-axis here"
+    },
+    {
+      "start": 1532.02,
+      "end": 1537.12,
+      "text": " are all the different parameters being tuned."
+    },
+    {
+      "start": 1537.28,
+      "end": 1539.48,
+      "text": " We tuned the distribution, we tuned the activation,"
+    },
+    {
+      "start": 1539.7,
+      "end": 1540.46,
+      "text": " the hidden units."
+    },
+    {
+      "start": 1540.94,
+      "end": 1542.26,
+      "text": " And again, I cannot stress enough,"
+    },
+    {
+      "start": 1542.66,
+      "end": 1543.8799999999999,
+      "text": " please go take a look at the chapter."
+    },
+    {
+      "start": 1544.1,
+      "end": 1545.84,
+      "text": " We have a wonderful table for you"
+    },
+    {
+      "start": 1545.84,
+      "end": 1548.34,
+      "text": " where we talk tons about all the hyperparameters"
+    },
+    {
+      "start": 1548.34,
+      "end": 1549.58,
+      "text": " that are available for tuning,"
+    },
+    {
+      "start": 1549.92,
+      "end": 1552.24,
+      "text": " why we chose these three for our presentation,"
+    },
+    {
+      "start": 1553.06,
+      "end": 1555.2,
+      "text": " what the different options even mean"
+    },
+    {
+      "start": 1555.2,
+      "end": 1556.46,
+      "text": " and why they'd be more inappropriate."
+    },
+    {
+      "start": 1556.78,
+      "end": 1558.04,
+      "text": " It's absolutely fascinating."
+    },
+    {
+      "start": 1558.34,
+      "end": 1560.78,
+      "text": " And I think you guys will really enjoy digging into that."
+    },
+    {
+      "start": 1560.78,
+      "end": 1564.46,
+      "text": " But for right now, I'm just going to teach you how to read one of these charts."
+    },
+    {
+      "start": 1566.1,
+      "end": 1570.62,
+      "text": " And here is the other version of the chart."
+    },
+    {
+      "start": 1570.74,
+      "end": 1572.94,
+      "text": " Both of these appear in the notebook for you when you're running it."
+    },
+    {
+      "start": 1573.34,
+      "end": 1578.12,
+      "text": " We want to find the line that minimizes the training and the loss value."
+    },
+    {
+      "start": 1578.7,
+      "end": 1580.26,
+      "text": " So the screen is interactive."
+    },
+    {
+      "start": 1580.48,
+      "end": 1585.8,
+      "text": " When you're on the notebook, you can just move your cursor up until you reach the first one of these lines."
+    },
+    {
+      "start": 1585.96,
+      "end": 1588.24,
+      "text": " And it will back color only the ones."
+    },
+    {
+      "start": 1588.24,
+      "end": 1603.06,
+      "text": " So looking at this, I know that the parameter configuration of default distribution, sigmoid activation, and four hidden units generated the model with the lowest training and validation loss."
+    },
+    {
+      "start": 1603.72,
+      "end": 1608.96,
+      "text": " And for our purposes, that is what we're going to do to select what we believe will be the highest performing model."
+    },
+    {
+      "start": 1611.02,
+      "end": 1612.78,
+      "text": " And this is all the code for that."
+    },
+    {
+      "start": 1612.78,
+      "end": 1623.74,
+      "text": " one more figure this is this figure conveys very similar information um just in a different"
+    },
+    {
+      "start": 1623.74,
+      "end": 1630.16,
+      "text": " format the same idea we want to minimize our training loss and our validation loss"
+    },
+    {
+      "start": 1630.16,
+      "end": 1637.32,
+      "text": " so we've plotted those for all the different models we chose we trained throughout this"
+    },
+    {
+      "start": 1637.32,
+      "end": 1644.56,
+      "text": " hyperparameter. And we want to identify which one is the lowest. So in here, we're going to be like,"
+    },
+    {
+      "start": 1644.6399999999999,
+      "end": 1650.1599999999999,
+      "text": " all right, there's a little bit of, it's the four units, it's the default, and it's that blue,"
+    },
+    {
+      "start": 1650.28,
+      "end": 1653.4399999999998,
+      "text": " that sigmoid. So this actually, you can see that little circle right there,"
+    },
+    {
+      "start": 1654.0,
+      "end": 1659.06,
+      "text": " lines up with the same results that we would have got looking at the other figure."
+    },
+    {
+      "start": 1659.06,
+      "end": 1671.1799999999998,
+      "text": " okay so at this point model three trained a bunch of different versions of it using different model"
+    },
+    {
+      "start": 1671.1799999999998,
+      "end": 1676.72,
+      "text": " architectures gotta select we think we know what's the select best one but we're gonna go"
+    },
+    {
+      "start": 1676.72,
+      "end": 1681.1399999999999,
+      "text": " there's actually one more parameter we haven't yet discussed so first off just pulling up an"
+    },
+    {
+      "start": 1681.14,
+      "end": 1688.42,
+      "text": " pop graph everything's looking good and now we are going to select our threshold value"
+    },
+    {
+      "start": 1689.0600000000002,
+      "end": 1693.8600000000001,
+      "text": " the threshold value is very interesting parameter because while it is not involved in model training"
+    },
+    {
+      "start": 1693.8600000000001,
+      "end": 1703.38,
+      "text": " it is involved in the way the models communicate to the outputs and the way threshold value works"
+    },
+    {
+      "start": 1703.94,
+      "end": 1709.8600000000001,
+      "text": " is that um classification bayesian neural net that we're dealing with right here"
+    },
+    {
+      "start": 1709.86,
+      "end": 1716.6599999999999,
+      "text": " the output is not actually a class. The output is going to be a value going from zero to one."
+    },
+    {
+      "start": 1716.6599999999999,
+      "end": 1722.1,
+      "text": " The closer that value is to zero, the more likely it is the class that was put into the data is"
+    },
+    {
+      "start": 1722.1,
+      "end": 1727.06,
+      "text": " class zero, which in our case is no fire, or the closer it is to one, the more likely it is to be"
+    },
+    {
+      "start": 1727.62,
+      "end": 1733.3,
+      "text": " class one. But there has to be a threshold, there has to be a cutoff, and that is the literal"
+    },
+    {
+      "start": 1733.3,
+      "end": 1741.3,
+      "text": " threshold value. Usually the threshold value is by default at 0.5. So equal chances of both classes."
+    },
+    {
+      "start": 1741.94,
+      "end": 1747.22,
+      "text": " But depending on your situation, the idea that both class are equally likely, maybe isn't"
+    },
+    {
+      "start": 1747.22,
+      "end": 1752.5,
+      "text": " realistic representation of your problem. Therefore, the threshold value is something"
+    },
+    {
+      "start": 1752.5,
+      "end": 1758.58,
+      "text": " that you can change. And you can ask your model to say, hey, if I change your threshold value,"
+    },
+    {
+      "start": 1758.58,
+      "end": 1762.74,
+      "text": " how do you change the way you bin the classification? And that's what we were doing"
+    },
+    {
+      "start": 1762.74,
+      "end": 1767.4399999999998,
+      "text": " here actually. So if you look on the legend, accuracy, precision, recall, F1, these are all"
+    },
+    {
+      "start": 1767.4399999999998,
+      "end": 1775.32,
+      "text": " common metrics for evaluating models. And based on the threshold value on the bottom, you can see"
+    },
+    {
+      "start": 1775.32,
+      "end": 1781.72,
+      "text": " that, for example, choosing a threshold value of three, it gives this model a super low precision"
+    },
+    {
+      "start": 1781.72,
+      "end": 1788.94,
+      "text": " score, but it's giving another model a super high accuracy score. So that's why it's important to"
+    },
+    {
+      "start": 1788.94,
+      "end": 1793.6000000000001,
+      "text": " look at all of these metrics because they all tell you different things. And for choosing the"
+    },
+    {
+      "start": 1793.6000000000001,
+      "end": 1799.3,
+      "text": " threshold, the goal is just to find which of these values is going to maximize the most of these"
+    },
+    {
+      "start": 1799.3,
+      "end": 1804.98,
+      "text": " scores. So you can see they all converge kind of heavily right around this area, but it's still"
+    },
+    {
+      "start": 1804.98,
+      "end": 1810.3600000000001,
+      "text": " really worth doing this check because potentially for some of these models here, for example,"
+    },
+    {
+      "start": 1810.36,
+      "end": 1821.52,
+      "text": " You can see that having a 0.5 threshold for case study model three, it really ups the precision, but it's really starting to drop the recall."
+    },
+    {
+      "start": 1821.6599999999999,
+      "end": 1825.4399999999998,
+      "text": " These are like almost 13 scores different. So it does impact your results."
+    },
+    {
+      "start": 1826.9599999999998,
+      "end": 1830.3999999999999,
+      "text": " And with that, let us discuss the results a bit more."
+    },
+    {
+      "start": 1830.4,
+      "end": 1840.0800000000002,
+      "text": " so for this the results of our thresholds we decided to go with 0.5 0.5 and 0.45 because we"
+    },
+    {
+      "start": 1840.0800000000002,
+      "end": 1844.5600000000002,
+      "text": " saw that large divide that was starting to happen these are values that you can change highly"
+    },
+    {
+      "start": 1844.5600000000002,
+      "end": 1849.3200000000002,
+      "text": " suggest that when you run this on your own data take a look at that threshold score and feel free"
+    },
+    {
+      "start": 1849.3200000000002,
+      "end": 1856.48,
+      "text": " to change these values to what looks right for you for your graph so into the results"
+    },
+    {
+      "start": 1856.48,
+      "end": 1866.44,
+      "text": " to the left is that model one, which was on that unbalanced data. And I'm hoping now you can see"
+    },
+    {
+      "start": 1866.44,
+      "end": 1873.56,
+      "text": " what I meant by it really does matter. If you were just asking it to return accuracy,"
+    },
+    {
+      "start": 1873.56,
+      "end": 1879.04,
+      "text": " precision, you're like, oh my goodness, what a well-performing model, 98%. This is incredible."
+    },
+    {
+      "start": 1879.5,
+      "end": 1884.02,
+      "text": " But this is why you can't just rely on these metrics. And if that's a lesson you guys take"
+    },
+    {
+      "start": 1884.02,
+      "end": 1888.6,
+      "text": " away from this tutorial, I really hope that it's like, you don't just look at these output,"
+    },
+    {
+      "start": 1888.7,
+      "end": 1893.82,
+      "text": " you really need to look at your models and understand what the metrics mean. In the case"
+    },
+    {
+      "start": 1893.82,
+      "end": 1899.92,
+      "text": " of model one, yeah, it's 98% accurate. But that's because it's literally only predicting class one"
+    },
+    {
+      "start": 1899.92,
+      "end": 1905.78,
+      "text": " or fire. If you think back to what our data set looked like, you realize that 98% of the data set"
+    },
+    {
+      "start": 1905.78,
+      "end": 1911.58,
+      "text": " was fire before we balanced it. So yeah, you can kind of add some human reasoning to this,"
+    },
+    {
+      "start": 1911.58,
+      "end": 1918.26,
+      "text": " The model is going, if I say everything is fire, I will be right 98% of the time."
+    },
+    {
+      "start": 1918.6599999999999,
+      "end": 1922.1399999999999,
+      "text": " So why should I even try to learn to identify the other classification?"
+    },
+    {
+      "start": 1922.9199999999998,
+      "end": 1926.48,
+      "text": " This is why when you're creating models for application purposes, it's really important"
+    },
+    {
+      "start": 1926.48,
+      "end": 1930.82,
+      "text": " to dig into them and try to understand what is maybe motivating their outputs."
+    },
+    {
+      "start": 1931.3,
+      "end": 1937.86,
+      "text": " Because if I wanted to take this model and offer it to somebody for an application assistance,"
+    },
+    {
+      "start": 1937.86,
+      "end": 1944.6399999999999,
+      "text": " being told everything is fire always, what is this model contributing? It's not really,"
+    },
+    {
+      "start": 1944.6999999999998,
+      "end": 1949.0,
+      "text": " we know there's a hotspot there. So we know there's the potential for fire. It's really not"
+    },
+    {
+      "start": 1949.0,
+      "end": 1955.4199999999998,
+      "text": " adding anything in into the evaluation process for a human user. It's not adding any more insight"
+    },
+    {
+      "start": 1955.4199999999998,
+      "end": 1963.1,
+      "text": " than a human just looking at the map. However, model two, yes. Did our accuracy and precision"
+    },
+    {
+      "start": 1963.1,
+      "end": 1972.32,
+      "text": " drop? Yes. However, you can see that the breakdown is pretty 55 to about 41. It's a pretty, it's a"
+    },
+    {
+      "start": 1972.32,
+      "end": 1978.48,
+      "text": " much more even breakdown between the classes. It is trying to predict class no fire. Is it"
+    },
+    {
+      "start": 1978.48,
+      "end": 1984.9399999999998,
+      "text": " failing some of the times? Absolutely. But at least you know that it's working towards the"
+    },
+    {
+      "start": 1984.9399999999998,
+      "end": 1991.36,
+      "text": " application goal. Because remember, our application goal is can it successfully predict fire or no"
+    },
+    {
+      "start": 1991.36,
+      "end": 1997.78,
+      "text": " fire. The pre-ability to predict no fire is part of the assigned study goal. So model one is really"
+    },
+    {
+      "start": 1997.78,
+      "end": 2003.9199999999998,
+      "text": " not meeting that goal because it's only okay at predicting fire. Whereas model two and then model"
+    },
+    {
+      "start": 2003.9199999999998,
+      "end": 2010.1599999999999,
+      "text": " three, which is getting similar results, slightly increased accuracy, slightly increased recall,"
+    },
+    {
+      "start": 2010.9799999999998,
+      "end": 2016.6999999999998,
+      "text": " are actually achieving what we defined as the study goal. And if you are creating this in the"
+    },
+    {
+      "start": 2016.7,
+      "end": 2022.52,
+      "text": " hope to be able to share your models with some user bases, there'll be these models are handling"
+    },
+    {
+      "start": 2022.52,
+      "end": 2028.3400000000001,
+      "text": " the data much more in the way that the human user is expecting. So I just talked a little bit to you"
+    },
+    {
+      "start": 2028.3400000000001,
+      "end": 2036.8600000000001,
+      "text": " right there about the applications of the models and trying to take them from just these theoretical"
+    },
+    {
+      "start": 2036.8600000000001,
+      "end": 2043.56,
+      "text": " academic discussions, the real world, that requires trust. That's another topic that us, the authors,"
+    },
+    {
+      "start": 2043.56,
+      "end": 2048.2,
+      "text": " really hope that we can convey to you between this walkthrough as well as in our chapter"
+    },
+    {
+      "start": 2048.2,
+      "end": 2055.74,
+      "text": " that the ability to create a high-performing model is only the beginning. If a model is not being"
+    },
+    {
+      "start": 2055.74,
+      "end": 2063.56,
+      "text": " utilized to its highest potential or it's being applied in circumstances where you just know it's"
+    },
+    {
+      "start": 2063.56,
+      "end": 2069.06,
+      "text": " not going to perform well, that's going to be considered a low-performing model. If the user"
+    },
+    {
+      "start": 2069.06,
+      "end": 2073.46,
+      "text": " community doesn't have trust in what you're creating, then it doesn't matter how good it is,"
+    },
+    {
+      "start": 2074.02,
+      "end": 2080.2599999999998,
+      "text": " it's not going to be able to live up to its potential. So therefore, we firmly believe that"
+    },
+    {
+      "start": 2080.2599999999998,
+      "end": 2088.02,
+      "text": " part of designing and training these deep learning models isn't just the ability to generate the code,"
+    },
+    {
+      "start": 2088.02,
+      "end": 2092.98,
+      "text": " the model weights, it's the ability to generate these figures, to be able to talk about them"
+    },
+    {
+      "start": 2092.98,
+      "end": 2099.78,
+      "text": " in a way that can convey it to non experts in the field. One of the best figures in our opinion to"
+    },
+    {
+      "start": 2099.78,
+      "end": 2105.78,
+      "text": " do this is called a shot plot. And this helps take what is sometimes known as the black box"
+    },
+    {
+      "start": 2105.78,
+      "end": 2112.98,
+      "text": " of machine learning, have you and make it a bit more human, human logic based human discussion."
+    },
+    {
+      "start": 2112.98,
+      "end": 2118.1,
+      "text": " So the way you read this plot is the model has broken down for us. It's got all of our features,"
+    },
+    {
+      "start": 2118.1,
+      "end": 2122.02,
+      "text": " So all of the parts of our data on the left and it's ranked them the highest."
+    },
+    {
+      "start": 2122.48,
+      "end": 2130.2,
+      "text": " So which feature is affecting the weights the most when it's making its classifications to which one is affecting the weights the least."
+    },
+    {
+      "start": 2130.92,
+      "end": 2134.16,
+      "text": " And it also is spreading it out on the X axis."
+    },
+    {
+      "start": 2134.16,
+      "end": 2147.5,
+      "text": " The closer it is, the more positive the value of the X axis, the more this feature is influencing the prediction of class one or fire in our case, or the more it's influencing class zero."
+    },
+    {
+      "start": 2148.1,
+      "end": 2154.74,
+      "text": " no fire as it goes into the negative and as somebody who has experience working with"
+    },
+    {
+      "start": 2154.74,
+      "end": 2161.06,
+      "text": " satellite data specifically how it pertains to fire in canada which is the region we're studying"
+    },
+    {
+      "start": 2161.7,
+      "end": 2169.86,
+      "text": " i am going to give you an example of how i can interpret this graph um this feels very true to"
+    },
+    {
+      "start": 2169.86,
+      "end": 2174.98,
+      "text": " what we have already developed with our non-deep learning models here in the canadian fire"
+    },
+    {
+      "start": 2174.98,
+      "end": 2180.98,
+      "text": " landscape. For example, fire, one thing about Canada, not everything is combustible here."
+    },
+    {
+      "start": 2181.3,
+      "end": 2185.58,
+      "text": " We have areas, whether it's high urbanization, whether it's desert, whether it's snowpack,"
+    },
+    {
+      "start": 2186.06,
+      "end": 2193.9,
+      "text": " where we have rocks, we have water. It's just not a fire truly could not spread there or very,"
+    },
+    {
+      "start": 2193.9,
+      "end": 2198.8,
+      "text": " very unlikely. So this makes sense to me that one of the biggest influences in the model is"
+    },
+    {
+      "start": 2198.8,
+      "end": 2203.78,
+      "text": " where these dots are located. If you've worked with hotspot data before, you've maybe seen that"
+    },
+    {
+      "start": 2203.78,
+      "end": 2209.1600000000003,
+      "text": " persistent heat can be a problem, whether that's, you know, industry operations, sometimes natural"
+    },
+    {
+      "start": 2209.1600000000003,
+      "end": 2215.52,
+      "text": " heat sources, despite the filters that vires and modus actifier do, they can still make it in."
+    },
+    {
+      "start": 2216.1400000000003,
+      "end": 2221.52,
+      "text": " So to me, this a way I can explain this is, yeah, first off, the model is just learning that one of"
+    },
+    {
+      "start": 2221.52,
+      "end": 2226.44,
+      "text": " the biggest indicators of whether a point is most likely an active fire is where it's located."
+    },
+    {
+      "start": 2226.82,
+      "end": 2231.82,
+      "text": " There are regions that are going to have high fire likelihood, those are our high risk regions."
+    },
+    {
+      "start": 2231.82,
+      "end": 2235.86,
+      "text": " and there's regions that have zero to very low likelihood."
+    },
+    {
+      "start": 2236.28,
+      "end": 2237.9,
+      "text": " So that's one of the first things it can do."
+    },
+    {
+      "start": 2238.52,
+      "end": 2241.6000000000004,
+      "text": " Another big thing to look at is day versus night."
+    },
+    {
+      "start": 2243.1000000000004,
+      "end": 2245.3,
+      "text": " You know, there is, it seems what I would say here"
+    },
+    {
+      "start": 2245.3,
+      "end": 2249.1800000000003,
+      "text": " is the model is learning that when it is predicting no fire,"
+    },
+    {
+      "start": 2249.34,
+      "end": 2252.6800000000003,
+      "text": " one of the best indicators is whether it was a day scene"
+    },
+    {
+      "start": 2252.6800000000003,
+      "end": 2254.26,
+      "text": " or a night scene."
+    },
+    {
+      "start": 2255.26,
+      "end": 2257.04,
+      "text": " You can see other things, FRP."
+    },
+    {
+      "start": 2257.04,
+      "end": 2264.32,
+      "text": " there are a lot of influences from FRP for whether it should be called fire that makes sense there"
+    },
+    {
+      "start": 2264.32,
+      "end": 2269.82,
+      "text": " are certain values of FRP that are almost exclusively associated with the presence of a"
+    },
+    {
+      "start": 2269.82,
+      "end": 2279.2799999999997,
+      "text": " wild fire or a forested fire or a vegetation fire that if the heat source is maybe sunglant"
+    },
+    {
+      "start": 2279.28,
+      "end": 2287.1800000000003,
+      "text": " if it's another form of heat, will not have those same values of FRP. So looking at it this way,"
+    },
+    {
+      "start": 2287.82,
+      "end": 2293.84,
+      "text": " you can kind of see the logic path the model might be taking. And if you want to introduce"
+    },
+    {
+      "start": 2293.84,
+      "end": 2299.48,
+      "text": " this model to people who are already working with maybe other statistical models, or just"
+    },
+    {
+      "start": 2299.48,
+      "end": 2305.88,
+      "text": " similar logic paths, this just became way more communicative. So I really do suggest that as"
+    },
+    {
+      "start": 2305.88,
+      "end": 2309.6,
+      "text": " you guys are working through your own products, generate these figures, take a look at it,"
+    },
+    {
+      "start": 2309.9,
+      "end": 2315.06,
+      "text": " and try to understand not only what your current model is doing, because that might influence you"
+    },
+    {
+      "start": 2315.06,
+      "end": 2319.82,
+      "text": " if you wanted to make a more robust data set. If I were to expand on these models, I know that"
+    },
+    {
+      "start": 2319.82,
+      "end": 2325.86,
+      "text": " things like confidence, satellite, not that important. Maybe I can get more data on FRP."
+    },
+    {
+      "start": 2326.02,
+      "end": 2331.44,
+      "text": " It seems to want to use the FRP. So if I could get an auxiliary data set that gave me more FRP"
+    },
+    {
+      "start": 2331.44,
+      "end": 2337.36,
+      "text": " information, maybe I'd train a better performing model. The way I just kind of rambled at you guys"
+    },
+    {
+      "start": 2337.36,
+      "end": 2343.28,
+      "text": " there was very intentional, because these are the thoughts that myself and my fellow authors were"
+    },
+    {
+      "start": 2343.28,
+      "end": 2347.14,
+      "text": " having as we were developing these in real time. And that's something I hope you can take away from"
+    },
+    {
+      "start": 2347.14,
+      "end": 2352.12,
+      "text": " this tutorial, is that this is a really iterative process. There's almost an artisticness to it."
+    },
+    {
+      "start": 2352.44,
+      "end": 2357.48,
+      "text": " And I want you guys to practice thinking in this mindset. It's not just about following"
+    },
+    {
+      "start": 2357.48,
+      "end": 2363.88,
+      "text": " these steps and blindly accepting whatever comes out. Work with it. Tweak it. Try to understand it."
+    },
+    {
+      "start": 2363.88,
+      "end": 2371.78,
+      "text": " Make this your own. Hello and welcome to case study B. Thank you everyone who's stuck with this"
+    },
+    {
+      "start": 2371.78,
+      "end": 2376.78,
+      "text": " walkthrough for so long. This will go a little faster than A because a lot of the concepts I"
+    },
+    {
+      "start": 2376.78,
+      "end": 2381.68,
+      "text": " took the time to explain to you in A are also relevant in B, but we won't need to go as in-depth."
+    },
+    {
+      "start": 2381.68,
+      "end": 2390.48,
+      "text": " to begin, a reminder that case study B is going to be a hypothesis analysis specifically,"
+    },
+    {
+      "start": 2390.48,
+      "end": 2397.18,
+      "text": " but it's also going to show the comparison of a point Bayesian neural net to a probabilistic"
+    },
+    {
+      "start": 2397.18,
+      "end": 2403.56,
+      "text": " Bayesian neural net. The ability to perform the hypothesis test, which is, for a reminder,"
+    },
+    {
+      "start": 2404.22,
+      "end": 2410.0,
+      "text": " the hypothesis that if we train a model using two sources, fears and modus, that even after that"
+    },
+    {
+      "start": 2410.0,
+      "end": 2417.86,
+      "text": " model is trained, one of those sources will offer better or worse performance as you're using the"
+    },
+    {
+      "start": 2417.86,
+      "end": 2425.72,
+      "text": " trained model on previously unseen data. And the reason this is useful information for you to know"
+    },
+    {
+      "start": 2425.72,
+      "end": 2431.16,
+      "text": " is when I show you the results of the hypothesis test, it's actually only the probabilistic model"
+    },
+    {
+      "start": 2431.16,
+      "end": 2436.2,
+      "text": " that is able to give me some of the figures. And that is because unlike the point model,"
+    },
+    {
+      "start": 2436.2,
+      "end": 2441.22,
+      "text": " which we discussed earlier, how its output is a single value between 0 and 1. We've set the"
+    },
+    {
+      "start": 2441.22,
+      "end": 2447.1,
+      "text": " threshold. You guys know this. The probabilistic model for every output gives a distribution,"
+    },
+    {
+      "start": 2447.68,
+      "end": 2453.8199999999997,
+      "text": " and that distribution could be quite high, showing a very narrow distribution. It's centered around"
+    },
+    {
+      "start": 2453.8199999999997,
+      "end": 2458.52,
+      "text": " a mean, and that is the value we'll use to assign class, or it could be a very wide distribution,"
+    },
+    {
+      "start": 2458.96,
+      "end": 2464.24,
+      "text": " meaning that the model was not able to lock in on an output and instead was covering a range,"
+    },
+    {
+      "start": 2464.24,
+      "end": 2469.3799999999997,
+      "text": " which would include a higher standard deviation and spoiler alert we're going to get into that in"
+    },
+    {
+      "start": 2469.3799999999997,
+      "end": 2477.66,
+      "text": " this and that will help us make some conclusions. Because I defined my study goal before I trained"
+    },
+    {
+      "start": 2477.66,
+      "end": 2484.02,
+      "text": " my model I knew that including a probabilistic model will help make my results stronger because"
+    },
+    {
+      "start": 2484.02,
+      "end": 2488.8599999999997,
+      "text": " I'll be able to create some additional figures and this is one of the benefits that I hope I can"
+    },
+    {
+      "start": 2488.86,
+      "end": 2494.1400000000003,
+      "text": " convey on to you is that take the time to plan your studies and plan your model training around"
+    },
+    {
+      "start": 2494.1400000000003,
+      "end": 2499.1200000000003,
+      "text": " your study goal. It can be really exciting to be like, let's train a model, let's go. And then"
+    },
+    {
+      "start": 2499.1200000000003,
+      "end": 2504.2400000000002,
+      "text": " sometimes you take these models and say, how can I make them useful? But if you sit down, do a"
+    },
+    {
+      "start": 2504.2400000000002,
+      "end": 2510.1,
+      "text": " little research, do a little lit review, you might find that there are certain model architectures,"
+    },
+    {
+      "start": 2510.2400000000002,
+      "end": 2513.7200000000003,
+      "text": " in this case, probabilistic, that are going to help you answer your questions stronger."
+    },
+    {
+      "start": 2514.1600000000003,
+      "end": 2517.96,
+      "text": " So because I knew that I needed this probabilistic distribution from the beginning,"
+    },
+    {
+      "start": 2517.96,
+      "end": 2523.9,
+      "text": " I'm able to have these supporting figures for me. And I've been rambling at you guys a lot,"
+    },
+    {
+      "start": 2524.14,
+      "end": 2528.26,
+      "text": " but hopefully that this kind of inspires your, based on the trains of thought I've been having"
+    },
+    {
+      "start": 2528.26,
+      "end": 2532.16,
+      "text": " as I talk to you, this is inspiring some of that same train of thought in yourself when you're"
+    },
+    {
+      "start": 2532.16,
+      "end": 2535.62,
+      "text": " sitting here and you're looking at your results and you're going, how can I make my models more"
+    },
+    {
+      "start": 2535.62,
+      "end": 2541.86,
+      "text": " impactful? With that, let's get into the models. We're going to use a new training set here. We"
+    },
+    {
+      "start": 2541.86,
+      "end": 2547.38,
+      "text": " are now going to introduce source. So was it Viers? Was it Modus? And we are going to balance"
+    },
+    {
+      "start": 2547.38,
+      "end": 2554.6600000000003,
+      "text": " it because as we saw balancing our data super impactful uh model one will be the best performing"
+    },
+    {
+      "start": 2554.6600000000003,
+      "end": 2560.6600000000003,
+      "text": " hyper parameter tuned model we got from case study a and model two just gonna here's all the code you"
+    },
+    {
+      "start": 2560.6600000000003,
+      "end": 2568.1800000000003,
+      "text": " recognize this you know what to do model two is that parameter the probabilistic we'll note that"
+    },
+    {
+      "start": 2568.1800000000003,
+      "end": 2574.7400000000002,
+      "text": " the probabilistic we have to define additional functions for for computing this is for the uh"
+    },
+    {
+      "start": 2574.74,
+      "end": 2579.4599999999996,
+      "text": " first one the point not a good epoch and if you want to know more about why that graph is looking"
+    },
+    {
+      "start": 2579.4599999999996,
+      "end": 2584.9799999999996,
+      "text": " like that and what that means check out our chapter we talk a lot about but the short answer"
+    },
+    {
+      "start": 2584.9799999999996,
+      "end": 2591.7,
+      "text": " is not enough epochs insufficient epochs so model two we are introducing a full new model"
+    },
+    {
+      "start": 2591.7,
+      "end": 2596.8199999999997,
+      "text": " new functions we have to introduce uh new distributions in order to get this"
+    },
+    {
+      "start": 2597.8599999999997,
+      "end": 2603.54,
+      "text": " same thing i'm going to read in my safe models this epoch stabilized much faster"
+    },
+    {
+      "start": 2603.54,
+      "end": 2607.92,
+      "text": " and now I'm going to get into the results."
+    },
+    {
+      "start": 2608.2,
+      "end": 2609.96,
+      "text": " Still going to pick a threshold value."
+    },
+    {
+      "start": 2610.48,
+      "end": 2611.9,
+      "text": " Again, always a good idea."
+    },
+    {
+      "start": 2612.08,
+      "end": 2614.66,
+      "text": " Even if you're not specifically tuning for thresholds,"
+    },
+    {
+      "start": 2614.86,
+      "end": 2616.48,
+      "text": " take the time, check for it."
+    },
+    {
+      "start": 2616.8,
+      "end": 2618.82,
+      "text": " In this case, 0.5 is looking pretty good,"
+    },
+    {
+      "start": 2618.82,
+      "end": 2620.96,
+      "text": " but on the off chance that you get an output"
+    },
+    {
+      "start": 2620.96,
+      "end": 2627.2799999999997,
+      "text": " where there is a more powerful variation at 0.5,"
+    },
+    {
+      "start": 2627.46,
+      "end": 2629.18,
+      "text": " always worth the time to check."
+    },
+    {
+      "start": 2630.52,
+      "end": 2632.82,
+      "text": " All right, we've defined our thresholds."
+    },
+    {
+      "start": 2633.54,
+      "end": 2639.86,
+      "text": " just defining more functions that will support the probabilistic Bayesian being visualized."
+    },
+    {
+      "start": 2640.66,
+      "end": 2646.5,
+      "text": " Got our same figures from before taking a look at like what I'm seeing here, even though the value"
+    },
+    {
+      "start": 2646.5,
+      "end": 2654.1,
+      "text": " is not that high, I like that it's predicting both classes fairly evenly. Versus here, this is a"
+    },
+    {
+      "start": 2654.1,
+      "end": 2659.7,
+      "text": " little more concerning to me, I don't love that it seems to have a preference in which class it"
+    },
+    {
+      "start": 2659.7,
+      "end": 2665.62,
+      "text": " predicts so this would be a red flag if i wanted to expand on the application uh definitely go in"
+    },
+    {
+      "start": 2665.62,
+      "end": 2673.14,
+      "text": " and study this more but to get to what is the purpose of this case study talking with you guys"
+    },
+    {
+      "start": 2673.14,
+      "end": 2678.58,
+      "text": " about the hypothesis test as i said results section of our chapter much more in-depth"
+    },
+    {
+      "start": 2678.58,
+      "end": 2683.9399999999996,
+      "text": " discussion if you're looking for types of language and types of questions to ask but i'm gonna tell"
+    },
+    {
+      "start": 2683.94,
+      "end": 2689.86,
+      "text": " you guys about the hypothesis review right now. So for the hypothesis review, it's just a t-test."
+    },
+    {
+      "start": 2690.42,
+      "end": 2697.62,
+      "text": " We divided it into two classes and we specifically had to use the probabilistic model because we're"
+    },
+    {
+      "start": 2697.62,
+      "end": 2703.14,
+      "text": " looking at the standard deviation of the outputs. This is why it was so important that I knew I"
+    },
+    {
+      "start": 2703.14,
+      "end": 2707.38,
+      "text": " wanted to do this from the beginning so I knew to train the probabilistic. This type of analysis"
+    },
+    {
+      "start": 2707.38,
+      "end": 2711.2200000000003,
+      "text": " can't be done on a point model, at least not the way we're doing it where we're looking at"
+    },
+    {
+      "start": 2711.22,
+      "end": 2715.54,
+      "text": " the presence of a large or small standard deviation. It's this difference in the standard"
+    },
+    {
+      "start": 2715.54,
+      "end": 2720.4199999999996,
+      "text": " deviation we're testing for. We want to know does the model feel equally uncertain about both"
+    },
+    {
+      "start": 2720.4199999999996,
+      "end": 2725.06,
+      "text": " sources or does one have a significantly larger or smaller standard deviation which can be"
+    },
+    {
+      "start": 2725.06,
+      "end": 2731.14,
+      "text": " interpreted as a significantly larger or smaller uncertainty in its ability to classify based on"
+    },
+    {
+      "start": 2731.14,
+      "end": 2739.3799999999997,
+      "text": " that source. All right and the last thing I want to show you is what displaying these standard"
+    },
+    {
+      "start": 2739.38,
+      "end": 2744.26,
+      "text": " deviations as a figure looks like and how we can use that to gain even more insight into how this"
+    },
+    {
+      "start": 2744.26,
+      "end": 2751.3,
+      "text": " model might be working. The way to interpret this figure in brief is that this is a probability"
+    },
+    {
+      "start": 2751.3,
+      "end": 2758.34,
+      "text": " distribution of, or the frequency, sorry, this is a frequency of the standard deviations. So while"
+    },
+    {
+      "start": 2758.34,
+      "end": 2766.42,
+      "text": " source 0 groups very high here, and most of source 1 groups there as well, we can see that source 1"
+    },
+    {
+      "start": 2766.42,
+      "end": 2772.1,
+      "text": " was able to produce some notable pockets of smaller standard deviations, which means there"
+    },
+    {
+      "start": 2772.1,
+      "end": 2778.4,
+      "text": " are certain inputs in the data set where source one went, yeah, I actually have less deviation"
+    },
+    {
+      "start": 2778.4,
+      "end": 2785.88,
+      "text": " in my output, so greater confidence in the value I'm returning. And that is reflected in this,"
+    },
+    {
+      "start": 2786.0,
+      "end": 2791.64,
+      "text": " which is showing the frequency of the mean of this distribution, or what would be the point"
+    },
+    {
+      "start": 2791.64,
+      "end": 2797.04,
+      "text": " value if we were doing a point Bayesian neural net. Again, there's a pretty good grouping around"
+    },
+    {
+      "start": 2797.04,
+      "end": 2804.48,
+      "text": " 0.5. Makes sense why that's our threshold value. But unlike source 0, source 1 was able to deliver"
+    },
+    {
+      "start": 2804.48,
+      "end": 2811.7,
+      "text": " some predictions that had it even closer to that class 1, showing that when it comes to predicting"
+    },
+    {
+      "start": 2811.7,
+      "end": 2820.08,
+      "text": " class 1, source 1 may be doing a more reliable job. Now we are getting away from hard numbers"
+    },
+    {
+      "start": 2820.08,
+      "end": 2823.98,
+      "text": " and quantifiable into zero of p-values"
+    },
+    {
+      "start": 2823.98,
+      "end": 2827.2999999999997,
+      "text": " into just kind of discussing trends of the model."
+    },
+    {
+      "start": 2827.88,
+      "end": 2828.72,
+      "text": " And that's okay."
+    },
+    {
+      "start": 2828.86,
+      "end": 2831.36,
+      "text": " That's what makes these models more explainable."
+    },
+    {
+      "start": 2831.7799999999997,
+      "end": 2833.86,
+      "text": " You don't need to go around and state like,"
+    },
+    {
+      "start": 2834.3199999999997,
+      "end": 2836.68,
+      "text": " it is for sure always source one"
+    },
+    {
+      "start": 2836.68,
+      "end": 2838.74,
+      "text": " will always do better when predicting class one."
+    },
+    {
+      "start": 2838.74,
+      "end": 2840.8199999999997,
+      "text": " But if you're just making your models trainable,"
+    },
+    {
+      "start": 2841.24,
+      "end": 2844.54,
+      "text": " explainable, making them worthy and ready for application"
+    },
+    {
+      "start": 2844.54,
+      "end": 2846.56,
+      "text": " that people understand how to work with,"
+    },
+    {
+      "start": 2846.64,
+      "end": 2849.7999999999997,
+      "text": " these are some great figures to help convey"
+    },
+    {
+      "start": 2849.8,
+      "end": 2854.44,
+      "text": " the model's inner logic to individuals who don't have expert knowledge in deep learning."
+    },
+    {
+      "start": 2856.02,
+      "end": 2862.52,
+      "text": " Final figure I want to show you is, of course, can't leave without it, our SHAP. Very quick,"
+    },
+    {
+      "start": 2862.6800000000003,
+      "end": 2868.0800000000004,
+      "text": " I go into our paper, we'll go into more detail, but basically that looks like adding our values."
+    },
+    {
+      "start": 2868.6600000000003,
+      "end": 2873.48,
+      "text": " Suddenly the day-night became a lot more, the confidence became a lot more, the FRP became a"
+    },
+    {
+      "start": 2873.48,
+      "end": 2878.6200000000003,
+      "text": " lot less relevant. And based on what I know about these different data sources and, you know, how"
+    },
+    {
+      "start": 2878.62,
+      "end": 2883.42,
+      "text": " they perform, at least on the Canadian landscape. This makes sense to me because, you know, day,"
+    },
+    {
+      "start": 2883.5,
+      "end": 2889.66,
+      "text": " night, the way some of the algorithms work between the two sources, there's a bit of a variation."
+    },
+    {
+      "start": 2890.22,
+      "end": 2893.96,
+      "text": " With confidence, for example, there's two different confidence algorithms going on."
+    },
+    {
+      "start": 2894.14,
+      "end": 2901.2999999999997,
+      "text": " So it makes sense to me that the model would be able to use the confidence scores to find"
+    },
+    {
+      "start": 2901.2999999999997,
+      "end": 2906.08,
+      "text": " differences between the information it's receiving because I know the confidence scores are not the"
+    },
+    {
+      "start": 2906.08,
+      "end": 2911.58,
+      "text": " same score between sources. Whereas something like FRP, latitude and longitude, they're all"
+    },
+    {
+      "start": 2911.58,
+      "end": 2917.02,
+      "text": " latitude and longitude might be lower now because for the most part, the sources are observing"
+    },
+    {
+      "start": 2917.02,
+      "end": 2922.98,
+      "text": " whether in the same area, the model doesn't need to dig as into the source specific. It just,"
+    },
+    {
+      "start": 2923.22,
+      "end": 2927.72,
+      "text": " it can learn the generals about latitude and longitude for both. Now, again, these are just"
+    },
+    {
+      "start": 2927.72,
+      "end": 2933.42,
+      "text": " hypotheses and this is stuff that would want further research, further write-up, but I just"
+    },
+    {
+      "start": 2933.42,
+      "end": 2937.2400000000002,
+      "text": " hope hearing me talk like this maybe gives you some inspiration for the questions you can ask,"
+    },
+    {
+      "start": 2937.36,
+      "end": 2942.6,
+      "text": " the discussions you can have, the future projects you might plan. And with that, that is the"
+    },
+    {
+      "start": 2942.6,
+      "end": 2947.08,
+      "text": " conclusion of our tutorial code. Thank you so much for sitting through this with me. I really hope"
+    },
+    {
+      "start": 2947.08,
+      "end": 2951.98,
+      "text": " you found this as informative and perhaps even inspiring for how you can incorporate Bayesian"
+    },
+    {
+      "start": 2951.98,
+      "end": 2956.56,
+      "text": " neural nets or some other form of deep learning into your workflow, specifically if you're doing"
+    },
+    {
+      "start": 2956.56,
+      "end": 2962.4,
+      "text": " remote sensing of hotspots or just fire in general. As I've said so many times throughout it,"
+    },
+    {
+      "start": 2962.4,
+      "end": 2966.12,
+      "text": " please go read the chapter. There's so much more information, so many more figures there."
+    },
+    {
+      "start": 2966.52,
+      "end": 2970.54,
+      "text": " There's so much more in-depth, theoretical explanations about topics that didn't even"
+    },
+    {
+      "start": 2970.54,
+      "end": 2975.52,
+      "text": " get a chance to be mentioned yet. And hopefully you can use some of that additional knowledge,"
+    },
+    {
+      "start": 2975.82,
+      "end": 2981.2400000000002,
+      "text": " plus just exploring whatever resources you have to be able to modify this code and use it as a"
+    },
+    {
+      "start": 2981.2400000000002,
+      "end": 2986.12,
+      "text": " starting point to get on your way of solving your own active FHIR problems using deep learning"
+    },
+    {
+      "start": 2986.12,
+      "end": 2988.3,
+      "text": " models. Thank you very much for your time, everyone."
+    }
+  ]
+}

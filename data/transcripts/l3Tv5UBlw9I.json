@@ -1,0 +1,2028 @@
+{
+  "video_id": "l3Tv5UBlw9I",
+  "title": "l3Tv5UBlw9I",
+  "duration_seconds": 2425.46,
+  "url": "https://www.youtube.com/watch?v=l3Tv5UBlw9I",
+  "segments": [
+    {
+      "start": 0.0,
+      "end": 3.0,
+      "text": " Welcome everybody. I'm Tim Mayer."
+    },
+    {
+      "start": 3.0,
+      "end": 6.0,
+      "text": " Hi, I'm Biplov."
+    },
+    {
+      "start": 6.0,
+      "end": 16.0,
+      "text": " We had the fortune of working on this chapter. It was a really great opportunity to explore different deep learning methodologies."
+    },
+    {
+      "start": 16.0,
+      "end": 23.0,
+      "text": " And we have a very unique real-world use case for this semantic segmentation around crop mapping."
+    },
+    {
+      "start": 23.0,
+      "end": 35.64,
+      "text": " And at the outset of this workflow, we wanted to talk about the why of this chapter and how this effort really sort of came into fruition."
+    },
+    {
+      "start": 36.620000000000005,
+      "end": 49.22,
+      "text": " So the work itself around this semantic segmentation really bore out of this effort that's highlighted in the chapter in the Kingdom of Bhutan."
+    },
+    {
+      "start": 49.22,
+      "end": 54.22,
+      "text": " And I'll skip forward one slide actually, and then go back."
+    },
+    {
+      "start": 54.78,
+      "end": 57.18,
+      "text": " There was an effort several years ago"
+    },
+    {
+      "start": 57.18,
+      "end": 59.7,
+      "text": " around advancing science, technology, engineering,"
+    },
+    {
+      "start": 59.7,
+      "end": 61.26,
+      "text": " and math in Bhutan."
+    },
+    {
+      "start": 61.26,
+      "end": 64.08,
+      "text": " And this was through the NASA Capacity Building Program."
+    },
+    {
+      "start": 64.94,
+      "end": 66.88,
+      "text": " This was a joint effort from NASA"
+    },
+    {
+      "start": 66.88,
+      "end": 69.28,
+      "text": " and funded also through the State Department"
+    },
+    {
+      "start": 69.28,
+      "end": 74.28,
+      "text": " to help collaborate and work with practitioners in Bhutan."
+    },
+    {
+      "start": 74.53999999999999,
+      "end": 79.06,
+      "text": " And this also surrounded efforts with students in Bhutan."
+    },
+    {
+      "start": 79.06,
+      "end": 81.76,
+      "text": " And a lot of our colleagues collaborated"
+    },
+    {
+      "start": 81.76,
+      "end": 85.06,
+      "text": " with practitioners in Bhutan,"
+    },
+    {
+      "start": 85.06,
+      "end": 90.06,
+      "text": " specifically the folks who are working in agriculture."
+    },
+    {
+      "start": 90.06,
+      "end": 93.38,
+      "text": " And we were able to explore"
+    },
+    {
+      "start": 93.38,
+      "end": 96.98,
+      "text": " and do a series of trainings in Bhutan."
+    },
+    {
+      "start": 96.98,
+      "end": 98.66,
+      "text": " And there's a paper that came out of this"
+    },
+    {
+      "start": 98.66,
+      "end": 101.5,
+      "text": " that leverages classical machine learning approaches"
+    },
+    {
+      "start": 101.5,
+      "end": 106.5,
+      "text": " to help improve and integrate earth observations"
+    },
+    {
+      "start": 106.5,
+      "end": 120.88,
+      "text": " into their efforts for mapping crops, especially key crops for export and also for just livelihoods within the country as well."
+    },
+    {
+      "start": 121.4,
+      "end": 125.24000000000001,
+      "text": " So this classical machine learning approach was relatively straightforward,"
+    },
+    {
+      "start": 125.84,
+      "end": 132.4,
+      "text": " and we really designed this to be adopted for the practitioners in Bhutan."
+    },
+    {
+      "start": 132.4,
+      "end": 137.08,
+      "text": " on. And this system is called ACES. And you'll hear that over and over again,"
+    },
+    {
+      "start": 137.08,
+      "end": 144.06,
+      "text": " it's Agriculture Classification Estimation System, or service, excuse me. And this is,"
+    },
+    {
+      "start": 144.3,
+      "end": 151.78,
+      "text": " you can refer to this paper. This is a good resource for sort of the overall concept of"
+    },
+    {
+      "start": 151.78,
+      "end": 157.22,
+      "text": " where this chapter came about. And if I slide back one here, we were able to go and sort of"
+    },
+    {
+      "start": 157.22,
+      "end": 164.66,
+      "text": " launched this effort in Bhutan in 2023 and there's some articles that we'll link as well about sort"
+    },
+    {
+      "start": 164.66,
+      "end": 170.5,
+      "text": " of the integration of this work and the trainings that were involved with it as well so this is a"
+    },
+    {
+      "start": 170.5,
+      "end": 176.26,
+      "text": " this was a long-term collaboration but all that to be said there was obviously next steps that came"
+    },
+    {
+      "start": 176.26,
+      "end": 183.78,
+      "text": " out of that work and some of it was surrounding improving some of those agriculture classification"
+    },
+    {
+      "start": 183.78,
+      "end": 190.26,
+      "text": " maps and that led to Biplov and i working on developing software packages so there's another"
+    },
+    {
+      "start": 190.9,
+      "end": 197.3,
+      "text": " package that's listed here which is the severe aces package which is really around deep learning"
+    },
+    {
+      "start": 197.3,
+      "end": 203.22,
+      "text": " methodologies which you'll use in this chapter and then there's a paper which we refer to as well"
+    },
+    {
+      "start": 203.22,
+      "end": 209.46,
+      "text": " and a lot of the methodologies overall in this notebook is referred to in this um in this paper"
+    },
+    {
+      "start": 209.46,
+      "end": 214.02,
+      "text": " and really sort of what we identified and feel free to read through it it's it's a nice read"
+    },
+    {
+      "start": 214.02,
+      "end": 221.94,
+      "text": " relative at in in complement to the notebook is leveraging a variety of deep learning methodologies"
+    },
+    {
+      "start": 222.82,
+      "end": 231.3,
+      "text": " to better estimate crops specifically around rice so this is a a good hands-on exercise that you'll"
+    },
+    {
+      "start": 231.3,
+      "end": 238.34,
+      "text": " walk through and you get to explore two different methodologies and you also get to leverage"
+    },
+    {
+      "start": 238.34,
+      "end": 245.14000000000001,
+      "text": " a higher resolution that was originally utilized in the machine learning approach for aces so this"
+    },
+    {
+      "start": 245.14000000000001,
+      "end": 252.42000000000002,
+      "text": " is using planet imagery as well so there's there's a couple additional elements that we laddered off"
+    },
+    {
+      "start": 252.42000000000002,
+      "end": 258.98,
+      "text": " of from the original work and i think this is a good opportunity now if if you're moving through"
+    },
+    {
+      "start": 258.98,
+      "end": 265.94,
+      "text": " the book to go to the website and then you can find our our chapter here on semantic segmentation"
+    },
+    {
+      "start": 265.94,
+      "end": 271.7,
+      "text": " and you can go ahead and launch the notebook right from the web page and i'll hand it over to Biplov"
+    },
+    {
+      "start": 272.82,
+      "end": 281.46,
+      "text": " thanks team um okay so um i'm gonna walk you through the chapter itself the notebook and"
+    },
+    {
+      "start": 283.14,
+      "end": 288.02,
+      "text": " you know explain different components of the notebook how the notebook is designed and also"
+    },
+    {
+      "start": 288.02,
+      "end": 297.21999999999997,
+      "text": " how that links to the package that team mentioned earlier so let me share my screen here"
+    },
+    {
+      "start": 299.21999999999997,
+      "end": 306.34,
+      "text": " okay so um this is um the main repo of the book that we're currently working on"
+    },
+    {
+      "start": 307.38,
+      "end": 315.06,
+      "text": " and there's also this the website here that we've built around using the quarto and it hosts"
+    },
+    {
+      "start": 315.94,
+      "end": 322.42,
+      "text": " all the chapters everything you can find the notebook and everything from from this website"
+    },
+    {
+      "start": 322.42,
+      "end": 328.9,
+      "text": " which is linked from that github page that i just showed and the chapter we're looking here is the"
+    },
+    {
+      "start": 328.9,
+      "end": 335.78,
+      "text": " semantic segmentation on crop mapping um again this is basically this"
+    },
+    {
+      "start": 335.78,
+      "end": 345.61999999999995,
+      "text": " this same notebook has like everything over here so you can you know nicely see without having to"
+    },
+    {
+      "start": 345.61999999999995,
+      "end": 355.34,
+      "text": " run it list all the outputs of each of this cell but you can also go and actually start running"
+    },
+    {
+      "start": 355.34,
+      "end": 363.08,
+      "text": " this notebook yourself in collab you can like download it use it for your purpose it's all"
+    },
+    {
+      "start": 363.08,
+      "end": 369.02,
+      "text": " open source you can do whatever you like with with the package or with the notebook"
+    },
+    {
+      "start": 369.8,
+      "end": 377.36,
+      "text": " so I'm just gonna click run on collab and that will take me to the actual notebook"
+    },
+    {
+      "start": 377.36,
+      "end": 384.08,
+      "text": " um that now if you're following along you can also start just working with this notebook"
+    },
+    {
+      "start": 385.09999999999997,
+      "end": 389.9,
+      "text": " yeah I think one thing we should mention at the outset is when you're launching these notebooks"
+    },
+    {
+      "start": 389.9,
+      "end": 396.7,
+      "text": " from the the book website you can do a copy of the notebook as well and that way you're not making"
+    },
+    {
+      "start": 396.7,
+      "end": 403.97999999999996,
+      "text": " edits to the original notebook um and that's just a nuance of the collab itself but basically for"
+    },
+    {
+      "start": 403.97999999999996,
+      "end": 408.46,
+      "text": " all these changes that you'd be doing to the notebook um it just wants to iterate are you"
+    },
+    {
+      "start": 408.46,
+      "end": 413.02,
+      "text": " actually saving this partly because we're the owners but um just it's good practice um when"
+    },
+    {
+      "start": 413.02,
+      "end": 418.94,
+      "text": " you're launching these notebooks to take a copy um that way you can sort of treat it as your own and"
+    },
+    {
+      "start": 418.94,
+      "end": 426.7,
+      "text": " make changes more readily yeah this makes you like you're making a copy in your drive and open that"
+    },
+    {
+      "start": 426.7,
+      "end": 437.5,
+      "text": " copy so you could see all the changes once you run through the notebook um just a brief overview on"
+    },
+    {
+      "start": 437.5,
+      "end": 445.02,
+      "text": " the contents that we have here um we have prepared many of the data sets as well as the models because"
+    },
+    {
+      "start": 445.02,
+      "end": 451.82,
+      "text": " uh it's going to take some time of if you're following along uh we just want to give you"
+    },
+    {
+      "start": 452.53999999999996,
+      "end": 458.78,
+      "text": " a sort of the feel what you'll get at the end of the running the modeling effort and how you"
+    },
+    {
+      "start": 458.78,
+      "end": 465.41999999999996,
+      "text": " could use it but we've already prepared all the data sets as well as the model that you need to"
+    },
+    {
+      "start": 465.41999999999996,
+      "end": 473.58,
+      "text": " run this notebook so we'll set up some of the environments we'll download the data sets that"
+    },
+    {
+      "start": 473.58,
+      "end": 475.68,
+      "text": " that we have prepared."
+    },
+    {
+      "start": 475.68,
+      "end": 480.03999999999996,
+      "text": " We have a config file that basically manages"
+    },
+    {
+      "start": 480.03999999999996,
+      "end": 483.91999999999996,
+      "text": " all your environment, that manages all the settings"
+    },
+    {
+      "start": 483.91999999999996,
+      "end": 488.32,
+      "text": " that you need within the deep learning framework"
+    },
+    {
+      "start": 488.32,
+      "end": 491.5,
+      "text": " that you can provide externally without having to go through"
+    },
+    {
+      "start": 491.5,
+      "end": 493.32,
+      "text": " and tinker at the core level."
+    },
+    {
+      "start": 494.2,
+      "end": 496.21999999999997,
+      "text": " You can update that."
+    },
+    {
+      "start": 496.21999999999997,
+      "end": 498.78,
+      "text": " And then we'll run two model."
+    },
+    {
+      "start": 498.78,
+      "end": 501.96,
+      "text": " We'll run a unit which is a patch-based model,"
+    },
+    {
+      "start": 501.96,
+      "end": 506.08,
+      "text": " which is an image, a pixel-based patch-based model,"
+    },
+    {
+      "start": 506.08,
+      "end": 510.41999999999996,
+      "text": " and a DNN model, which is more of a point-based model."
+    },
+    {
+      "start": 511.73999999999995,
+      "end": 513.46,
+      "text": " UNet would help you to capture"
+    },
+    {
+      "start": 513.46,
+      "end": 515.76,
+      "text": " some of the topological relationships,"
+    },
+    {
+      "start": 515.76,
+      "end": 518.0799999999999,
+      "text": " some of the semantic relationship,"
+    },
+    {
+      "start": 518.0799999999999,
+      "end": 521.9,
+      "text": " while DNN would be at the pixel level."
+    },
+    {
+      "start": 521.9,
+      "end": 524.28,
+      "text": " So you get the properties of the pixel"
+    },
+    {
+      "start": 524.28,
+      "end": 527.0,
+      "text": " at different sample points."
+    },
+    {
+      "start": 527.0,
+      "end": 529.66,
+      "text": " We'll also show how sampling is done here."
+    },
+    {
+      "start": 529.66,
+      "end": 540.4599999999999,
+      "text": " After we train the model, we'll save them and we'll do some inference using that model on the newer datasets or on the newer patch."
+    },
+    {
+      "start": 541.36,
+      "end": 544.54,
+      "text": " And then we'll also do some independent validation."
+    },
+    {
+      "start": 545.3199999999999,
+      "end": 555.54,
+      "text": " We've collected several data points using CollectEarth Online to capture these independent datasets."
+    },
+    {
+      "start": 555.54,
+      "end": 572.38,
+      "text": " And these data sets were captured not by us, not by the people who developed the model, but by some of our collaborators, from collaborators like partners and other folks who worked with us during this project."
+    },
+    {
+      "start": 572.54,
+      "end": 577.98,
+      "text": " So we'll use those independently collected data sets to see how well the model is performing."
+    },
+    {
+      "start": 577.98,
+      "end": 586.82,
+      "text": " and finally we'll just see like all the plots and figures to get an understanding of like how"
+    },
+    {
+      "start": 586.82,
+      "end": 593.82,
+      "text": " how different kind of things went through the modeling effort and i would okay oh i would add"
+    },
+    {
+      "start": 593.82,
+      "end": 598.34,
+      "text": " in one element too that you mentioned about the different models part of the rationale too is when"
+    },
+    {
+      "start": 598.34,
+      "end": 605.4,
+      "text": " we first did the effort around the original asus work using the random forest which is pixel wise"
+    },
+    {
+      "start": 605.4,
+      "end": 614.78,
+      "text": " classification. There's a really unique feature of Bhutan. It has a lot of elevation. It's a lot"
+    },
+    {
+      "start": 614.78,
+      "end": 621.6999999999999,
+      "text": " of topography. And the rice, both upland and lowland rice, was a major sort of challenge for"
+    },
+    {
+      "start": 621.6999999999999,
+      "end": 627.64,
+      "text": " that model. So part of the exploration was bringing in a patch-based modeling approach,"
+    },
+    {
+      "start": 627.74,
+      "end": 633.6999999999999,
+      "text": " this UNET model, and exploring also just the DNN. So there's a lot of rationale as to why"
+    },
+    {
+      "start": 633.7,
+      "end": 638.4200000000001,
+      "text": " we wanted to explore these two different methodologies based off of the limitations"
+    },
+    {
+      "start": 638.4200000000001,
+      "end": 645.36,
+      "text": " associated with just a pixel-wise classification, pixel-based classification, due to the extreme"
+    },
+    {
+      "start": 645.36,
+      "end": 651.84,
+      "text": " topography and also the cultivation practices in Bhutan. So we wanted to definitely highlight"
+    },
+    {
+      "start": 651.84,
+      "end": 657.36,
+      "text": " there's some value in sort of exploring the different benefits and trade-offs of these"
+    },
+    {
+      "start": 657.36,
+      "end": 660.5600000000001,
+      "text": " algorithms in this real-world instance. Back to you, Biplov."
+    },
+    {
+      "start": 660.56,
+      "end": 672.56,
+      "text": " Yeah, thank you Tim. Yeah, that's a really important point. And something also to add on that is that we actually also second share the paper here itself."
+    },
+    {
+      "start": 672.56,
+      "end": 679.56,
+      "text": " We actually also did some feature engineering and played around with the combination of different features."
+    },
+    {
+      "start": 679.56,
+      "end": 684.78,
+      "text": " features. We're using planet images for the modeling effort."
+    },
+    {
+      "start": 685.06,
+      "end": 691.4399999999999,
+      "text": " So we used, you know, the Nick Fibb mosaic RGB and channel from"
+    },
+    {
+      "start": 691.4399999999999,
+      "end": 695.4599999999999,
+      "text": " the planet. As Tim had mentioned, there's like a lot of"
+    },
+    {
+      "start": 696.0,
+      "end": 700.68,
+      "text": " elevation variation within Bhutan, we also used combined"
+    },
+    {
+      "start": 700.68,
+      "end": 704.28,
+      "text": " RGB and with the elevation, we also bought in Sentinel one"
+    },
+    {
+      "start": 704.28,
+      "end": 711.78,
+      "text": " images with RGBN and then elevation sentinel and RGBN channel."
+    },
+    {
+      "start": 711.78,
+      "end": 717.98,
+      "text": " And from the set of experiments we conducted, we found that the unit was performing much"
+    },
+    {
+      "start": 717.98,
+      "end": 729.4599999999999,
+      "text": " better and on the unit, the variation of including the elevation, there's like less than a percent"
+    },
+    {
+      "start": 729.46,
+      "end": 737.3000000000001,
+      "text": " improvement without using them but you still see some benefit and this was again I have to say like"
+    },
+    {
+      "start": 737.3000000000001,
+      "end": 744.5,
+      "text": " a very data sparse reason here's one picture here like a lot of cloud cover going on during the"
+    },
+    {
+      "start": 744.5,
+      "end": 754.34,
+      "text": " monsoon season during the monsoon season it's a monsoon fed growing area so you know a rationale"
+    },
+    {
+      "start": 754.34,
+      "end": 760.02,
+      "text": " for using the planet was instead of just sentinel 2 was because there's a lot of cloud cover and"
+    },
+    {
+      "start": 760.74,
+      "end": 767.5400000000001,
+      "text": " we wanted to capture as much of the information as possible yeah so it will also give you some"
+    },
+    {
+      "start": 767.5400000000001,
+      "end": 773.38,
+      "text": " practicality when you are working with any kind of this problem on what things to consider"
+    },
+    {
+      "start": 774.6600000000001,
+      "end": 780.34,
+      "text": " when you are designing your experiment and when you are working with deep learning models"
+    },
+    {
+      "start": 780.34,
+      "end": 799.9,
+      "text": " Okay, cool. So let's now run through the notebook. So before we run through the notebook, we want to make sure that we're connected to a GPU instance here."
+    },
+    {
+      "start": 799.9,
+      "end": 813.06,
+      "text": " So if you go to your change run type, you can see there's a freely available T4 GPU, which you can select and then connect T4."
+    },
+    {
+      "start": 813.76,
+      "end": 825.06,
+      "text": " Once you've done that, we also want to go and click on change run type."
+    },
+    {
+      "start": 825.06,
+      "end": 831.06,
+      "text": " And we want to select a little bit older version here."
+    },
+    {
+      "start": 833.06,
+      "end": 840.06,
+      "text": " I've already selected it because this library depends on some of the older TensorFlow version."
+    },
+    {
+      "start": 841.06,
+      "end": 845.06,
+      "text": " So we want to go and make sure you selected the older version."
+    },
+    {
+      "start": 845.06,
+      "end": 852.06,
+      "text": " So this is at the time of recording. We have 2025, 7, July available."
+    },
+    {
+      "start": 852.06,
+      "end": 854.06,
+      "text": " So we'll select that."
+    },
+    {
+      "start": 855.06,
+      "end": 860.3399999999999,
+      "text": " So now you've made those changes, now we'll go and run this."
+    },
+    {
+      "start": 860.3399999999999,
+      "end": 865.3399999999999,
+      "text": " Again, all the datasets, everything would be storing in Google Drive."
+    },
+    {
+      "start": 865.42,
+      "end": 869.7199999999999,
+      "text": " That would be much easier for us to handle it through the web platform."
+    },
+    {
+      "start": 870.42,
+      "end": 876.5799999999999,
+      "text": " So here I'm just importing the Google Drive API"
+    },
+    {
+      "start": 876.5799999999999,
+      "end": 879.88,
+      "text": " and making sure that it's on the needed path."
+    },
+    {
+      "start": 881.06,
+      "end": 882.9,
+      "text": " Just going to hit run."
+    },
+    {
+      "start": 885.06,
+      "end": 893.3399999999999,
+      "text": " and it will ask the permission to connect to the node to the google drive so it says it's"
+    },
+    {
+      "start": 893.3399999999999,
+      "end": 899.64,
+      "text": " mounted at the content drive so your content is right over here and you could see the drive"
+    },
+    {
+      "start": 899.64,
+      "end": 905.3599999999999,
+      "text": " folder here and these are your google drive and your seo drive"
+    },
+    {
+      "start": 905.3599999999999,
+      "end": 914.1999999999999,
+      "text": " and making sure that the your google drive is mounted and it's ready to go"
+    },
+    {
+      "start": 914.2,
+      "end": 919.0,
+      "text": " The server assist package is available through PyP."
+    },
+    {
+      "start": 919.0,
+      "end": 925.22,
+      "text": " So just hit the pip install server assist to get that package in"
+    },
+    {
+      "start": 925.22,
+      "end": 930.88,
+      "text": " and then make sure that it's available for us to run here."
+    },
+    {
+      "start": 932.0,
+      "end": 937.46,
+      "text": " And that's the Journal of Open Software Science."
+    },
+    {
+      "start": 937.74,
+      "end": 939.0600000000001,
+      "text": " Feel free to check that out as well."
+    },
+    {
+      "start": 939.12,
+      "end": 942.84,
+      "text": " There's a lot of documentation on a variety of other models as well."
+    },
+    {
+      "start": 942.84,
+      "end": 952.1,
+      "text": " So this is using, you can access the UNED and the DNN, and there's a lot of statistical approaches and other models in there as well."
+    },
+    {
+      "start": 952.2,
+      "end": 962.1,
+      "text": " So if you're exploring future efforts and you want to sort of roll out different architectures, that's a good package to look out for."
+    },
+    {
+      "start": 962.48,
+      "end": 964.5600000000001,
+      "text": " And again, refer to that publication."
+    },
+    {
+      "start": 965.38,
+      "end": 971.7800000000001,
+      "text": " Yeah. Okay. So now we'll also clone the main repo here."
+    },
+    {
+      "start": 971.78,
+      "end": 976.02,
+      "text": " and I'll talk about why we're doing that in a bit here."
+    },
+    {
+      "start": 976.02,
+      "end": 980.4599999999999,
+      "text": " But basically, we want to make sure that all the config"
+    },
+    {
+      "start": 980.4599999999999,
+      "end": 982.4599999999999,
+      "text": " and everything is available."
+    },
+    {
+      "start": 982.4599999999999,
+      "end": 985.8,
+      "text": " That will also come here in your content."
+    },
+    {
+      "start": 985.8,
+      "end": 988.76,
+      "text": " We had Drive that we mounted earlier."
+    },
+    {
+      "start": 988.76,
+      "end": 991.6,
+      "text": " Now you'll see a new folder called server.ss."
+    },
+    {
+      "start": 993.06,
+      "end": 996.3,
+      "text": " The next step is downloading the datasets."
+    },
+    {
+      "start": 996.3,
+      "end": 999.8,
+      "text": " As I mentioned, it takes some time"
+    },
+    {
+      "start": 999.8,
+      "end": 1003.78,
+      "text": " for if you're wanting to prepare your own datasets,"
+    },
+    {
+      "start": 1003.78,
+      "end": 1008.28,
+      "text": " but we've already provided those datasets."
+    },
+    {
+      "start": 1008.28,
+      "end": 1009.9399999999999,
+      "text": " There's another notebook here,"
+    },
+    {
+      "start": 1009.9399999999999,
+      "end": 1012.9799999999999,
+      "text": " which is linked through this notebook"
+    },
+    {
+      "start": 1012.9799999999999,
+      "end": 1017.8599999999999,
+      "text": " that basically walks you through how you can use,"
+    },
+    {
+      "start": 1018.88,
+      "end": 1022.0999999999999,
+      "text": " you know, use this notebook to basically produce"
+    },
+    {
+      "start": 1022.0999999999999,
+      "end": 1024.68,
+      "text": " your train test and validation datasets."
+    },
+    {
+      "start": 1024.68,
+      "end": 1029.68,
+      "text": " You train your model on the training datasets,"
+    },
+    {
+      "start": 1030.74,
+      "end": 1035.0,
+      "text": " use the validation to make sure the model is improved."
+    },
+    {
+      "start": 1035.0,
+      "end": 1038.68,
+      "text": " And then the test dataset is kept aside"
+    },
+    {
+      "start": 1038.68,
+      "end": 1041.18,
+      "text": " and you test your,"
+    },
+    {
+      "start": 1041.18,
+      "end": 1044.74,
+      "text": " after all the iteration of the modeling is done,"
+    },
+    {
+      "start": 1044.74,
+      "end": 1046.54,
+      "text": " then you'll bring in the test datasets"
+    },
+    {
+      "start": 1046.54,
+      "end": 1049.94,
+      "text": " and make sure that your model is performing"
+    },
+    {
+      "start": 1049.94,
+      "end": 1051.3200000000002,
+      "text": " as you want it to be."
+    },
+    {
+      "start": 1051.32,
+      "end": 1069.1799999999998,
+      "text": " If you're at the very beginning of your workflow and you've got a problem set, start with that notebook that Biplovin mentioned because that will allow you to generate a training data that's ready for deep learning workflows."
+    },
+    {
+      "start": 1069.18,
+      "end": 1078.78,
+      "text": " So even though we're going through this workflow right now, start at that other notebook if you're at square one of a totally novel research question."
+    },
+    {
+      "start": 1079.1000000000001,
+      "end": 1082.64,
+      "text": " And that'll be a great place to sort of generate those different training data."
+    },
+    {
+      "start": 1083.66,
+      "end": 1096.94,
+      "text": " Yeah, it has like all the config that you can use and start basically generate your patch datasets or point-based datasets for your unit and DNN model respectively."
+    },
+    {
+      "start": 1096.94,
+      "end": 1104.18,
+      "text": " Now going back to our original notebook here, I'm just making a new directory again."
+    },
+    {
+      "start": 1104.8200000000002,
+      "end": 1108.18,
+      "text": " Okay, here inside the content, there is a data sets that's created."
+    },
+    {
+      "start": 1109.44,
+      "end": 1116.1200000000001,
+      "text": " So provided these data sets from a Google Cloud Stories bucket."
+    },
+    {
+      "start": 1116.1200000000001,
+      "end": 1120.8600000000001,
+      "text": " So we'll just go ahead and copy those into our data sets."
+    },
+    {
+      "start": 1122.8400000000001,
+      "end": 1126.1000000000001,
+      "text": " So yeah, here you can see we have like different images."
+    },
+    {
+      "start": 1126.1,
+      "end": 1129.9399999999998,
+      "text": " is these are tied together."
+    },
+    {
+      "start": 1129.9399999999998,
+      "end": 1132.1,
+      "text": " It's copying all the data sets."
+    },
+    {
+      "start": 1132.1,
+      "end": 1134.34,
+      "text": " It's also copying the models."
+    },
+    {
+      "start": 1134.34,
+      "end": 1137.62,
+      "text": " Model has already been trained, saved,"
+    },
+    {
+      "start": 1137.62,
+      "end": 1140.86,
+      "text": " and those checkpoints are provided here."
+    },
+    {
+      "start": 1140.86,
+      "end": 1145.6,
+      "text": " It's doing same thing for the DNN as well as the unit model."
+    },
+    {
+      "start": 1145.6,
+      "end": 1152.62,
+      "text": " So it will take some time to copy and put that in your content"
+    },
+    {
+      "start": 1152.62,
+      "end": 1154.78,
+      "text": " data sets folder here."
+    },
+    {
+      "start": 1154.78,
+      "end": 1156.94,
+      "text": " Just give it some time."
+    },
+    {
+      "start": 1161.16,
+      "end": 1163.74,
+      "text": " Yeah, this might be a good space"
+    },
+    {
+      "start": 1163.74,
+      "end": 1165.8,
+      "text": " to talk about the data sets itself."
+    },
+    {
+      "start": 1165.8,
+      "end": 1168.0,
+      "text": " I know there's maybe a section down below,"
+    },
+    {
+      "start": 1168.92,
+      "end": 1170.16,
+      "text": " but as Biplov had mentioned,"
+    },
+    {
+      "start": 1170.16,
+      "end": 1173.5,
+      "text": " there is a bit of feature engineering that's happening,"
+    },
+    {
+      "start": 1173.5,
+      "end": 1176.3799999999999,
+      "text": " and there's the planet imagery itself,"
+    },
+    {
+      "start": 1176.3799999999999,
+      "end": 1181.3799999999999,
+      "text": " and also Sentinel-1, or excuse me, Sentinel-2."
+    },
+    {
+      "start": 1181.38,
+      "end": 1196.16,
+      "text": " So all of those images that were used in the training and for this example in particular are already staged in this Google Cloud platform bucket."
+    },
+    {
+      "start": 1196.7800000000002,
+      "end": 1204.74,
+      "text": " So for your workflow overall, you won't necessarily, if you're starting fresh, you won't have this data stored in a bucket."
+    },
+    {
+      "start": 1204.74,
+      "end": 1210.46,
+      "text": " it. But for this active workflow, just kind of let it run and you can then investigate"
+    },
+    {
+      "start": 1210.46,
+      "end": 1215.82,
+      "text": " this data if you wanted to and sort of see the the tart up or the zipped up images here"
+    },
+    {
+      "start": 1215.82,
+      "end": 1216.82,
+      "text": " as well."
+    },
+    {
+      "start": 1216.82,
+      "end": 1226.32,
+      "text": " Yeah. And to that point, I'll also say that and I'll just share this paper again. We also"
+    },
+    {
+      "start": 1226.32,
+      "end": 1233.0,
+      "text": " experimented including some of the indices and without including some of those indices."
+    },
+    {
+      "start": 1233.64,
+      "end": 1240.92,
+      "text": " indices being you know your ndvi your evi all those things that you could derive from the planet"
+    },
+    {
+      "start": 1240.92,
+      "end": 1249.16,
+      "text": " imagery so we did a experiment on including those indices and without including and we found that"
+    },
+    {
+      "start": 1250.44,
+      "end": 1257.4,
+      "text": " there's very small differences with not including them and so here if you are looking at the"
+    },
+    {
+      "start": 1257.4,
+      "end": 1264.64,
+      "text": " a precision recall or a fun score, we found that there's like maybe a percent or less"
+    },
+    {
+      "start": 1264.64,
+      "end": 1268.48,
+      "text": " than 1% difference."
+    },
+    {
+      "start": 1268.48,
+      "end": 1274.48,
+      "text": " And during this becomes particularly important because during the inference, if you're using"
+    },
+    {
+      "start": 1274.48,
+      "end": 1280.16,
+      "text": " like GCP or Earth Engine, at least at the time we were using Earth Engine, and there's"
+    },
+    {
+      "start": 1280.16,
+      "end": 1290.5600000000002,
+      "text": " limitation on how much of the payload could be transferred and that gets like really buggy and"
+    },
+    {
+      "start": 1291.76,
+      "end": 1299.3600000000001,
+      "text": " may not be a very smooth experience. So we were mostly developing it for the online inference"
+    },
+    {
+      "start": 1299.3600000000001,
+      "end": 1307.2,
+      "text": " purpose and that's why we decided not to include these indices for our application. Again, feel"
+    },
+    {
+      "start": 1307.2,
+      "end": 1313.28,
+      "text": " free to experiment with this uh but if you're doing you know batch inference if online low"
+    },
+    {
+      "start": 1313.28,
+      "end": 1320.16,
+      "text": " latency is not uh something that you're looking to do in those cases you can also train a model"
+    },
+    {
+      "start": 1321.04,
+      "end": 1328.64,
+      "text": " by including indices um does that your feature or your parameter set probably get much larger"
+    },
+    {
+      "start": 1328.64,
+      "end": 1334.16,
+      "text": " in that case yeah and i think also at the high level here you know a lot of intentionality and"
+    },
+    {
+      "start": 1334.16,
+      "end": 1342.96,
+      "text": " thought was put into these indices and relating that to the crop itself and sort of the phenology."
+    },
+    {
+      "start": 1343.68,
+      "end": 1348.3200000000002,
+      "text": " But after all of this modeling, we didn't necessarily see a massive improvement with this"
+    },
+    {
+      "start": 1348.96,
+      "end": 1355.28,
+      "text": " considerable feature engineering that's included. So something that we would mention in the outset"
+    },
+    {
+      "start": 1355.28,
+      "end": 1359.92,
+      "text": " is folks are moving from classical machine learning where future engineering is really"
+    },
+    {
+      "start": 1359.92,
+      "end": 1366.24,
+      "text": " important for the algorithm at hand. These deep learning approaches didn't necessarily"
+    },
+    {
+      "start": 1366.24,
+      "end": 1373.2,
+      "text": " lead to better outcomes with additional feature engineering. So in some ways we were sort of"
+    },
+    {
+      "start": 1373.2,
+      "end": 1379.3600000000001,
+      "text": " advocating that you're removing a step and still getting the benefit, but we just want to put that"
+    },
+    {
+      "start": 1379.3600000000001,
+      "end": 1386.48,
+      "text": " caution out there that it's only relevant for your use case at hand. But in this case, the algorithm"
+    },
+    {
+      "start": 1386.48,
+      "end": 1393.96,
+      "text": " was able to perform almost the same with all the feature engineering. So we're also sort of"
+    },
+    {
+      "start": 1393.96,
+      "end": 1398.3,
+      "text": " advocating here that the excessive amount of feature engineering, all the work that goes into"
+    },
+    {
+      "start": 1398.3,
+      "end": 1404.26,
+      "text": " that isn't absolutely necessary for this use case. So that's a real benefit to this workflow and also"
+    },
+    {
+      "start": 1404.26,
+      "end": 1411.42,
+      "text": " an interesting aside for these architectures. Yeah. And again, just emphasizing it's very"
+    },
+    {
+      "start": 1411.42,
+      "end": 1420.46,
+      "text": " use case dependent. One thing I'll also point is that we didn't like you know iteratively"
+    },
+    {
+      "start": 1420.46,
+      "end": 1427.88,
+      "text": " for example just put in NDVI and exclude all other indices and see the performance"
+    },
+    {
+      "start": 1427.88,
+      "end": 1435.16,
+      "text": " include NDVI, EVI and remove all other indices and do the experiment. We didn't do that so"
+    },
+    {
+      "start": 1435.16,
+      "end": 1440.5600000000002,
+      "text": " So there might be a combination of indices that would perform much better"
+    },
+    {
+      "start": 1440.5600000000002,
+      "end": 1443.8200000000002,
+      "text": " than with including all of them."
+    },
+    {
+      "start": 1444.0,
+      "end": 1446.76,
+      "text": " So there's also some limitations around that,"
+    },
+    {
+      "start": 1446.8400000000001,
+      "end": 1448.7,
+      "text": " which is also at stand here in the paper."
+    },
+    {
+      "start": 1449.92,
+      "end": 1453.38,
+      "text": " Okay, so it looks like everything is downloaded here."
+    },
+    {
+      "start": 1453.38,
+      "end": 1456.88,
+      "text": " Now you could see all the images."
+    },
+    {
+      "start": 1458.88,
+      "end": 1460.96,
+      "text": " You could see the model themselves."
+    },
+    {
+      "start": 1460.96,
+      "end": 1466.88,
+      "text": " You could see the prediction, which will come back to it in a bit here."
+    },
+    {
+      "start": 1467.04,
+      "end": 1470.76,
+      "text": " All the training data sets, everything is loaded now here."
+    },
+    {
+      "start": 1471.28,
+      "end": 1476.1000000000001,
+      "text": " So now next thing we'll do is we'll start create a config file variable."
+    },
+    {
+      "start": 1476.58,
+      "end": 1480.52,
+      "text": " We saw that our repo was downloaded earlier."
+    },
+    {
+      "start": 1480.52,
+      "end": 1490.22,
+      "text": " And if I could look inside here, I don't see the environment file."
+    },
+    {
+      "start": 1490.22,
+      "end": 1495.72,
+      "text": " I think that's because it's a hidden file, so probably have to just run this."
+    },
+    {
+      "start": 1496.64,
+      "end": 1504.88,
+      "text": " What this is doing, there's an env file, which you can actually see when you go to the GitHub repo."
+    },
+    {
+      "start": 1505.16,
+      "end": 1508.02,
+      "text": " So let me open up that quickly."
+    },
+    {
+      "start": 1508.6200000000001,
+      "end": 1519.02,
+      "text": " Here you could see this .env example file that has all the settings that you can use for your notebook for running this model."
+    },
+    {
+      "start": 1519.02,
+      "end": 1522.8799999999999,
+      "text": " and here we're basically making a copy of that."
+    },
+    {
+      "start": 1524.18,
+      "end": 1527.56,
+      "text": " So now we have the config.env file"
+    },
+    {
+      "start": 1527.56,
+      "end": 1530.8799999999999,
+      "text": " which you should be able to see right now here."
+    },
+    {
+      "start": 1532.06,
+      "end": 1535.34,
+      "text": " So next thing is basically changing your base directory"
+    },
+    {
+      "start": 1535.34,
+      "end": 1536.8799999999999,
+      "text": " and your output directory."
+    },
+    {
+      "start": 1537.18,
+      "end": 1540.36,
+      "text": " The base directory is from where you're running."
+    },
+    {
+      "start": 1540.62,
+      "end": 1546.48,
+      "text": " What's the base path that other paths should be constructed from"
+    },
+    {
+      "start": 1546.48,
+      "end": 1548.98,
+      "text": " and what's the output directory."
+    },
+    {
+      "start": 1549.2,
+      "end": 1552.04,
+      "text": " So I'm just going to copy this here."
+    },
+    {
+      "start": 1557.84,
+      "end": 1563.6,
+      "text": " Next is making sure the output directory is correct."
+    },
+    {
+      "start": 1566.8600000000001,
+      "end": 1567.54,
+      "text": " Okay."
+    },
+    {
+      "start": 1567.54,
+      "end": 1578.92,
+      "text": " Once that's done, we'll also need to specify the data directory that would be used."
+    },
+    {
+      "start": 1578.92,
+      "end": 1586.3799999999999,
+      "text": " And these are, again, coming out of the earlier notebook that we didn't went through, but we just downloaded the data from."
+    },
+    {
+      "start": 1588.52,
+      "end": 1597.04,
+      "text": " Okay, so now the next step is, again, we're not using an Elevation or Sentinel-1 for this use case."
+    },
+    {
+      "start": 1597.68,
+      "end": 1602.8799999999999,
+      "text": " because we haven't prepared the data sets for this particular example for this particular notebook"
+    },
+    {
+      "start": 1602.8799999999999,
+      "end": 1610.3999999999999,
+      "text": " but you if you have just go ahead and enable put them to true for whichever data sets you're"
+    },
+    {
+      "start": 1611.12,
+      "end": 1621.44,
+      "text": " you've exported uh okay so let me go and find the here okay so it's already false so i'm not"
+    },
+    {
+      "start": 1621.44,
+      "end": 1630.4,
+      "text": " going to change anything there the path size the default here in the environment file is 128 so i'm"
+    },
+    {
+      "start": 1630.4,
+      "end": 1641.28,
+      "text": " gonna change that to 256 by 256 because that's the um the image paths that we have here"
+    },
+    {
+      "start": 1643.92,
+      "end": 1648.0800000000002,
+      "text": " that's generated from that other notebook that you're welcome to walk through and that's where"
+    },
+    {
+      "start": 1648.08,
+      "end": 1650.8799999999999,
+      "text": " where the patches are actually created."
+    },
+    {
+      "start": 1650.8799999999999,
+      "end": 1653.4199999999998,
+      "text": " And these are 256 by 256."
+    },
+    {
+      "start": 1653.4199999999998,
+      "end": 1656.28,
+      "text": " And this is the planet imagery"
+    },
+    {
+      "start": 1656.28,
+      "end": 1659.02,
+      "text": " and also the Sentinel-1 imagery."
+    },
+    {
+      "start": 1659.02,
+      "end": 1661.22,
+      "text": " So that's actually the patch dimensions."
+    },
+    {
+      "start": 1661.22,
+      "end": 1662.74,
+      "text": " And that's relevant."
+    },
+    {
+      "start": 1662.74,
+      "end": 1666.3999999999999,
+      "text": " We'd also recommend reading through the unit paper"
+    },
+    {
+      "start": 1666.3999999999999,
+      "end": 1669.98,
+      "text": " that we'll link as well as a sort of a standard architecture"
+    },
+    {
+      "start": 1669.98,
+      "end": 1674.4199999999998,
+      "text": " and those patch dimensions for when it actually does"
+    },
+    {
+      "start": 1674.4199999999998,
+      "end": 1677.84,
+      "text": " the encoding and decoding through the unit itself."
+    },
+    {
+      "start": 1677.84,
+      "end": 1681.08,
+      "text": " So that's really about the size of the patches themselves."
+    },
+    {
+      "start": 1682.6599999999999,
+      "end": 1683.98,
+      "text": " That's a good point."
+    },
+    {
+      "start": 1684.1,
+      "end": 1684.34,
+      "text": " Yeah."
+    },
+    {
+      "start": 1685.36,
+      "end": 1686.1599999999999,
+      "text": " Um, yeah."
+    },
+    {
+      "start": 1686.1599999999999,
+      "end": 1691.86,
+      "text": " So, uh, once you've done that, um, the other variables or the conflict that you"
+    },
+    {
+      "start": 1691.86,
+      "end": 1697.76,
+      "text": " want to play around is with this, uh, training size, testing size and validation"
+    },
+    {
+      "start": 1697.76,
+      "end": 1702.08,
+      "text": " size, these are very specific to this, uh, data sets that we have here."
+    },
+    {
+      "start": 1702.4199999999998,
+      "end": 1703.6599999999999,
+      "text": " And these were pre-computed."
+    },
+    {
+      "start": 1703.66,
+      "end": 1710.0800000000002,
+      "text": " Again, there's another notebook that tells you more about how you could calculate these"
+    },
+    {
+      "start": 1710.0800000000002,
+      "end": 1711.8400000000001,
+      "text": " sizes of the datasets."
+    },
+    {
+      "start": 1711.8400000000001,
+      "end": 1715.94,
+      "text": " I'm not going to go over that notebook."
+    },
+    {
+      "start": 1715.94,
+      "end": 1722.5800000000002,
+      "text": " It's been already pre-calculated, so I'm just going to make sure that that number is represented"
+    },
+    {
+      "start": 1722.5800000000002,
+      "end": 1723.5800000000002,
+      "text": " here."
+    },
+    {
+      "start": 1723.5800000000002,
+      "end": 1728.78,
+      "text": " It looks like we already have that number here in place."
+    },
+    {
+      "start": 1728.78,
+      "end": 1732.46,
+      "text": " It's also asking us to change the batch size."
+    },
+    {
+      "start": 1732.46,
+      "end": 1738.22,
+      "text": " If you're using larger batch size, you might run into memory issue within the Colab environment."
+    },
+    {
+      "start": 1738.22,
+      "end": 1745.04,
+      "text": " But if you're running this locally, or if you're running on a high end compute infrastructure,"
+    },
+    {
+      "start": 1745.04,
+      "end": 1750.4,
+      "text": " you can increase that and you basically can experiment with different numbers until you"
+    },
+    {
+      "start": 1750.4,
+      "end": 1756.1200000000001,
+      "text": " hit that memory limit."
+    },
+    {
+      "start": 1756.1200000000001,
+      "end": 1758.56,
+      "text": " The other thing is the epoch."
+    },
+    {
+      "start": 1758.56,
+      "end": 1761.22,
+      "text": " saying we can change that to 30."
+    },
+    {
+      "start": 1763.32,
+      "end": 1768.96,
+      "text": " One thing I just realized is that we don't have to manually go and change this."
+    },
+    {
+      "start": 1769.08,
+      "end": 1775.28,
+      "text": " There's this nice little text box that you can use to basically make changes."
+    },
+    {
+      "start": 1777.1599999999999,
+      "end": 1781.74,
+      "text": " As you can see, we had already changed our base directory, data directory,"
+    },
+    {
+      "start": 1782.12,
+      "end": 1783.1,
+      "text": " all these things."
+    },
+    {
+      "start": 1783.1,
+      "end": 1790.3,
+      "text": " but if you haven't, you can also just go ahead and use this text box to make changes to them."
+    },
+    {
+      "start": 1791.1999999999998,
+      "end": 1797.6399999999999,
+      "text": " Looks like all of our things, all the settings that we wanted to change are already correct here."
+    },
+    {
+      "start": 1798.24,
+      "end": 1800.98,
+      "text": " So I'm just going to hit run for this one."
+    },
+    {
+      "start": 1802.86,
+      "end": 1807.3799999999999,
+      "text": " I'm glad that you walked through that, working through that environmental file, though,"
+    },
+    {
+      "start": 1807.38,
+      "end": 1812.48,
+      "text": " because that'll really enable folks to use this and explore anything they want"
+    },
+    {
+      "start": 1812.48,
+      "end": 1815.4,
+      "text": " beyond just using this sort of GUI approach here."
+    },
+    {
+      "start": 1815.5200000000002,
+      "end": 1818.7,
+      "text": " So you can really just launch that environmental file by itself"
+    },
+    {
+      "start": 1818.7,
+      "end": 1822.3600000000001,
+      "text": " and then make all the changes you want and save those independently too."
+    },
+    {
+      "start": 1823.0800000000002,
+      "end": 1823.8200000000002,
+      "text": " Yeah, exactly."
+    },
+    {
+      "start": 1823.8200000000002,
+      "end": 1833.0600000000002,
+      "text": " Yeah, so the way it works here is it will take all the values from this text box"
+    },
+    {
+      "start": 1833.06,
+      "end": 1841.22,
+      "text": " and create a dictionary which will then be used to update our config file and okay so now that our"
+    },
+    {
+      "start": 1841.22,
+      "end": 1850.5,
+      "text": " config file is updated and we can go and open that again to make sure everything's reflected here um"
+    },
+    {
+      "start": 1850.5,
+      "end": 1861.1399999999999,
+      "text": " if you remember from before um i hadn't changed i think i didn't change like epochs um other things"
+    },
+    {
+      "start": 1861.14,
+      "end": 1863.5,
+      "text": " and now it's changed over here."
+    },
+    {
+      "start": 1864.5,
+      "end": 1866.5,
+      "text": " Okay, so we have..."
+    },
+    {
+      "start": 1866.5,
+      "end": 1869.5800000000002,
+      "text": " You changed the patch size, so it's reflected there. Perfect."
+    },
+    {
+      "start": 1870.0800000000002,
+      "end": 1875.94,
+      "text": " Yeah. So now we have made the changes on the config file."
+    },
+    {
+      "start": 1875.94,
+      "end": 1879.0,
+      "text": " The next step is basically running the model."
+    },
+    {
+      "start": 1880.5400000000002,
+      "end": 1883.8000000000002,
+      "text": " In this one, we'll focus on running the unit model."
+    },
+    {
+      "start": 1884.64,
+      "end": 1888.0,
+      "text": " There's also an example on how you could run the DNN model."
+    },
+    {
+      "start": 1888.64,
+      "end": 1890.2800000000002,
+      "text": " But let's start with the unit model."
+    },
+    {
+      "start": 1891.14,
+      "end": 1903.1200000000001,
+      "text": " So, if you remember, we had already installed the server ACS package and it's available"
+    },
+    {
+      "start": 1903.1200000000001,
+      "end": 1905.24,
+      "text": " for us to use."
+    },
+    {
+      "start": 1905.24,
+      "end": 1914.3400000000001,
+      "text": " So the ACS, that particular package that we installed evolved and it has a bunch of different"
+    },
+    {
+      "start": 1914.34,
+      "end": 1923.4599999999998,
+      "text": " classes that you can use to make your training with this deep learning model easier."
+    },
+    {
+      "start": 1923.4599999999998,
+      "end": 1930.02,
+      "text": " So we're just importing them here first."
+    },
+    {
+      "start": 1930.02,
+      "end": 1941.34,
+      "text": " Okay, so this config class has it takes in your config file and it basically sets up"
+    },
+    {
+      "start": 1941.34,
+      "end": 1948.22,
+      "text": " those config configuration that we provided earlier so i'm just initializing that here"
+    },
+    {
+      "start": 1949.82,
+      "end": 1956.6999999999998,
+      "text": " if the checks the data directory is there the model directory doesn't exist"
+    },
+    {
+      "start": 1956.6999999999998,
+      "end": 1965.74,
+      "text": " if it doesn't then it will create one and now most of our config are available in this config.env"
+    },
+    {
+      "start": 1965.74,
+      "end": 1973.02,
+      "text": " and we can go and check for those here. Next we'll load our model trainer class."
+    },
+    {
+      "start": 1974.06,
+      "end": 1981.66,
+      "text": " The model trainer class helps us train the model. It would configure the memory growth,"
+    },
+    {
+      "start": 1982.3,
+      "end": 1986.22,
+      "text": " creates this TensorFlow datasets for training, testing validation,"
+    },
+    {
+      "start": 1986.78,
+      "end": 1991.42,
+      "text": " builds and compile the model, as well as prepare the output directory and"
+    },
+    {
+      "start": 1992.0600000000002,
+      "end": 1997.5,
+      "text": " stop training and save the model there it also does the evaluation and prints the evaluation"
+    },
+    {
+      "start": 1999.02,
+      "end": 2006.22,
+      "text": " metrics and saves all the parameters plots and models so this is a health helpful class that we"
+    },
+    {
+      "start": 2006.22,
+      "end": 2016.0600000000002,
+      "text": " can use um we'll just initialize that next um our tax is to now train and save this unit model"
+    },
+    {
+      "start": 2016.06,
+      "end": 2023.56,
+      "text": " So as I mentioned before, these are all the things that you can do with this model trainer class."
+    },
+    {
+      "start": 2024.86,
+      "end": 2030.94,
+      "text": " There's a train underscore model function that will help you do all this."
+    },
+    {
+      "start": 2031.3,
+      "end": 2035.6,
+      "text": " So we'll just go ahead and start training the model."
+    },
+    {
+      "start": 2037.6599999999999,
+      "end": 2044.5,
+      "text": " It will take some time if you're following along for the model to train."
+    },
+    {
+      "start": 2044.5,
+      "end": 2052.3,
+      "text": " and it will just start the training process and print out relevant information here."
+    },
+    {
+      "start": 2053.98,
+      "end": 2065.42,
+      "text": " You can also see some examples of input, which is a batch size of 32,"
+    },
+    {
+      "start": 2065.42,
+      "end": 2074.7000000000003,
+      "text": " as we specified before here, the batch size of 32, 256 by 256 batch size,"
+    },
+    {
+      "start": 2074.94,
+      "end": 2077.42,
+      "text": " and total number of eight features."
+    },
+    {
+      "start": 2078.32,
+      "end": 2079.48,
+      "text": " You can see all the values."
+    },
+    {
+      "start": 2079.92,
+      "end": 2082.94,
+      "text": " These are all normalized between zero and one."
+    },
+    {
+      "start": 2084.94,
+      "end": 2090.42,
+      "text": " And then if you go down below, you can also see the output values."
+    },
+    {
+      "start": 2090.42,
+      "end": 2099.46,
+      "text": " values. We have five classes here, the batch size of 32 and a batch size of 256 by 256."
+    },
+    {
+      "start": 2102.58,
+      "end": 2106.98,
+      "text": " Similarly, a few more examples from validation datasets"
+    },
+    {
+      "start": 2106.98,
+      "end": 2113.7000000000003,
+      "text": " and the testing datasets and the simple unit model that we've initialized here"
+    },
+    {
+      "start": 2114.66,
+      "end": 2120.1,
+      "text": " that provides you the model structure, all the layers within the model,"
+    },
+    {
+      "start": 2120.42,
+      "end": 2123.26,
+      "text": " to the number of parameters here."
+    },
+    {
+      "start": 2123.8,
+      "end": 2125.78,
+      "text": " Now it's starting to train this model."
+    },
+    {
+      "start": 2125.88,
+      "end": 2130.16,
+      "text": " So as you can see, it takes quite a bit of time here."
+    },
+    {
+      "start": 2131.3,
+      "end": 2134.06,
+      "text": " So we'll just let it run for some time,"
+    },
+    {
+      "start": 2134.1,
+      "end": 2137.1,
+      "text": " and then we'll come back to this later on."
+    },
+    {
+      "start": 2138.1800000000003,
+      "end": 2143.2200000000003,
+      "text": " Okay, so now we can see this model has finished training."
+    },
+    {
+      "start": 2143.22,
+      "end": 2161.66,
+      "text": " It run this epoch all the way through, run the validation data sets here, spit out some of the metrics that I might be interested in."
+    },
+    {
+      "start": 2161.66,
+      "end": 2169.8199999999997,
+      "text": " it saved all the parameters and model config and objects there as well as it's printing some of the"
+    },
+    {
+      "start": 2169.8199999999997,
+      "end": 2178.8599999999997,
+      "text": " training loss validation loss and several other metrics as you can see here okay so now we've"
+    },
+    {
+      "start": 2178.8599999999997,
+      "end": 2187.5,
+      "text": " done that we will save this config file which i've already saved here and so we could come back"
+    },
+    {
+      "start": 2187.5,
+      "end": 2194.06,
+      "text": " later if we're doing different experiments and seeing which combination of parameters make sense"
+    },
+    {
+      "start": 2195.02,
+      "end": 2199.82,
+      "text": " so we'll need for that purpose so we're saving those environment file here"
+    },
+    {
+      "start": 2200.78,
+      "end": 2207.9,
+      "text": " and then next we'll load these log files that we saved in a tensorboard it gives you a nice"
+    },
+    {
+      "start": 2207.9,
+      "end": 2217.92,
+      "text": " way to visualize them and you can visualize this right here in the Colab"
+    },
+    {
+      "start": 2217.92,
+      "end": 2220.94,
+      "text": " notebook too"
+    },
+    {
+      "start": 2220.94,
+      "end": 2236.62,
+      "text": " Okay, so now we can see all the values through each of these epochs here."
+    },
+    {
+      "start": 2236.62,
+      "end": 2241.38,
+      "text": " Loss, pre-season recall, all those kind of things."
+    },
+    {
+      "start": 2241.38,
+      "end": 2248.26,
+      "text": " If you want to play with this, also provide the link to TensorFlow documentation in the"
+    },
+    {
+      "start": 2248.26,
+      "end": 2255.5400000000004,
+      "text": " description you can go and play with them so now we have saved the model next we'll go and load that"
+    },
+    {
+      "start": 2255.5400000000004,
+      "end": 2268.34,
+      "text": " model um yeah so i'm here um basically printing what this model looks like and next we'll do the"
+    },
+    {
+      "start": 2268.34,
+      "end": 2274.6600000000003,
+      "text": " inference for inference you need to prepare your prediction emails uh again there is another"
+    },
+    {
+      "start": 2274.66,
+      "end": 2283.14,
+      "text": " notebook that you can go and look but for this purpose we've already done done the inferencing"
+    },
+    {
+      "start": 2283.14,
+      "end": 2292.58,
+      "text": " through that notebook in the similar way um if i go to the table of content here um there are also"
+    },
+    {
+      "start": 2292.58,
+      "end": 2299.8599999999997,
+      "text": " dnn model which runs in basically similar way as we run our unit model loading the model trainer"
+    },
+    {
+      "start": 2299.86,
+      "end": 2307.38,
+      "text": " class and then doing dot 10 underscore model function within that so for this one i'm gonna"
+    },
+    {
+      "start": 2307.38,
+      "end": 2314.98,
+      "text": " skip the dnn modeling effort and next we have some ways how you can incorporate some of the"
+    },
+    {
+      "start": 2314.98,
+      "end": 2321.86,
+      "text": " independent validation within your data sets within your modeling effort so for this we have"
+    },
+    {
+      "start": 2321.86,
+      "end": 2329.86,
+      "text": " few data points collected using CollectArt Online by some of our interns who worked with us during"
+    },
+    {
+      "start": 2329.86,
+      "end": 2340.7400000000002,
+      "text": " that time. And these are all provided again through the Google Cloud Stories bucket, which"
+    },
+    {
+      "start": 2340.7400000000002,
+      "end": 2351.2200000000003,
+      "text": " you can again look at it. So here again, importing all the Earth Engine, the map environment and"
+    },
+    {
+      "start": 2351.86,
+      "end": 2359.56,
+      "text": " Here I've already exported the output from the unit, which you can see here in the map."
+    },
+    {
+      "start": 2360.9,
+      "end": 2365.44,
+      "text": " In the similar way, you can also see the output of DNN model."
+    },
+    {
+      "start": 2366.7000000000003,
+      "end": 2375.28,
+      "text": " You can also calculate the error metrics, false positive, false negative, all those kind of things."
+    },
+    {
+      "start": 2376.28,
+      "end": 2381.6200000000003,
+      "text": " And some of the figures of training and validation plot could also be plotted here."
+    },
+    {
+      "start": 2381.86,
+      "end": 2388.86,
+      "text": " So this notebook would provide you many of these examples on how you could"
+    },
+    {
+      "start": 2388.86,
+      "end": 2394.86,
+      "text": " paint a model, save various artifacts coming out of that model,"
+    },
+    {
+      "start": 2394.86,
+      "end": 2402.86,
+      "text": " plot some of the things on training and validation stats that you want to see,"
+    },
+    {
+      "start": 2402.86,
+      "end": 2410.86,
+      "text": " as well as run the inference, prepare your emails, and run the inference through the saved notebook."
+    },
+    {
+      "start": 2411.86,
+      "end": 2414.42,
+      "text": " So I hope this lesson was helpful."
+    },
+    {
+      "start": 2414.98,
+      "end": 2417.44,
+      "text": " Thank you for staying until then."
+    },
+    {
+      "start": 2417.44,
+      "end": 2424.56,
+      "text": " And we'll see you on our other data lessons in this deep learning book."
+    },
+    {
+      "start": 2424.96,
+      "end": 2425.46,
+      "text": " Thank you."
+    }
+  ]
+}

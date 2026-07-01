@@ -1,0 +1,2748 @@
+{
+  "video_id": "kINuYpZroPA",
+  "title": "kINuYpZroPA",
+  "duration_seconds": 3517.42,
+  "url": "https://www.youtube.com/watch?v=kINuYpZroPA",
+  "segments": [
+    {
+      "start": 0.0,
+      "end": 5.0,
+      "text": " Welcome to the chapter on evaluating foundation models trained with Earth observation data."
+    },
+    {
+      "start": 5.0,
+      "end": 13.0,
+      "text": " This video is presented by Lillianne Thomas on behalf of her co-authors Wei-Zhi Liang, Daniel Weismann, and Soumya Ranjan."
+    },
+    {
+      "start": 13.0,
+      "end": 22.0,
+      "text": " In this video accompaniment, we'll go over the code and concepts that demonstrate how you can explore the ways foundation models are transforming Earth observation,"
+    },
+    {
+      "start": 22.0,
+      "end": 29.0,
+      "text": " from rapid flood mapping during disasters to monitoring deforestation and assessing agricultural health."
+    },
+    {
+      "start": 29.0,
+      "end": 33.16,
+      "text": " By the end of this chapter, we hope you'll understand what foundation models are,"
+    },
+    {
+      "start": 33.16,
+      "end": 38.36,
+      "text": " how they work, and most importantly, how to use them for practical earth science applications."
+    },
+    {
+      "start": 39.24,
+      "end": 45.72,
+      "text": " In this video, we will first cover the theory and concepts in the slides that follow,"
+    },
+    {
+      "start": 46.68,
+      "end": 52.44,
+      "text": " and then we'll proceed into the interactive section where we'll actually walk through the"
+    },
+    {
+      "start": 52.44,
+      "end": 58.6,
+      "text": " notebook that accompanies these slides for this chapter. So stay tuned after these slides to get"
+    },
+    {
+      "start": 59.0,
+      "end": 62.2,
+      "text": " a walkthrough of the code in the notebook."
+    },
+    {
+      "start": 62.2,
+      "end": 65.0,
+      "text": " Here's what we'll cover today."
+    },
+    {
+      "start": 65.0,
+      "end": 69.0,
+      "text": " First, we'll define what Earth Observation Foundation models actually are"
+    },
+    {
+      "start": 69.0,
+      "end": 71.0,
+      "text": " and how they learn from satellite imagery."
+    },
+    {
+      "start": 71.0,
+      "end": 74.0,
+      "text": " Then we'll get hands-on with two different models,"
+    },
+    {
+      "start": 74.0,
+      "end": 79.0,
+      "text": " PRYTHV from NASA and IBM, and CLAY from the Clay Foundation."
+    },
+    {
+      "start": 79.0,
+      "end": 84.0,
+      "text": " We'll apply these models to a real disaster event, the 2022 Pakistan floods,"
+    },
+    {
+      "start": 84.0,
+      "end": 87.0,
+      "text": " and see how their embeddings capture meaningful patterns."
+    },
+    {
+      "start": 87.0,
+      "end": 94.16,
+      "text": " Finally, we'll train simple classifiers on top of these embeddings to detect flood conditions."
+    },
+    {
+      "start": 94.16,
+      "end": 97.78,
+      "text": " So what exactly is a foundation model for Earth observation?"
+    },
+    {
+      "start": 97.78,
+      "end": 101.18,
+      "text": " It's a large-scale machine learning model that's been pre-trained on vast amounts of"
+    },
+    {
+      "start": 101.18,
+      "end": 107.12,
+      "text": " remote sensing data, including optical imagery, radar, thermal, and multispectral, to learn"
+    },
+    {
+      "start": 107.12,
+      "end": 110.76,
+      "text": " general-purpose representations of the Earth's surface."
+    },
+    {
+      "start": 110.76,
+      "end": 114.64,
+      "text": " The key insight is that these models learn without human-annotated labels."
+    },
+    {
+      "start": 114.64,
+      "end": 121.5,
+      "text": " They use a technique called self-supervised learning, where the model creates its own training signal from the data itself."
+    },
+    {
+      "start": 122.22,
+      "end": 128.48,
+      "text": " A common approach is masked reconstruction, where you hide parts of an image and train the model to predict what's missing."
+    },
+    {
+      "start": 129.2,
+      "end": 133.58,
+      "text": " This forces the model to learn the underlying structure and patterns in the data."
+    },
+    {
+      "start": 135.0,
+      "end": 140.16,
+      "text": " Most foundation models use an architecture called a vision transformer, or VIT for short."
+    },
+    {
+      "start": 140.76,
+      "end": 143.54,
+      "text": " We'll explain more on how that works in the next slide."
+    },
+    {
+      "start": 143.54,
+      "end": 152.76,
+      "text": " But generally, the most popular methods for developing EOFMs, or Earth Observation Foundation models, is as follows."
+    },
+    {
+      "start": 154.23999999999998,
+      "end": 158.68,
+      "text": " First, masked reconstruction. This is what Perthvy and Clay use."
+    },
+    {
+      "start": 159.44,
+      "end": 164.57999999999998,
+      "text": " You randomly hide or mask parts of an image, then train the model to predict the missing content."
+    },
+    {
+      "start": 164.58,
+      "end": 174.88000000000002,
+      "text": " Think of it like a jigsaw puzzle. To fill in the gaps, the model must understand what agricultural fields look like, how water bodies appear, and how urban areas are structured."
+    },
+    {
+      "start": 175.44,
+      "end": 178.42000000000002,
+      "text": " It learns the underlying patterns of Earth's surface."
+    },
+    {
+      "start": 179.38000000000002,
+      "end": 182.86,
+      "text": " The second method that I'll mention is contrastive learning."
+    },
+    {
+      "start": 183.4,
+      "end": 187.44,
+      "text": " Here, the model learns to distinguish between similar and dissimilar pairs."
+    },
+    {
+      "start": 187.44,
+      "end": 200.22,
+      "text": " You might take two augmented views of the same image, rotated, cropped, color shifted, and train the model to recognize they're actually the same scene while distinguishing them from completely different locations."
+    },
+    {
+      "start": 201.18,
+      "end": 204.9,
+      "text": " This teaches the model what makes a scene ultimately unique."
+    },
+    {
+      "start": 206.2,
+      "end": 210.9,
+      "text": " The third method worth mentioning today is generative methods."
+    },
+    {
+      "start": 210.9,
+      "end": 218.9,
+      "text": " These are used to train the model to synthesize or reconstruct entire input distributions."
+    },
+    {
+      "start": 218.9,
+      "end": 223.14000000000001,
+      "text": " The model learns to generate realistic satellite imagery, which requires understanding the"
+    },
+    {
+      "start": 223.14000000000001,
+      "end": 227.18,
+      "text": " full complexity of what Earth's surface looks like."
+    },
+    {
+      "start": 227.18,
+      "end": 234.02,
+      "text": " The key insight across all of these approaches is that no labeled data is required for pre-training."
+    },
+    {
+      "start": 234.02,
+      "end": 238.5,
+      "text": " The supervision signal comes entirely from the data itself."
+    },
+    {
+      "start": 238.5,
+      "end": 242.96,
+      "text": " This is why foundation models can leverage the petabytes of unlabeled satellite imagery"
+    },
+    {
+      "start": 242.96,
+      "end": 246.74,
+      "text": " that already exist."
+    },
+    {
+      "start": 246.74,
+      "end": 251.14,
+      "text": " For a VIT, the idea is simple but powerful."
+    },
+    {
+      "start": 251.14,
+      "end": 257.94,
+      "text": " You divide an image into fixed-size patches, usually 16 by 16 pixels, and treat each patch"
+    },
+    {
+      "start": 257.94,
+      "end": 262.18,
+      "text": " as a token, similar to words in a sentence."
+    },
+    {
+      "start": 262.18,
+      "end": 268.08,
+      "text": " Then apply the transformer's self-attention mechanism to model relationships between patches."
+    },
+    {
+      "start": 268.08,
+      "end": 272.9,
+      "text": " This allows the model to capture both local details and global context."
+    },
+    {
+      "start": 272.9,
+      "end": 277.56,
+      "text": " It's worth noting that vision transformers are the backbone architecture."
+    },
+    {
+      "start": 277.56,
+      "end": 283.14,
+      "text": " They're not the foundation models themselves, but rather the building blocks used to construct"
+    },
+    {
+      "start": 283.14,
+      "end": 286.28,
+      "text": " them."
+    },
+    {
+      "start": 286.28,
+      "end": 288.84,
+      "text": " Why should you care about foundation models?"
+    },
+    {
+      "start": 288.84,
+      "end": 291.76,
+      "text": " First, reduce training costs."
+    },
+    {
+      "start": 291.76,
+      "end": 297.14,
+      "text": " Traditional models require training from scratch for every application."
+    },
+    {
+      "start": 297.14,
+      "end": 302.02,
+      "text": " Foundation models are pre-trained, so you only need to fine-tune them with smaller datasets."
+    },
+    {
+      "start": 302.02,
+      "end": 304.88,
+      "text": " Secondly, faster development."
+    },
+    {
+      "start": 304.88,
+      "end": 310.26,
+      "text": " You get to use ready-to-use features and embeddings, eliminating extensive pre-processing."
+    },
+    {
+      "start": 310.26,
+      "end": 315.3,
+      "text": " Third, improved accuracy with limited data."
+    },
+    {
+      "start": 315.3,
+      "end": 319.5,
+      "text": " Because they've learned from massive datasets, foundation models are robust even when you"
+    },
+    {
+      "start": 319.5,
+      "end": 322.9,
+      "text": " only have a handful of labeled examples."
+    },
+    {
+      "start": 322.9,
+      "end": 325.3,
+      "text": " Fourth, scalability."
+    },
+    {
+      "start": 325.3,
+      "end": 331.18,
+      "text": " One model can be repurposed for many tasks, including flood mapping, land cover classification,"
+    },
+    {
+      "start": 331.18,
+      "end": 334.3,
+      "text": " vegetation health, and more."
+    },
+    {
+      "start": 334.3,
+      "end": 338.36,
+      "text": " Fifth, democratizing access."
+    },
+    {
+      "start": 338.36,
+      "end": 343.38,
+      "text": " Many foundation models are open source, so smaller organizations can access state-of-the-art"
+    },
+    {
+      "start": 343.38,
+      "end": 346.74,
+      "text": " tools without expensive infrastructure."
+    },
+    {
+      "start": 346.74,
+      "end": 350.36,
+      "text": " Sixth, better backbones than ImageNet."
+    },
+    {
+      "start": 350.36,
+      "end": 355.8,
+      "text": " These models are trained on actual satellite imagery with multispectral bands, not just"
+    },
+    {
+      "start": 355.8,
+      "end": 359.1,
+      "text": " RGB photos."
+    },
+    {
+      "start": 359.1,
+      "end": 363.28000000000003,
+      "text": " That means red, green, blue, natural color photos."
+    },
+    {
+      "start": 363.28000000000003,
+      "end": 365.52000000000004,
+      "text": " And seventh, this is important."
+    },
+    {
+      "start": 365.52000000000004,
+      "end": 371.8,
+      "text": " While foundation models may not beat highly specialized bespoke models, they can get you"
+    },
+    {
+      "start": 371.8,
+      "end": 378.76,
+      "text": " approximately 90% of the way there with about 10% of the effort."
+    },
+    {
+      "start": 378.76,
+      "end": 385.18,
+      "text": " That in and of itself is a compelling trade-off for many applications."
+    },
+    {
+      "start": 385.18,
+      "end": 387.58,
+      "text": " Of course, foundation models aren't perfect."
+    },
+    {
+      "start": 387.58,
+      "end": 392.53999999999996,
+      "text": " They're still relatively new in the Earth observation research community and do need"
+    },
+    {
+      "start": 392.53999999999996,
+      "end": 396.26,
+      "text": " more validation across diverse applications."
+    },
+    {
+      "start": 396.26,
+      "end": 399.82,
+      "text": " As well, there are domain-specific challenges."
+    },
+    {
+      "start": 399.82,
+      "end": 403.84,
+      "text": " Models may struggle with conditions that weren't well represented in their training data, such"
+    },
+    {
+      "start": 403.84,
+      "end": 410.56,
+      "text": " as unusual crop varieties, rapidly changing urban areas, or the unique spectral signatures"
+    },
+    {
+      "start": 410.56,
+      "end": 413.21999999999997,
+      "text": " of polar regions."
+    },
+    {
+      "start": 413.21999999999997,
+      "end": 417.35999999999996,
+      "text": " Earth observation data is also inherently complex."
+    },
+    {
+      "start": 417.35999999999996,
+      "end": 422.32,
+      "text": " We have diverse sensors capturing different wavelengths at different resolutions, temporal"
+    },
+    {
+      "start": 422.32,
+      "end": 427.53999999999996,
+      "text": " dynamics, varying coordinate systems, and metadata across providers."
+    },
+    {
+      "start": 427.53999999999996,
+      "end": 433.32,
+      "text": " No single model today fully handles all of this complexity."
+    },
+    {
+      "start": 433.32,
+      "end": 437.2,
+      "text": " And here's the good news, we don't need one monolithic model."
+    },
+    {
+      "start": 437.2,
+      "end": 443.28,
+      "text": " For example, you might use one model for temporal analysis of change over time, one for flexible"
+    },
+    {
+      "start": 443.28,
+      "end": 449.53999999999996,
+      "text": " multi-sensor fusion, and another for more specialized data."
+    },
+    {
+      "start": 449.53999999999996,
+      "end": 453.48,
+      "text": " This tactical thinking aligns with how the field is evolving."
+    },
+    {
+      "start": 453.48,
+      "end": 458.8,
+      "text": " Rather than waiting for one perfect model, we can build systems that leverage the strengths"
+    },
+    {
+      "start": 458.8,
+      "end": 461.08,
+      "text": " of multiple models."
+    },
+    {
+      "start": 461.08,
+      "end": 469.96,
+      "text": " We'll apply foundation models to one of the most catastrophic flood events in recent history, the 2022 Pakistan floods."
+    },
+    {
+      "start": 470.68,
+      "end": 479.62,
+      "text": " Between approximately July and August 2022, unprecedented monsoon rainfall triggered massive flooding across Pakistan."
+    },
+    {
+      "start": 479.62,
+      "end": 491.18,
+      "text": " Approximately 33 million people were affected, vast agricultural lands were submerged, and the World Bank estimated over 30 billion US dollars in damages."
+    },
+    {
+      "start": 491.9,
+      "end": 500.24,
+      "text": " This is exactly the kind of scenario where rapid, accurate flood mapping is critical, and where foundation models can make a real difference."
+    },
+    {
+      "start": 500.24,
+      "end": 510.24,
+      "text": " Our study area is centered on Patadan and Pakistan's Sindh province, one of the regions most severely impacted by the floods."
+    },
+    {
+      "start": 510.24,
+      "end": 518.24,
+      "text": " During this period, the Indus River and its tributaries overflowed, submerging the surrounding agricultural lands."
+    },
+    {
+      "start": 518.24,
+      "end": 529.24,
+      "text": " We'll analyze satellite imagery from June through October 2022, capturing pre-flood conditions, active flooding, and the post-flood recovery."
+    },
+    {
+      "start": 529.24,
+      "end": 534.32,
+      "text": " We will work with two different foundation models."
+    },
+    {
+      "start": 534.32,
+      "end": 540.24,
+      "text": " Prithvi, developed by NASA and IBM, is a temporal vision transformer trained on harmonized Landsat"
+    },
+    {
+      "start": 540.24,
+      "end": 542.34,
+      "text": " Sentinel-2 data."
+    },
+    {
+      "start": 542.34,
+      "end": 548.08,
+      "text": " It's optimized for spatiotemporal analysis and processes sequences of four images, what"
+    },
+    {
+      "start": 548.08,
+      "end": 551.1,
+      "text": " we call quadruplets."
+    },
+    {
+      "start": 551.1,
+      "end": 555.5,
+      "text": " CLAE from the CLAE Foundation is designed for flexibility."
+    },
+    {
+      "start": 555.5,
+      "end": 561.32,
+      "text": " It supports variable image resolutions and sensor types and processes individual images"
+    },
+    {
+      "start": 561.32,
+      "end": 564.7,
+      "text": " rather than temporal sequences."
+    },
+    {
+      "start": 564.7,
+      "end": 571.18,
+      "text": " By applying both models, we'll see how different architectural choices can effectively capture"
+    },
+    {
+      "start": 571.18,
+      "end": 576.2,
+      "text": " flood signatures."
+    },
+    {
+      "start": 576.2,
+      "end": 583.38,
+      "text": " The Prithvi HLS Foundation model was innovatively developed using a masked autoencoder approach"
+    },
+    {
+      "start": 583.38,
+      "end": 585.66,
+      "text": " combined with temporal modeling."
+    },
+    {
+      "start": 587.18,
+      "end": 589.36,
+      "text": " The model uses six spectral bands,"
+    },
+    {
+      "start": 589.36,
+      "end": 591.92,
+      "text": " blue, green, red, near infrared,"
+    },
+    {
+      "start": 591.92,
+      "end": 594.66,
+      "text": " shortwave infrared one, and shortwave infrared two."
+    },
+    {
+      "start": 595.66,
+      "end": 598.66,
+      "text": " It processes sequences of four images,"
+    },
+    {
+      "start": 598.66,
+      "end": 602.4399999999999,
+      "text": " which allows it to capture temporal dynamics"
+    },
+    {
+      "start": 602.4399999999999,
+      "end": 606.18,
+      "text": " like seasonal changes or in our case, flood progression."
+    },
+    {
+      "start": 607.56,
+      "end": 611.34,
+      "text": " Notice the architecture diagram shows 3D patch embeddings."
+    },
+    {
+      "start": 611.34,
+      "end": 615.44,
+      "text": " This exemplifies how Prithvi encodes both spatial and temporal features."
+    },
+    {
+      "start": 616.4200000000001,
+      "end": 623.5600000000001,
+      "text": " Input data is formatted with the following dimensions, bands, channels, time, height, and width."
+    },
+    {
+      "start": 624.36,
+      "end": 628.02,
+      "text": " This five-dimensional structure is key to understanding how Prithvi works."
+    },
+    {
+      "start": 628.2800000000001,
+      "end": 634.88,
+      "text": " Once formatted as a temporal sequence, the quadruplet of images are converted to 3D patch embeddings,"
+    },
+    {
+      "start": 634.88,
+      "end": 645.8,
+      "text": " processed by the transformer encoder, after which we extract the class token, CLS, as our final embedding."
+    },
+    {
+      "start": 648.7,
+      "end": 650.4,
+      "text": " Here's our data pipeline."
+    },
+    {
+      "start": 651.04,
+      "end": 653.92,
+      "text": " First, we define location and dates."
+    },
+    {
+      "start": 654.2,
+      "end": 658.04,
+      "text": " We're using Paddan, Pakistan from June through October 2022."
+    },
+    {
+      "start": 659.3,
+      "end": 661.52,
+      "text": " We query the stack catalog."
+    },
+    {
+      "start": 661.52,
+      "end": 669.5799999999999,
+      "text": " In this case, we engage NASA's CMR endpoint and request the HLS-30 collection."
+    },
+    {
+      "start": 670.56,
+      "end": 685.04,
+      "text": " We'll download imagery. We get 22 images for this time period, each with six bands at 256 by 256 pixels in height and width."
+    },
+    {
+      "start": 685.04,
+      "end": 696.04,
+      "text": " We will format the imagery for the model. This is where we will create, in the case of Prithvi, quadruplets with overlapping sequences of four images."
+    },
+    {
+      "start": 696.04,
+      "end": 707.04,
+      "text": " And then we will generate embeddings. The Prithvi model outputs 1024 dimensional vectors, one per quadruplet."
+    },
+    {
+      "start": 707.04,
+      "end": 717.4399999999999,
+      "text": " From there, we'll analyze embeddings with principal component analysis and TES&E, as well as train a classifier on top of the embeddings."
+    },
+    {
+      "start": 719.86,
+      "end": 724.5999999999999,
+      "text": " The imagery we will download breaks down generally into three phases of interest."
+    },
+    {
+      "start": 725.48,
+      "end": 731.4399999999999,
+      "text": " Pre-flood encompassing June 2022, for which we have five images showing normal conditions."
+    },
+    {
+      "start": 732.4,
+      "end": 735.74,
+      "text": " In these, you can see agricultural fields and dry land."
+    },
+    {
+      "start": 737.04,
+      "end": 740.4,
+      "text": " The next phase is July through August 2022."
+    },
+    {
+      "start": 741.14,
+      "end": 745.54,
+      "text": " That is what we are considering the active flooding period."
+    },
+    {
+      "start": 746.5799999999999,
+      "end": 751.02,
+      "text": " And for that, we have four images where you'll notice some dark pixels."
+    },
+    {
+      "start": 751.42,
+      "end": 756.18,
+      "text": " These are likely to represent water inundation covering the landscape."
+    },
+    {
+      "start": 757.9599999999999,
+      "end": 766.78,
+      "text": " The last phase is late August through October 2022, which we consider the post-flood recovery phase."
+    },
+    {
+      "start": 767.04,
+      "end": 773.06,
+      "text": " and this entails 13 images showing gradual recovery, though some standing water may persist."
+    },
+    {
+      "start": 774.4599999999999,
+      "end": 777.02,
+      "text": " A visual inspection such as this is important."
+    },
+    {
+      "start": 777.48,
+      "end": 781.78,
+      "text": " It helps us understand what patterns we expect the model's embeddings to capture."
+    },
+    {
+      "start": 782.38,
+      "end": 793.3,
+      "text": " The question that we want to ask is, can the model learn to distinguish these phases without us telling the model which is which?"
+    },
+    {
+      "start": 793.3,
+      "end": 801.54,
+      "text": " As mentioned, we'll run a principal components analysis on our embeddings."
+    },
+    {
+      "start": 802.16,
+      "end": 804.62,
+      "text": " Why do we want to do something such as this?"
+    },
+    {
+      "start": 805.42,
+      "end": 816.0799999999999,
+      "text": " Well, our embeddings are 1024-dimensional vectors, which is very difficult to visualize directly."
+    },
+    {
+      "start": 816.08,
+      "end": 827.08,
+      "text": " PCA extracts the directions of maximum variance in the data, allowing us to project down to one or two dimensions for visualization."
+    },
+    {
+      "start": 828.08,
+      "end": 838.08,
+      "text": " What we can expect to see? Similar conditions should cluster together in PCA space. Different conditions should also separate."
+    },
+    {
+      "start": 838.08,
+      "end": 844.72,
+      "text": " separate. If the model has learned meaningful representations, pre-flood images should cluster"
+    },
+    {
+      "start": 844.72,
+      "end": 851.6,
+      "text": " together, flood images should form a separate group, and post-flood should be distinct."
+    },
+    {
+      "start": 852.1600000000001,
+      "end": 859.2,
+      "text": " A cloudy image might deviate from the groups as well. Let's see if that's what happens."
+    },
+    {
+      "start": 859.2,
+      "end": 868.1400000000001,
+      "text": " Our first approach for PCA and Prithvi embeddings uses the class token for a given quadruplet."
+    },
+    {
+      "start": 868.1400000000001,
+      "end": 876.9000000000001,
+      "text": " We'll pass each quadruplet through Prithvi, extract the class token which summarizes all"
+    },
+    {
+      "start": 876.9000000000001,
+      "end": 884.72,
+      "text": " four time steps, and with those we'll get 19 embeddings, one per quadruplet. The result"
+    },
+    {
+      "start": 884.72,
+      "end": 890.48,
+      "text": " visualized in this plot shows some separation between flood phases, which is encouraging,"
+    },
+    {
+      "start": 890.48,
+      "end": 896.0,
+      "text": " but there's an issue with how we're using these embeddings. It's hard to cluster temporally when"
+    },
+    {
+      "start": 896.0,
+      "end": 902.88,
+      "text": " a given time step can exist in multiple quadruplets. Image 5, for example, appears in"
+    },
+    {
+      "start": 902.88,
+      "end": 912.0,
+      "text": " quadruplets 2, 3, 4, and 5. This creates temporal leakage that can compromise our analysis."
+    },
+    {
+      "start": 912.0,
+      "end": 919.52,
+      "text": " we need to do some further processing. So instead of using the class tokens, we'll show how to do"
+    },
+    {
+      "start": 919.52,
+      "end": 927.72,
+      "text": " PCA using individual timesteps. Prithvi outputs two things. The first is per quadruplet the class"
+    },
+    {
+      "start": 927.72,
+      "end": 936.34,
+      "text": " token, and that's ultimately a summary of the entire quadruplet of timesteps. So it's a summary"
+    },
+    {
+      "start": 936.34,
+      "end": 942.98,
+      "text": " embedding if you will. Prithvi also outputs patch tokens for each time step. That would be something"
+    },
+    {
+      "start": 942.98,
+      "end": 949.94,
+      "text": " more along the lines of a per time step embedding and so this is ultimately what we want to use to"
+    },
+    {
+      "start": 949.94,
+      "end": 957.7800000000001,
+      "text": " get a nice clustering of the different flood phases. To get patch tokens for each time step,"
+    },
+    {
+      "start": 957.7800000000001,
+      "end": 963.7800000000001,
+      "text": " we'll start with embeddings that are of shape one which is the batch size."
+    },
+    {
+      "start": 963.78,
+      "end": 972.12,
+      "text": " we're processing one quadruplet at a time. NUM tokens and that means the number of tokens which"
+    },
+    {
+      "start": 972.12,
+      "end": 977.9,
+      "text": " relates to total number of patch tokens output by the transformer. This includes patches from"
+    },
+    {
+      "start": 977.9,
+      "end": 984.4599999999999,
+      "text": " all four time steps combined. Embedding dimension which for Prithvi is 1024."
+    },
+    {
+      "start": 985.8,
+      "end": 992.4599999999999,
+      "text": " We reshape that to T which is our number of time steps in the quadruplet so four."
+    },
+    {
+      "start": 992.46,
+      "end": 1000.24,
+      "text": " patches per time step which defines how many spatial patches come from each image for a 256"
+    },
+    {
+      "start": 1000.24,
+      "end": 1008.64,
+      "text": " by 256 image with 16 by 16 patches that's 256 patches per time step lastly a new shape is the"
+    },
+    {
+      "start": 1008.64,
+      "end": 1017.26,
+      "text": " embedding dimension which remains 1024 we then average across patches to get t which again is 4"
+    },
+    {
+      "start": 1017.26,
+      "end": 1022.0,
+      "text": " by embedding dimension, which is 1024."
+    },
+    {
+      "start": 1023.2,
+      "end": 1028.8,
+      "text": " That ultimately is a shape that is a representation"
+    },
+    {
+      "start": 1028.8,
+      "end": 1034.7,
+      "text": " of how we collapse 256 spatial patches into a single vector per time step."
+    },
+    {
+      "start": 1035.76,
+      "end": 1041.3799999999999,
+      "text": " And that final shape is ultimately a representation"
+    },
+    {
+      "start": 1041.3799999999999,
+      "end": 1044.98,
+      "text": " of four embeddings of 1024 dimensions each."
+    },
+    {
+      "start": 1044.98,
+      "end": 1051.7,
+      "text": " so that is what you can consider one embedding per image in the quadruplet."
+    },
+    {
+      "start": 1052.56,
+      "end": 1059.66,
+      "text": " The result here is we have now processed the embeddings"
+    },
+    {
+      "start": 1059.66,
+      "end": 1063.88,
+      "text": " so that we have one embedding per time step with no mixing between images."
+    },
+    {
+      "start": 1064.34,
+      "end": 1068.68,
+      "text": " Each embedding represents exactly one point in time."
+    },
+    {
+      "start": 1068.68,
+      "end": 1076.8600000000001,
+      "text": " So, as we can see, PCA on the per-time step embeddings gives us a fairly clear separation"
+    },
+    {
+      "start": 1076.8600000000001,
+      "end": 1079.3200000000002,
+      "text": " of flood phases."
+    },
+    {
+      "start": 1079.3200000000002,
+      "end": 1088.1000000000001,
+      "text": " If we plot PCA component 1 against time, we can see how distinct clustering emerges."
+    },
+    {
+      "start": 1088.1000000000001,
+      "end": 1094.0,
+      "text": " We see pre-flood images grouped together, flood images separate out, and that includes"
+    },
+    {
+      "start": 1094.0,
+      "end": 1096.48,
+      "text": " the cloudy image."
+    },
+    {
+      "start": 1096.48,
+      "end": 1100.72,
+      "text": " and we see post-flood images form their own cluster."
+    },
+    {
+      "start": 1100.72,
+      "end": 1106.28,
+      "text": " The key insight here is that the model distinguishes flood phases without any labels."
+    },
+    {
+      "start": 1106.28,
+      "end": 1112.24,
+      "text": " To generate this result, we never instruct the model on which images are pre-flood, during"
+    },
+    {
+      "start": 1112.24,
+      "end": 1114.48,
+      "text": " flood, or post-flood."
+    },
+    {
+      "start": 1114.48,
+      "end": 1119.98,
+      "text": " The self-supervised pre-training produces representations that naturally separate these"
+    },
+    {
+      "start": 1119.98,
+      "end": 1122.48,
+      "text": " conditions."
+    },
+    {
+      "start": 1122.48,
+      "end": 1127.54,
+      "text": " Both shows how foundation models accelerate analysis through the meaningful patterns they've"
+    },
+    {
+      "start": 1127.54,
+      "end": 1132.44,
+      "text": " already learned from their massive pre-training datasets."
+    },
+    {
+      "start": 1132.44,
+      "end": 1138.66,
+      "text": " We'll proceed to look at another dimensionality reduction technique called T-SNE."
+    },
+    {
+      "start": 1138.66,
+      "end": 1145.4,
+      "text": " The difference between PCA and T-SNE is that PCA is a linear projection that preserves"
+    },
+    {
+      "start": 1145.4,
+      "end": 1152.16,
+      "text": " global variance, and T-SNE is nonlinear and preserves local neighborhoods, so similar"
+    },
+    {
+      "start": 1152.16,
+      "end": 1160.8200000000002,
+      "text": " things stay close together. Our TS&E results confirm the PCA findings. We see fairly distinct"
+    },
+    {
+      "start": 1160.8200000000002,
+      "end": 1167.72,
+      "text": " clusters for each flood phase. The fact that both methods show similar patterns gives us confidence"
+    },
+    {
+      "start": 1167.72,
+      "end": 1174.16,
+      "text": " that what we're seeing is genuine structure in the embeddings, not artifacts of a particular"
+    },
+    {
+      "start": 1174.16,
+      "end": 1178.88,
+      "text": " visualization technique. Go from embeddings to predictions by training a very lightweight"
+    },
+    {
+      "start": 1178.88,
+      "end": 1185.44,
+      "text": " classifier. The process will be super simple. We'll use our per-timestep embeddings as features,"
+    },
+    {
+      "start": 1185.44,
+      "end": 1192.64,
+      "text": " upon which we'll assign labels to each timestep. 0 for cloudy, 1 for pre-flood, 2 for flood,"
+    },
+    {
+      "start": 1192.64,
+      "end": 1197.3600000000001,
+      "text": " 3 for post-flood. We'll partition timesteps into training and testing sets,"
+    },
+    {
+      "start": 1197.3600000000001,
+      "end": 1201.2800000000002,
+      "text": " with an effort to include samples from each phase in both partitions."
+    },
+    {
+      "start": 1202.16,
+      "end": 1206.16,
+      "text": " We'll train a simple support vector machine classifier as our last step."
+    },
+    {
+      "start": 1206.16,
+      "end": 1213.76,
+      "text": " As you'll see in the results in the notebook, 9 out of 10 embeddings from the test set are"
+    },
+    {
+      "start": 1213.76,
+      "end": 1219.96,
+      "text": " correctly predicted. That shows pretty strong classification and performance with such minimal"
+    },
+    {
+      "start": 1219.96,
+      "end": 1228.72,
+      "text": " data. In reflection, although we may only have 22 samples, the support vector machine trained"
+    },
+    {
+      "start": 1228.72,
+      "end": 1235.78,
+      "text": " minimally on these embeddings proves to accurately classify flood phases. This really demonstrates"
+    },
+    {
+      "start": 1235.78,
+      "end": 1241.46,
+      "text": " the transfer learning power of foundation models. The hard work of learning visual representations"
+    },
+    {
+      "start": 1241.46,
+      "end": 1248.74,
+      "text": " was already done during pre-training. In an example such as this, we really just had to add"
+    },
+    {
+      "start": 1249.54,
+      "end": 1256.74,
+      "text": " a thin classifier on top. Now let's look at CLE and understand the key difference from Prithvi."
+    },
+    {
+      "start": 1257.94,
+      "end": 1265.54,
+      "text": " CLE processes individual images, not quadruplets. One image goes in, one embedding comes out."
+    },
+    {
+      "start": 1265.54,
+      "end": 1272.5,
+      "text": " There's no temporal mixing. This means for clay, embeddings are directly per time step. We don't"
+    },
+    {
+      "start": 1272.5,
+      "end": 1279.86,
+      "text": " need to do the extraction we did with Prithvi. We get 22 embeddings directly, one for each of our 22 images."
+    },
+    {
+      "start": 1282.1,
+      "end": 1290.42,
+      "text": " PCA on clay embeddings also shows clear flood separation, flood phase separation. The clustering"
+    },
+    {
+      "start": 1290.42,
+      "end": 1295.46,
+      "text": " pattern is slightly different from Prithvi, which indicates how it emphasizes different aspects of"
+    },
+    {
+      "start": 1295.46,
+      "end": 1301.3,
+      "text": " the data based on its different training. The key insight however is that both models capture flood"
+    },
+    {
+      "start": 1301.3,
+      "end": 1308.66,
+      "text": " dynamics but with different learned representations. The practical implication we want to consider is"
+    },
+    {
+      "start": 1308.66,
+      "end": 1315.7,
+      "text": " to use an ensemble of multiple models for more robust predictions. If both Prithvi"
+    },
+    {
+      "start": 1315.7,
+      "end": 1321.6200000000001,
+      "text": " and Clay agree that an image shows flooding you can be pretty confident in that classification."
+    },
+    {
+      "start": 1321.62,
+      "end": 1329.9399999999998,
+      "text": " This table captures the key differences between the two models. As for input format, Prithvi"
+    },
+    {
+      "start": 1329.9399999999998,
+      "end": 1336.5,
+      "text": " requires quadruplets, those sequences of four consecutive images. Clay takes single images."
+    },
+    {
+      "start": 1337.4599999999998,
+      "end": 1345.3799999999999,
+      "text": " This has practical implications. For example, if you only have one cloud-free image from a flood"
+    },
+    {
+      "start": 1345.38,
+      "end": 1352.8200000000002,
+      "text": " event, Clay can work with it directly, while Prithvi needs a temporal sequence."
+    },
+    {
+      "start": 1352.8200000000002,
+      "end": 1360.0,
+      "text": " As for temporal context, Prithvi uses temporal modeling across those four timesteps."
+    },
+    {
+      "start": 1360.0,
+      "end": 1362.5400000000002,
+      "text": " Clay doesn't encode temporal context this way."
+    },
+    {
+      "start": 1362.5400000000002,
+      "end": 1366.5,
+      "text": " Each image is processed independently."
+    },
+    {
+      "start": 1366.5,
+      "end": 1368.7800000000002,
+      "text": " Embedding extraction."
+    },
+    {
+      "start": 1368.7800000000002,
+      "end": 1372.6200000000001,
+      "text": " With Prithvi, we needed that extra step to extract per-time step embeddings from the"
+    },
+    {
+      "start": 1372.6200000000001,
+      "end": 1374.1000000000001,
+      "text": " patch tokens."
+    },
+    {
+      "start": 1374.1,
+      "end": 1378.9199999999998,
+      "text": " With clay, we get one embedding per image directly."
+    },
+    {
+      "start": 1378.9199999999998,
+      "end": 1380.7199999999998,
+      "text": " Clustering quality."
+    },
+    {
+      "start": 1380.7199999999998,
+      "end": 1384.76,
+      "text": " Both achieved excellent separation of flood phases in our analysis."
+    },
+    {
+      "start": 1384.76,
+      "end": 1388.3999999999999,
+      "text": " Neither model is clearly better for this task."
+    },
+    {
+      "start": 1388.3999999999999,
+      "end": 1390.48,
+      "text": " So when should you use each?"
+    },
+    {
+      "start": 1390.48,
+      "end": 1395.4399999999998,
+      "text": " PrisB might be your choice when temporal dynamics are foremost in importance."
+    },
+    {
+      "start": 1395.4399999999998,
+      "end": 1400.36,
+      "text": " Monitoring gradual changes, detecting the onset of recession of events, or when you"
+    },
+    {
+      "start": 1400.36,
+      "end": 1403.1799999999998,
+      "text": " have good temporal coverage."
+    },
+    {
+      "start": 1403.18,
+      "end": 1408.8200000000002,
+      "text": " They could be better for flexible applications, such as working with different sensors, variable"
+    },
+    {
+      "start": 1408.8200000000002,
+      "end": 1413.38,
+      "text": " resolutions, or when you only have single images available."
+    },
+    {
+      "start": 1413.38,
+      "end": 1419.3600000000001,
+      "text": " In practice, you might use both and compare results, or even ensemble them for more robust"
+    },
+    {
+      "start": 1419.3600000000001,
+      "end": 1420.3600000000001,
+      "text": " predictions."
+    },
+    {
+      "start": 1420.3600000000001,
+      "end": 1424.76,
+      "text": " Let's recap what we've learned in this chapter."
+    },
+    {
+      "start": 1424.76,
+      "end": 1428.7,
+      "text": " Foundation models learn general representations without labels."
+    },
+    {
+      "start": 1428.7,
+      "end": 1433.48,
+      "text": " No manual annotation is required for pre-training."
+    },
+    {
+      "start": 1433.48,
+      "end": 1438.92,
+      "text": " Self-supervised learning enables training on vast unlabeled data, leveraging the petabytes"
+    },
+    {
+      "start": 1438.92,
+      "end": 1443.8,
+      "text": " of satellite imagery that already exist."
+    },
+    {
+      "start": 1443.8,
+      "end": 1446.3,
+      "text": " Embeddings capture meaningful patterns."
+    },
+    {
+      "start": 1446.3,
+      "end": 1452.2,
+      "text": " Flood phases cluster naturally without any supervision."
+    },
+    {
+      "start": 1452.2,
+      "end": 1454.56,
+      "text": " Different models have different strengths."
+    },
+    {
+      "start": 1454.56,
+      "end": 1457.54,
+      "text": " Prithvi is great for temporal."
+    },
+    {
+      "start": 1457.54,
+      "end": 1462.3799999999999,
+      "text": " Clay is awesome for flexibility."
+    },
+    {
+      "start": 1462.3799999999999,
+      "end": 1466.56,
+      "text": " Simple classifiers on top of embeddings achieve strong results."
+    },
+    {
+      "start": 1466.56,
+      "end": 1473.44,
+      "text": " A support vector machine with only 22 samples works impressively well."
+    },
+    {
+      "start": 1473.44,
+      "end": 1478.28,
+      "text": " Practical applications are accessible with just a few lines of code."
+    },
+    {
+      "start": 1478.28,
+      "end": 1484.3799999999999,
+      "text": " You can adapt this workflow to your own use cases."
+    },
+    {
+      "start": 1484.38,
+      "end": 1488.2600000000002,
+      "text": " You'll benefit from keeping in mind some limitations, such as"
+    },
+    {
+      "start": 1488.2600000000002,
+      "end": 1491.7,
+      "text": " Models may struggle with underrepresented conditions."
+    },
+    {
+      "start": 1491.7,
+      "end": 1497.2600000000002,
+      "text": " If something wasn't in the training data, the model may not handle it too well."
+    },
+    {
+      "start": 1497.2600000000002,
+      "end": 1503.8400000000001,
+      "text": " Earth observation foundation models need validation across diverse geographies."
+    },
+    {
+      "start": 1503.8400000000001,
+      "end": 1509.5600000000002,
+      "text": " What works in Pakistan may need verification in other regions."
+    },
+    {
+      "start": 1509.5600000000002,
+      "end": 1511.5200000000002,
+      "text": " Computational requirements for inference."
+    },
+    {
+      "start": 1511.52,
+      "end": 1517.84,
+      "text": " These are large models that require significant computational resources."
+    },
+    {
+      "start": 1517.84,
+      "end": 1522.8799999999999,
+      "text": " Future directions for OFO model development include"
+    },
+    {
+      "start": 1522.8799999999999,
+      "end": 1528.92,
+      "text": " Improved multi-sensor fusion models Improved temporal modeling"
+    },
+    {
+      "start": 1528.92,
+      "end": 1535.42,
+      "text": " Smaller, more efficient architectures for edge deployment"
+    },
+    {
+      "start": 1535.42,
+      "end": 1540.96,
+      "text": " More domain-specific fine-tuning for particular applications"
+    },
+    {
+      "start": 1540.96,
+      "end": 1545.54,
+      "text": " The reference at the bottom of this slide provides a comprehensive review of Earth Foundation"
+    },
+    {
+      "start": 1545.54,
+      "end": 1549.2,
+      "text": " models if you want to dive deeper."
+    },
+    {
+      "start": 1549.2,
+      "end": 1556.44,
+      "text": " Lastly, here are resources to continue learning."
+    },
+    {
+      "start": 1556.44,
+      "end": 1566.14,
+      "text": " The models, Prithvi and Clay, the data, HLS, along with your Earth data login, which is"
+    },
+    {
+      "start": 1566.14,
+      "end": 1571.88,
+      "text": " used to access the HLS data in this chapter."
+    },
+    {
+      "start": 1571.88,
+      "end": 1579.5400000000002,
+      "text": " We encourage you to dive deeper into your own analysis and leverage the learnings from"
+    },
+    {
+      "start": 1579.5400000000002,
+      "end": 1581.7,
+      "text": " this chapter."
+    },
+    {
+      "start": 1581.7,
+      "end": 1587.3400000000001,
+      "text": " The notebook included in this chapter includes everything you need to do so."
+    },
+    {
+      "start": 1587.3400000000001,
+      "end": 1594.72,
+      "text": " Complete code for Prithvi and Clay, code for data download and pre-processing, code for"
+    },
+    {
+      "start": 1594.72,
+      "end": 1602.68,
+      "text": " embedding generation and visualization and classifier training. I encourage you to experiment"
+    },
+    {
+      "start": 1602.68,
+      "end": 1609.06,
+      "text": " with different locations, try your own area of interest, different time periods, look"
+    },
+    {
+      "start": 1609.06,
+      "end": 1616.04,
+      "text": " at other flood events or seasonal changes, different disaster types, fires, droughts,"
+    },
+    {
+      "start": 1616.04,
+      "end": 1624.44,
+      "text": " landslides, the list goes on, and other foundation models. There are more emerging all of the"
+    },
+    {
+      "start": 1624.44,
+      "end": 1631.72,
+      "text": " time. The workflow we demonstrated is adaptable. Change the coordinates, change the dates,"
+    },
+    {
+      "start": 1631.72,
+      "end": 1635.24,
+      "text": " and you can analyze any location with HLS coverage."
+    },
+    {
+      "start": 1638.8400000000001,
+      "end": 1645.16,
+      "text": " We'll wrap up with some key questions to consider. How would you adapt this workflow for a different"
+    },
+    {
+      "start": 1645.16,
+      "end": 1652.04,
+      "text": " disaster type? Wildfires have different spectral signatures than floods. What changes would you"
+    },
+    {
+      "start": 1652.04,
+      "end": 1660.12,
+      "text": " make? What are the trade-offs between Prithvi's temporal modeling and clay's flexibility? When"
+    },
+    {
+      "start": 1660.12,
+      "end": 1665.6399999999999,
+      "text": " would you choose one instead of the other? How might you validate these results with ground"
+    },
+    {
+      "start": 1665.6399999999999,
+      "end": 1671.48,
+      "text": " truth data? We showed clustering, but how would you confirm these clusters correspond to actual"
+    },
+    {
+      "start": 1671.48,
+      "end": 1680.36,
+      "text": " flood phases or flood extent even? What other downstream tasks could benefit from these"
+    },
+    {
+      "start": 1680.36,
+      "end": 1688.52,
+      "text": " embeddings. Beyond classification, what else? Perhaps segmentation, change detection, anomaly detection?"
+    },
+    {
+      "start": 1689.8799999999999,
+      "end": 1694.1999999999998,
+      "text": " These are the kinds of questions that will help you apply foundation models effectively"
+    },
+    {
+      "start": 1694.1999999999998,
+      "end": 1701.32,
+      "text": " in your own work. Best of luck. So our workflow has seven steps. We'll select a location and time"
+    },
+    {
+      "start": 1701.32,
+      "end": 1706.9199999999998,
+      "text": " range, we'll download HLS imagery from NASA's stack catalog, we'll load the Prithvi model,"
+    },
+    {
+      "start": 1706.92,
+      "end": 1710.8000000000002,
+      "text": " or later on the CLI model as well."
+    },
+    {
+      "start": 1711.28,
+      "end": 1713.64,
+      "text": " We'll format the data to match the model's requirements."
+    },
+    {
+      "start": 1714.0600000000002,
+      "end": 1716.1200000000001,
+      "text": " We'll run the model to generate embeddings,"
+    },
+    {
+      "start": 1716.28,
+      "end": 1719.14,
+      "text": " and then we'll analyze embeddings with PCA,"
+    },
+    {
+      "start": 1719.14,
+      "end": 1722.88,
+      "text": " which is principal components analysis, and TSNE."
+    },
+    {
+      "start": 1723.38,
+      "end": 1725.14,
+      "text": " And then we'll train a classifier on the embeddings"
+    },
+    {
+      "start": 1725.72,
+      "end": 1730.8600000000001,
+      "text": " and examine the distribution and relationship between the embeddings."
+    },
+    {
+      "start": 1730.86,
+      "end": 1749.8,
+      "text": " Okay, so first we will install the required libraries, in this case, Earth Access for NASA data authentication, PyStack Client and StackStack for accessing stack catalogs, and TerraTorch, which provides a registry of foundation models, including Griffey."
+    },
+    {
+      "start": 1749.8,
+      "end": 1758.76,
+      "text": " We'll authenticate with NASA's Earth data system using the Earth Access login, but first,"
+    },
+    {
+      "start": 1758.76,
+      "end": 1766.78,
+      "text": " before we do that, we'll have to also install GeoPandas in a separate cell due to an issue"
+    },
+    {
+      "start": 1766.78,
+      "end": 1770.26,
+      "text": " between dependencies in these libraries and GeoPandas."
+    },
+    {
+      "start": 1770.26,
+      "end": 1773.1599999999999,
+      "text": " We need the one that is compatible with GeoPandas."
+    },
+    {
+      "start": 1773.1599999999999,
+      "end": 1778.96,
+      "text": " So suffice to say that after running this cell, just please restart your runtime by"
+    },
+    {
+      "start": 1778.96,
+      "end": 1785.76,
+      "text": " go into runtime restart session and confirming yes and then you can just continue in the excel"
+    },
+    {
+      "start": 1785.76,
+      "end": 1793.42,
+      "text": " following that and not have to rerun anything proceeding so back to the authentication"
+    },
+    {
+      "start": 1793.42,
+      "end": 1801.68,
+      "text": " like i said you'll use earth access using your earth access login which you can access here"
+    },
+    {
+      "start": 1801.68,
+      "end": 1805.2,
+      "text": " at urs.earthdata.nasa.gov."
+    },
+    {
+      "start": 1805.4,
+      "end": 1808.72,
+      "text": " You'll just copy and paste your username and password"
+    },
+    {
+      "start": 1808.72,
+      "end": 1811.98,
+      "text": " into the prompts after running the cell, press enter,"
+    },
+    {
+      "start": 1812.3400000000001,
+      "end": 1815.88,
+      "text": " and then you'll be able to access the HLS data"
+    },
+    {
+      "start": 1815.88,
+      "end": 1817.46,
+      "text": " used throughout this notebook."
+    },
+    {
+      "start": 1818.18,
+      "end": 1819.96,
+      "text": " This creates a netRC file,"
+    },
+    {
+      "start": 1820.0600000000002,
+      "end": 1823.9,
+      "text": " which we'll use for establishing some environment parameters below."
+    },
+    {
+      "start": 1824.66,
+      "end": 1825.14,
+      "text": " Okay, cool."
+    },
+    {
+      "start": 1825.38,
+      "end": 1828.3,
+      "text": " So authentication complete."
+    },
+    {
+      "start": 1828.3,
+      "end": 1838.48,
+      "text": " import the the next cell here is where we um will import our um i will import our libraries"
+    },
+    {
+      "start": 1838.48,
+      "end": 1848.24,
+      "text": " uh these include all of the libraries that um are relevant to the code throughout this notebook"
+    },
+    {
+      "start": 1848.24,
+      "end": 1856.44,
+      "text": " um so these packages help us perform a lot of the functions and processing steps um that will"
+    },
+    {
+      "start": 1856.44,
+      "end": 1862.04,
+      "text": " follow these are the environment parameters i previously mentioned that relate to that net rc"
+    },
+    {
+      "start": 1862.04,
+      "end": 1870.3600000000001,
+      "text": " file that we generated from the earth access login okay so in this cell um we're going to define our"
+    },
+    {
+      "start": 1870.3600000000001,
+      "end": 1876.44,
+      "text": " location and dates uh our point of interest paded in pakistan and our date range surrounding the"
+    },
+    {
+      "start": 1876.44,
+      "end": 1881.44,
+      "text": " the flood event, so June through October 2022."
+    },
+    {
+      "start": 1883.88,
+      "end": 1888.88,
+      "text": " We will query our stack catalog for HLS imagery"
+    },
+    {
+      "start": 1890.2,
+      "end": 1893.5,
+      "text": " and we'll filter for cloud cover under 50%"
+    },
+    {
+      "start": 1893.5,
+      "end": 1896.88,
+      "text": " and retrieve up to 100 items"
+    },
+    {
+      "start": 1896.88,
+      "end": 1899.2,
+      "text": " just to keep things constrained."
+    },
+    {
+      "start": 1899.2,
+      "end": 1904.2,
+      "text": " The code then processes the items to use the S3 links"
+    },
+    {
+      "start": 1904.2,
+      "end": 1906.28,
+      "text": " for efficient downloading."
+    },
+    {
+      "start": 1906.6200000000001,
+      "end": 1908.24,
+      "text": " Those get appended to a list."
+    },
+    {
+      "start": 1908.44,
+      "end": 1912.3600000000001,
+      "text": " And so the length of the list reflects the number of items available"
+    },
+    {
+      "start": 1912.3600000000001,
+      "end": 1913.44,
+      "text": " within the time series."
+    },
+    {
+      "start": 1913.5800000000002,
+      "end": 1914.8600000000001,
+      "text": " So that's 22 items."
+    },
+    {
+      "start": 1914.8600000000001,
+      "end": 1919.82,
+      "text": " That means we have 22 time steps, one image each,"
+    },
+    {
+      "start": 1920.1000000000001,
+      "end": 1921.92,
+      "text": " within our time series of interest."
+    },
+    {
+      "start": 1924.28,
+      "end": 1925.0,
+      "text": " Okay."
+    },
+    {
+      "start": 1925.46,
+      "end": 1933.52,
+      "text": " In the next cell, we create a 256 by 256 pixel bounding box."
+    },
+    {
+      "start": 1934.2,
+      "end": 1944.2,
+      "text": " um at 30 meters resolution right here gsd is ground sampling distance uh um and so 256 by 256"
+    },
+    {
+      "start": 1944.2,
+      "end": 1952.3600000000001,
+      "text": " at 30 meters resolution is approximately 7.7 square kilometers uh centered on our point of"
+    },
+    {
+      "start": 1952.3600000000001,
+      "end": 1959.16,
+      "text": " interest of paded and pakistan as you can see here we've created this geometry object with the"
+    },
+    {
+      "start": 1959.16,
+      "end": 1965.3200000000002,
+      "text": " the centroid established above using our manually defined coordinates."
+    },
+    {
+      "start": 1966.68,
+      "end": 1977.46,
+      "text": " And with this, we use StackStack to download imagery for the six spectral bands"
+    },
+    {
+      "start": 1977.46,
+      "end": 1985.4,
+      "text": " that are both relevant and used by our foundation models."
+    },
+    {
+      "start": 1985.4,
+      "end": 1991.3000000000002,
+      "text": " That includes red, green, blue, near-infrared, short-with-infrared 1, and short-with-infrared 2."
+    },
+    {
+      "start": 1993.8400000000001,
+      "end": 2004.94,
+      "text": " All right, so we can see that the X-ray data set that is generated from this cell has the shape 22, 6, 256 by 256."
+    },
+    {
+      "start": 2004.94,
+      "end": 2014.5600000000002,
+      "text": " That would be 22 time steps, the length of our time series, by 6 spectral channels that we previously mentioned."
+    },
+    {
+      "start": 2015.4,
+      "end": 2021.8400000000001,
+      "text": " And then the dimensions for the height and width of the images and pixels."
+    },
+    {
+      "start": 2022.92,
+      "end": 2023.92,
+      "text": " Okay, cool."
+    },
+    {
+      "start": 2023.92,
+      "end": 2025.8400000000001,
+      "text": " So you can see the other variables."
+    },
+    {
+      "start": 2026.02,
+      "end": 2032.5400000000002,
+      "text": " You can kind of inspect this X-ray data cube and look around."
+    },
+    {
+      "start": 2033.18,
+      "end": 2045.38,
+      "text": " And you can see the bands here, the ground sampling distance, the resolution, the projection, as well as the data type."
+    },
+    {
+      "start": 2045.4,
+      "end": 2051.06,
+      "text": " and some of the specifics for the metadata of the collection,"
+    },
+    {
+      "start": 2051.2200000000003,
+      "end": 2053.94,
+      "text": " the HLS collection that we're using from the stack catalog."
+    },
+    {
+      "start": 2055.96,
+      "end": 2059.88,
+      "text": " Okay, so let's look at our download data imagery."
+    },
+    {
+      "start": 2060.1600000000003,
+      "end": 2067.6600000000003,
+      "text": " We have these pre-flood images here showing normal agricultural conditions."
+    },
+    {
+      "start": 2067.66,
+      "end": 2077.52,
+      "text": " We have the active flood images that represent when the flood actually was ongoing, one of which is cloudy."
+    },
+    {
+      "start": 2078.3999999999996,
+      "end": 2089.24,
+      "text": " And then we have the post-flood images that show the recession of the floodwater and the recovery back to normal conditions."
+    },
+    {
+      "start": 2089.24,
+      "end": 2098.3199999999997,
+      "text": " So now we'll move into loading the first foundation model, that's the Prithvi Foundation model."
+    },
+    {
+      "start": 2098.3199999999997,
+      "end": 2108.2999999999997,
+      "text": " We'll use the TerraTorch library that we previously imported to search the backbone"
+    },
+    {
+      "start": 2108.2999999999997,
+      "end": 2116.64,
+      "text": " registry of foundation models that have been published there and we'll identify the Prithvi"
+    },
+    {
+      "start": 2116.64,
+      "end": 2129.06,
+      "text": " version 2 300 parameter model as our foundation model of interest here and we'll set pre-trained"
+    },
+    {
+      "start": 2129.06,
+      "end": 2138.0,
+      "text": " to true. That means we are essentially using the pre-trained encoder weights"
+    },
+    {
+      "start": 2138.0,
+      "end": 2147.94,
+      "text": " in a sense that we are not going to do any pre-training ourselves."
+    },
+    {
+      "start": 2148.12,
+      "end": 2149.98,
+      "text": " We're going to use the weights as is"
+    },
+    {
+      "start": 2149.98,
+      "end": 2151.76,
+      "text": " with all of their learned representation"
+    },
+    {
+      "start": 2151.76,
+      "end": 2159.04,
+      "text": " from the pre-training exercise that NASA and IBM underwent,"
+    },
+    {
+      "start": 2159.04,
+      "end": 2161.48,
+      "text": " and we don't have to, fortunately, do ourselves."
+    },
+    {
+      "start": 2161.48,
+      "end": 2169.72,
+      "text": " Okay, so now we have to actually format data appropriately for the Prithvi model."
+    },
+    {
+      "start": 2171.0,
+      "end": 2176.52,
+      "text": " Prithvi of course expects input as quadruplets, which is sequences of four consecutive images."
+    },
+    {
+      "start": 2177.48,
+      "end": 2185.48,
+      "text": " We'll create overlapping quadruplets. The first uses images one through four, second uses images"
+    },
+    {
+      "start": 2185.48,
+      "end": 2195.56,
+      "text": " two through five so on so forth um that will give us 19 quadruplets um each quadruplet will be uh"
+    },
+    {
+      "start": 2195.56,
+      "end": 2204.64,
+      "text": " effectively um of shape four six 256 by 256 um that's of course the time dimension by the number"
+    },
+    {
+      "start": 2204.64,
+      "end": 2212.46,
+      "text": " of channels by the heights and width uh and because most vision transformers have a patch"
+    },
+    {
+      "start": 2212.46,
+      "end": 2221.66,
+      "text": " size of 16 by 16. We set that for the patch size here. So for the PerthV model, we have to process"
+    },
+    {
+      "start": 2221.66,
+      "end": 2229.56,
+      "text": " each band independently. So we have the input size for each band being 1, 256 by 256, patch size 1,"
+    },
+    {
+      "start": 2229.62,
+      "end": 2237.04,
+      "text": " 16 by 16. We process each band independently, and then we append them to this list of 4, 6, 256 by"
+    },
+    {
+      "start": 2237.04,
+      "end": 2245.68,
+      "text": " 256 or the quadruplets. So that's a compilation of all the spectral channels for each image"
+    },
+    {
+      "start": 2245.68,
+      "end": 2254.02,
+      "text": " in the quadruplet time series. Excellent. If you want to check out how these quadruplets are"
+    },
+    {
+      "start": 2254.02,
+      "end": 2263.68,
+      "text": " structured, we can print out the indices included in each quadruplet. So that shows where time steps"
+    },
+    {
+      "start": 2263.68,
+      "end": 2271.98,
+      "text": " kind of overlap between quadruplets. You'll see that, for example, the third time step, so index"
+    },
+    {
+      "start": 2271.98,
+      "end": 2285.16,
+      "text": " two, co-occurs in the first three quadruplets, two, two, two. For index five, we have that co-occur"
+    },
+    {
+      "start": 2285.16,
+      "end": 2292.22,
+      "text": " in another set of three quadruplets, so on and so forth. And so just bear in mind, because this"
+    },
+    {
+      "start": 2292.22,
+      "end": 2303.98,
+      "text": " will come into effect later that this mixing across quadruplets of time steps is a design"
+    },
+    {
+      "start": 2303.98,
+      "end": 2309.74,
+      "text": " choice for the Prithvi model and something that we have to account for when we do certain"
+    },
+    {
+      "start": 2309.74,
+      "end": 2316.12,
+      "text": " sorts of analysis on top of the embeddings."
+    },
+    {
+      "start": 2316.12,
+      "end": 2319.72,
+      "text": " So in order to actually generate embeddings, we'll have to pass each quadruplet through"
+    },
+    {
+      "start": 2319.72,
+      "end": 2328.02,
+      "text": " the model and for each one we extract the class token. That ultimately represents a summary of"
+    },
+    {
+      "start": 2328.02,
+      "end": 2336.8599999999997,
+      "text": " the entire input sequence and each class token gives us a 1024 dimensional embedding vector"
+    },
+    {
+      "start": 2336.8599999999997,
+      "end": 2344.3599999999997,
+      "text": " for each quadruplet and that vector is a summarization again of the time steps"
+    },
+    {
+      "start": 2344.36,
+      "end": 2352.1800000000003,
+      "text": " included in each quadruplet. Okay, so you can see that the embedding shape is for"
+    },
+    {
+      "start": 2352.1800000000003,
+      "end": 2361.6400000000003,
+      "text": " the first quadruplet is 1024. So that's that class token reflected here. Okay, so"
+    },
+    {
+      "start": 2361.6400000000003,
+      "end": 2369.48,
+      "text": " because we have 19 quadruplets we get 19 embeddings. So now comes the exciting"
+    },
+    {
+      "start": 2369.48,
+      "end": 2377.4,
+      "text": " part. We're going to do our first dimensionality reduction using principal component analysis to"
+    },
+    {
+      "start": 2377.4,
+      "end": 2381.82,
+      "text": " reduce our 1024 dimensional embeddings to a single dimension for visualization."
+    },
+    {
+      "start": 2384.56,
+      "end": 2391.44,
+      "text": " And we basically established these indices here to separate out pre-flood, flood,"
+    },
+    {
+      "start": 2392.6,
+      "end": 2399.1,
+      "text": " post-flood, and cloudy conditions. And we'll colorize those in our PCA plot here. And you"
+    },
+    {
+      "start": 2399.1,
+      "end": 2408.6,
+      "text": " You can see how with even our quadruplets, we start to see some clustering emerge where"
+    },
+    {
+      "start": 2408.6,
+      "end": 2414.44,
+      "text": " the embeddings naturally fall into relatively distinct groups."
+    },
+    {
+      "start": 2414.44,
+      "end": 2417.62,
+      "text": " The blue points are the pre-flood images."
+    },
+    {
+      "start": 2417.62,
+      "end": 2421.8199999999997,
+      "text": " The red points are during the flood and the orange points are post-flood."
+    },
+    {
+      "start": 2421.82,
+      "end": 2431.6800000000003,
+      "text": " The green point is the cloudy image, which the model does position in the during flood"
+    },
+    {
+      "start": 2431.6800000000003,
+      "end": 2434.8,
+      "text": " group."
+    },
+    {
+      "start": 2434.8,
+      "end": 2443.3,
+      "text": " We see that the later part of the active flooding period kind of hovers similarly to the post-flood"
+    },
+    {
+      "start": 2443.3,
+      "end": 2444.3,
+      "text": " conditions."
+    },
+    {
+      "start": 2444.3,
+      "end": 2451.5,
+      "text": " That actually is quite intuitively sensible because the later part of the flood period"
+    },
+    {
+      "start": 2451.5,
+      "end": 2456.46,
+      "text": " um really kind of correlated with a significant water inundation because the flooding had already"
+    },
+    {
+      "start": 2456.46,
+      "end": 2462.54,
+      "text": " been occurring for some time and the early part of the post flooding period is of course also"
+    },
+    {
+      "start": 2462.54,
+      "end": 2468.54,
+      "text": " correlated with significant water inundation um because the flood had just ensued so we get"
+    },
+    {
+      "start": 2469.42,
+      "end": 2480.7,
+      "text": " um very obvious correlation between those two um kind of like a a edge um those the the borderline"
+    },
+    {
+      "start": 2480.7,
+      "end": 2484.06,
+      "text": " conditions that exist here between the different group phases."
+    },
+    {
+      "start": 2488.9399999999996,
+      "end": 2495.8999999999996,
+      "text": " But you know with these embeddings we have that challenge of cross pollination of time steps"
+    },
+    {
+      "start": 2495.8999999999996,
+      "end": 2506.3799999999997,
+      "text": " across quadruplets and so we can't really separate out quadruplets into distinct clusters because"
+    },
+    {
+      "start": 2506.38,
+      "end": 2512.78,
+      "text": " we do have time steps from potentially different phases co-occurring in the same"
+    },
+    {
+      "start": 2512.78,
+      "end": 2524.6,
+      "text": " quadruplet and or instances of different flood phases co-occurring within the same quadruplet so"
+    },
+    {
+      "start": 2524.6,
+      "end": 2534.6400000000003,
+      "text": " one quadruplet can't really be defined by any given phase and that it can include time steps"
+    },
+    {
+      "start": 2534.64,
+      "end": 2541.3599999999997,
+      "text": " from multiple phases. So we do need to get per time step embeddings from the Prithvi model."
+    },
+    {
+      "start": 2542.72,
+      "end": 2551.44,
+      "text": " So we'll do that. We'll essentially at first generate basically per time step embeddings"
+    },
+    {
+      "start": 2552.8799999999997,
+      "end": 2562.72,
+      "text": " using this long embeddings approach where we ultimately are getting for each quadruplet"
+    },
+    {
+      "start": 2562.72,
+      "end": 2571.68,
+      "text": " an embedding per time step contained within. So that would be 19 times four, so 76 embeddings."
+    },
+    {
+      "start": 2572.7999999999997,
+      "end": 2581.2,
+      "text": " But within that there's some redundancy we have effectively like, you know, as alluded to earlier,"
+    },
+    {
+      "start": 2581.2,
+      "end": 2588.24,
+      "text": " time step two can exist in three different quadruplets. So if we generate an embedding"
+    },
+    {
+      "start": 2588.24,
+      "end": 2598.7999999999997,
+      "text": " for time step two three times, then that's some unnecessary redundancy. And that basically"
+    },
+    {
+      "start": 2598.7999999999997,
+      "end": 2604.56,
+      "text": " informs us to use a different approach to essentially get per time step embeddings from"
+    },
+    {
+      "start": 2604.56,
+      "end": 2611.18,
+      "text": " the Prithvi model. And to do that, we'll use this approach where we actually just get the first"
+    },
+    {
+      "start": 2611.18,
+      "end": 2617.12,
+      "text": " occurrence. We'll run through our quadruplets and get the first occurrence of an embedding"
+    },
+    {
+      "start": 2617.12,
+      "end": 2624.64,
+      "text": " for a given time step, append that to a list. And if that time step occurs in the next quadruplet,"
+    },
+    {
+      "start": 2625.8399999999997,
+      "end": 2632.56,
+      "text": " we don't re-append it. We just append any new time step until we've reached basically our,"
+    },
+    {
+      "start": 2632.56,
+      "end": 2642.0,
+      "text": " the length of 22 time steps. And that will, that list of embeddings is effectively"
+    },
+    {
+      "start": 2642.0,
+      "end": 2651.64,
+      "text": " a unique set of embeddings per time step that we can run PCA with to generate a more"
+    },
+    {
+      "start": 2651.64,
+      "end": 2659.52,
+      "text": " accurate reflection of clustering across different phases for the embeddings."
+    },
+    {
+      "start": 2659.52,
+      "end": 2673.52,
+      "text": " So in this plot here, we see the clustering for each time step and a bit more definition."
+    },
+    {
+      "start": 2673.52,
+      "end": 2682.74,
+      "text": " Now that we've separated the embeddings, we've created the embeddings more true to a per"
+    },
+    {
+      "start": 2682.74,
+      "end": 2694.6,
+      "text": " first step breakdown where we have pre-flood nicely clustered in the upper left, active"
+    },
+    {
+      "start": 2694.6,
+      "end": 2700.8799999999997,
+      "text": " flooding here in the center, again with that intuitive proximity of the later active flooding"
+    },
+    {
+      "start": 2700.8799999999997,
+      "end": 2706.8999999999996,
+      "text": " period and the early post-flood period due to the commonality of significant water inundation"
+    },
+    {
+      "start": 2706.9,
+      "end": 2710.46,
+      "text": " in this borderline time period right here."
+    },
+    {
+      "start": 2710.46,
+      "end": 2712.52,
+      "text": " And then we see this nice clustering"
+    },
+    {
+      "start": 2712.52,
+      "end": 2714.38,
+      "text": " of post-flood conditions."
+    },
+    {
+      "start": 2715.56,
+      "end": 2720.3,
+      "text": " Okay, so moving on,"
+    },
+    {
+      "start": 2720.3,
+      "end": 2725.3,
+      "text": " we will engage another dimensionality reduction technique,"
+    },
+    {
+      "start": 2726.06,
+      "end": 2730.44,
+      "text": " T-SNE, to provide another view of the embedding space."
+    },
+    {
+      "start": 2730.44,
+      "end": 2732.26,
+      "text": " T-SNE preserves local structure,"
+    },
+    {
+      "start": 2732.26,
+      "end": 2735.2000000000003,
+      "text": " so we should see similar images clustered together."
+    },
+    {
+      "start": 2735.2,
+      "end": 2739.66,
+      "text": " Again, we should still see clear separation between flood phases."
+    },
+    {
+      "start": 2740.98,
+      "end": 2743.2999999999997,
+      "text": " And in this plot, we do."
+    },
+    {
+      "start": 2743.8399999999997,
+      "end": 2749.74,
+      "text": " And that helps confirm that prithvees embeddings do capture meaningful temporal and environmental conditions."
+    },
+    {
+      "start": 2750.9199999999996,
+      "end": 2762.56,
+      "text": " We see that in this case, we're plotting, we're essentially calculating two dimensions with T, S, and E and plotting those on the X and Y axis."
+    },
+    {
+      "start": 2762.56,
+      "end": 2772.4,
+      "text": " So we're plotting these two dimensions against each other, and within them we see this separation of pre-flood conditions, active flood conditions, and post-flood conditions."
+    },
+    {
+      "start": 2772.7799999999997,
+      "end": 2788.86,
+      "text": " So this helps us sort of solidify our understanding that the prithvi embeddings do capture meaningful representations for discerning different flood phases."
+    },
+    {
+      "start": 2788.86,
+      "end": 2807.46,
+      "text": " Okay, um, jumped ahead. Now we are going to move on to training a support vector machine classifier."
+    },
+    {
+      "start": 2807.46,
+      "end": 2817.1400000000003,
+      "text": " This will be an example of how we can train a simple classifier. And, you know, nominally,"
+    },
+    {
+      "start": 2817.14,
+      "end": 2823.8599999999997,
+      "text": " we're really choosing a very simple classifier here because our data set is extremely small."
+    },
+    {
+      "start": 2824.1,
+      "end": 2828.96,
+      "text": " It's only 22 samples. So anything beyond a very simple classifier would be overkill."
+    },
+    {
+      "start": 2830.3599999999997,
+      "end": 2838.3799999999997,
+      "text": " To do this, we manually split our data into training and testing sets, as you'll see here."
+    },
+    {
+      "start": 2838.38,
+      "end": 2847.54,
+      "text": " and we basically assign these numerical classes to each sample accordingly."
+    },
+    {
+      "start": 2847.92,
+      "end": 2854.48,
+      "text": " So zero for cloud, one for pre-flood, two for active flood, three for post-flood."
+    },
+    {
+      "start": 2855.5,
+      "end": 2866.94,
+      "text": " And we try to sample from each phase aside from the fact that the cloudy image"
+    },
+    {
+      "start": 2866.94,
+      "end": 2869.88,
+      "text": " can only exist in one of the partitions."
+    },
+    {
+      "start": 2869.88,
+      "end": 2873.88,
+      "text": " But we try to get representation of each phase"
+    },
+    {
+      "start": 2873.88,
+      "end": 2877.16,
+      "text": " in each partition."
+    },
+    {
+      "start": 2877.16,
+      "end": 2879.06,
+      "text": " We train a really simple classifier on that."
+    },
+    {
+      "start": 2879.06,
+      "end": 2883.2000000000003,
+      "text": " So this takes a second really to train."
+    },
+    {
+      "start": 2883.2000000000003,
+      "end": 2888.1,
+      "text": " And the result on our test site is 9 out of 10 samples"
+    },
+    {
+      "start": 2888.1,
+      "end": 2890.44,
+      "text": " correctly classified, which is pretty remarkable"
+    },
+    {
+      "start": 2890.44,
+      "end": 2896.84,
+      "text": " for such a minimal training exercise training regime here."
+    },
+    {
+      "start": 2898.28,
+      "end": 2902.28,
+      "text": " And so this just shows you how beneficial it is to start"
+    },
+    {
+      "start": 2902.28,
+      "end": 2906.08,
+      "text": " with something like a foundation model for rapid analysis."
+    },
+    {
+      "start": 2908.04,
+      "end": 2912.12,
+      "text": " OK, move on"
+    },
+    {
+      "start": 2913.48,
+      "end": 2916.4,
+      "text": " to the clay foundation model."
+    },
+    {
+      "start": 2916.4,
+      "end": 2926.4,
+      "text": " And so in order to use the clay foundation model, we do need to clone the model repository,"
+    },
+    {
+      "start": 2926.4,
+      "end": 2935.2000000000003,
+      "text": " which is here published by the clay foundation and import the necessary libraries as you'll"
+    },
+    {
+      "start": 2935.2000000000003,
+      "end": 2938.36,
+      "text": " see here in this cell."
+    },
+    {
+      "start": 2938.36,
+      "end": 2947.7400000000002,
+      "text": " And then we'll have to do some reprocessing of the raw image data because the clay model"
+    },
+    {
+      "start": 2947.7400000000002,
+      "end": 2956.3,
+      "text": " requires a slightly different tile size, in this case 224 by 224 pixels instead of 256."
+    },
+    {
+      "start": 2956.3,
+      "end": 2961.76,
+      "text": " So we have to recreate our imagery stack and our X-ray dataset."
+    },
+    {
+      "start": 2961.76,
+      "end": 2970.6000000000004,
+      "text": " you'll see that the resulting X-ray dataset has just slightly different shape now,"
+    },
+    {
+      "start": 2970.6000000000004,
+      "end": 2978.88,
+      "text": " 22 for time steps, 6 for channels or bands, spectral bands,"
+    },
+    {
+      "start": 2979.28,
+      "end": 2982.0200000000004,
+      "text": " 224 by 224 for pixel height and width."
+    },
+    {
+      "start": 2982.82,
+      "end": 2984.38,
+      "text": " Everything else remains the same."
+    },
+    {
+      "start": 2984.38,
+      "end": 2994.84,
+      "text": " And then, you know, we have to do some other pre-processing before generating the embeddings"
+    },
+    {
+      "start": 2994.84,
+      "end": 3004.62,
+      "text": " beyond changing some of the image dimension parameters. Clay is designed to accept any"
+    },
+    {
+      "start": 3004.62,
+      "end": 3009.06,
+      "text": " combination of bands from different platforms, but it does need metadata about each band,"
+    },
+    {
+      "start": 3009.06,
+      "end": 3013.1800000000003,
+      "text": " including the central wavelength and normalization parameters. So we'll"
+    },
+    {
+      "start": 3013.18,
+      "end": 3025.2999999999997,
+      "text": " extract these from a clays metadata file, which is right here. And basically, we're choosing to do"
+    },
+    {
+      "start": 3025.2999999999997,
+      "end": 3037.72,
+      "text": " that for a platform that will define in just a moment, actually, but a platform that is most"
+    },
+    {
+      "start": 3037.72,
+      "end": 3045.24,
+      "text": " similar to HLS given that the clay model was not trained on HLS. But just quick note that"
+    },
+    {
+      "start": 3045.24,
+      "end": 3054.68,
+      "text": " what's happening here is semantically the clay model makes sense of these bands using nomenclature"
+    },
+    {
+      "start": 3055.24,
+      "end": 3064.12,
+      "text": " different than the band metadata for the HLS collection. So we just rename these band variables"
+    },
+    {
+      "start": 3064.12,
+      "end": 3073.56,
+      "text": " to these kind of like intuitive naming names here and that will match to what is what exists"
+    },
+    {
+      "start": 3073.56,
+      "end": 3081.3199999999997,
+      "text": " in this configuration file okay so in terms of that platform and the most similar one in terms"
+    },
+    {
+      "start": 3081.3199999999997,
+      "end": 3086.8399999999997,
+      "text": " of what clay was trained on is sentinel 2 so hls to sentinel 2 will be our mapping here"
+    },
+    {
+      "start": 3087.72,
+      "end": 3090.6,
+      "text": " so we'll leverage clay's configuration for sentinel 2"
+    },
+    {
+      "start": 3090.6,
+      "end": 3105.3199999999997,
+      "text": " and we will use that information for basically configuring clay with the correct like"
+    },
+    {
+      "start": 3105.3199999999997,
+      "end": 3113.8199999999997,
+      "text": " wavelength mean and standard deviation parameters. Okay clay also uses temporal and spatial embedding"
+    },
+    {
+      "start": 3113.8199999999997,
+      "end": 3118.68,
+      "text": " so we do need to normalize our time stamps and coordinates. We'll encode the week of the year"
+    },
+    {
+      "start": 3118.68,
+      "end": 3121.8399999999997,
+      "text": " and hour of day as sine and cosine values."
+    },
+    {
+      "start": 3122.48,
+      "end": 3125.7,
+      "text": " And similarly, we'll do that for latitude and longitude."
+    },
+    {
+      "start": 3128.16,
+      "end": 3131.74,
+      "text": " We'll pass the data cube itself that we generate"
+    },
+    {
+      "start": 3131.74,
+      "end": 3135.46,
+      "text": " that entails the platform, normalized time,"
+    },
+    {
+      "start": 3135.64,
+      "end": 3137.7599999999998,
+      "text": " normalized latitude and longitude,"
+    },
+    {
+      "start": 3139.8799999999997,
+      "end": 3144.7599999999998,
+      "text": " or excuse me, encoded time and latitude and longitude,"
+    },
+    {
+      "start": 3144.7599999999998,
+      "end": 3148.02,
+      "text": " normalized pixels, ground sampling distance, and wavelengths."
+    },
+    {
+      "start": 3148.68,
+      "end": 3154.7599999999998,
+      "text": " central wavelengths into this data cube and we'll pass that through clay's encoder."
+    },
+    {
+      "start": 3156.6,
+      "end": 3163.8799999999997,
+      "text": " Clay processes individual images rather than quadruplets so off the bat we'll get 22"
+    },
+    {
+      "start": 3163.8799999999997,
+      "end": 3172.7599999999998,
+      "text": " embeddings directly, one per time step, and we won't have to do any further extraction per time"
+    },
+    {
+      "start": 3172.76,
+      "end": 3178.28,
+      "text": " to get per time step embeddings like we did earlier with prithvi okay"
+    },
+    {
+      "start": 3180.76,
+      "end": 3189.96,
+      "text": " so let's visualize clay's embeddings with pca um so as we can see clay also clearly separates"
+    },
+    {
+      "start": 3189.96,
+      "end": 3195.4,
+      "text": " flood phases um the clustering pattern is of course slightly different from prithvi as it"
+    },
+    {
+      "start": 3195.4,
+      "end": 3200.76,
+      "text": " emphasizes different aspects of the data based on its training but the key insight is the same"
+    },
+    {
+      "start": 3200.76,
+      "end": 3207.88,
+      "text": " the model does distinguish pre-flood, active flood, and post-flood conditions"
+    },
+    {
+      "start": 3208.6800000000003,
+      "end": 3218.44,
+      "text": " without any labels. In fact, one might infer that the clay model does potentially a better"
+    },
+    {
+      "start": 3218.44,
+      "end": 3225.0800000000004,
+      "text": " job at separating these border conditions here, where we have the later active flooding period"
+    },
+    {
+      "start": 3225.08,
+      "end": 3231.56,
+      "text": " and the early post-flooding period where commonality between water inundation exists"
+    },
+    {
+      "start": 3231.56,
+      "end": 3239.86,
+      "text": " and the clay models and beddings actually does a good job at kind of keeping these groups separate"
+    },
+    {
+      "start": 3239.86,
+      "end": 3247.66,
+      "text": " where prithvi kind of had greater similarity between those border conditions so that's kind"
+    },
+    {
+      "start": 3247.66,
+      "end": 3256.18,
+      "text": " of cool. Both clustering patterns, of course, make sense, which is great. They just reflect"
+    },
+    {
+      "start": 3256.18,
+      "end": 3268.04,
+      "text": " different representations learned by the different models. Okay. And then for T-S&E, we see"
+    },
+    {
+      "start": 3268.04,
+      "end": 3275.3999999999996,
+      "text": " another set of well-defined clusters for the different phases, pre-flooding, active flooding,"
+    },
+    {
+      "start": 3275.4,
+      "end": 3280.62,
+      "text": " post-flooding kind of all existing in their own distinct groups."
+    },
+    {
+      "start": 3281.56,
+      "end": 3288.7000000000003,
+      "text": " And that is helpful confirmation further that these two foundation models"
+    },
+    {
+      "start": 3288.7000000000003,
+      "end": 3297.1600000000003,
+      "text": " are indeed learning useful representations of a flood event"
+    },
+    {
+      "start": 3297.1600000000003,
+      "end": 3300.46,
+      "text": " and the different conditions surrounding that."
+    },
+    {
+      "start": 3300.46,
+      "end": 3312.52,
+      "text": " um okay now i will also train a support vector machine classifier using the clan beddings"
+    },
+    {
+      "start": 3312.52,
+      "end": 3323.28,
+      "text": " um exact same process here uh in this case we also generate um a set of predictions where"
+    },
+    {
+      "start": 3323.28,
+      "end": 3329.5,
+      "text": " nine out of ten samples are classified correctly that's pretty awesome um both models do an"
+    },
+    {
+      "start": 3329.5,
+      "end": 3339.54,
+      "text": " excellent job with extremely minimal, with a very simple, lightweight classifier on top of the"
+    },
+    {
+      "start": 3339.54,
+      "end": 3346.0,
+      "text": " pre-trained embeddings. And that just shows the power of transfer learning using foundation models."
+    },
+    {
+      "start": 3348.18,
+      "end": 3355.22,
+      "text": " I'll close with this last analysis here, which is interesting. It's where we compute pairwise"
+    },
+    {
+      "start": 3355.22,
+      "end": 3359.42,
+      "text": " distances between pre-flood and post-flood embeddings and visualize them as a heat map."
+    },
+    {
+      "start": 3359.5,
+      "end": 3366.34,
+      "text": " Each cell shows the distance between a specific pre-flood and post-flood embedding."
+    },
+    {
+      "start": 3368.08,
+      "end": 3376.54,
+      "text": " And ultimately in this plot here, we have pre-event embeddings on the y-axis, post-event embeddings on the x-axis."
+    },
+    {
+      "start": 3378.0,
+      "end": 3388.96,
+      "text": " And in terms of colorization, those cells with lighter colors are representative of greater distance,"
+    },
+    {
+      "start": 3388.96,
+      "end": 3395.26,
+      "text": " whereas darker cells are reflective of lesser distance, so greater similarity."
+    },
+    {
+      "start": 3396.56,
+      "end": 3404.76,
+      "text": " And let me just basically point your attention to some of the nuance that is really helpful"
+    },
+    {
+      "start": 3404.76,
+      "end": 3409.46,
+      "text": " in communicating the relationships in this plot here."
+    },
+    {
+      "start": 3409.46,
+      "end": 3433.9,
+      "text": " So if you look at the far left x-axis, which is reflective of the early post-event embeddings, so the early period of post-event embeddings, we see the greatest distance, so the least similarity, with the pre-event embeddings."
+    },
+    {
+      "start": 3433.9,
+      "end": 3444.2000000000003,
+      "text": " And that makes a lot of sense because the early post-event phase is reflective of a significant water inundation."
+    },
+    {
+      "start": 3445.02,
+      "end": 3458.92,
+      "text": " And pre-event embeddings, on the other hand, are correlated with normal conditions, so dry agricultural lands, which is very different from heavy water inundation from the immediate aftermath of a flood event."
+    },
+    {
+      "start": 3458.92,
+      "end": 3477.6800000000003,
+      "text": " As you start to progress through the post-event phase, you start to see similarity creep back up where you have essentially floodwaters start to recede and a return to somewhat normal conditions."
+    },
+    {
+      "start": 3477.68,
+      "end": 3492.12,
+      "text": " So the distance between the embeddings starts to reduce as you progress through the post-event embeddings to the later phase of the post-event embeddings as conditions return to normal."
+    },
+    {
+      "start": 3492.72,
+      "end": 3497.62,
+      "text": " So similarity to pre-event embeddings increases."
+    },
+    {
+      "start": 3497.62,
+      "end": 3516.2,
+      "text": " If you want to look at the relationship in this heat map and then pair with the actual per time step RGB images, we can plot the images again in this cell here and just make intuitive sense based on this plot."
+    },
+    {
+      "start": 3516.2,
+      "end": 3517.42,
+      "text": " Okay."
+    }
+  ]
+}

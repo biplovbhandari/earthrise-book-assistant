@@ -1,0 +1,10 @@
+Biplov Bhandari, Tim Mayer, David Saah, Lillianne Thomas, Chishan Zhang,
+Wei Ji Leong, Daniel Weismann, Soumya Ranjan, Biplov, Muhammad Warizmi Wafiq,
+Ate Poortinga, EarthRISE, NASA, Earth Resources Technology, University of San Francisco,
+University of Alabama in Huntsville, Spatial Informatics Group,
+U-Net, semantic segmentation, object detection, transfer learning,
+Bayesian Neural Networks, foundation models, Clay Foundation Model,
+remote sensing, Earth observation, deep learning, convolutional neural network,
+Quarto, Qdrant, Bhutan, deforestation, phenology, soybean yield prediction,
+active fire detection, downscaling, image classification, data fusion,
+GeoTIFF, raster, MODIS, Landsat, Sentinel, Google Earth Engine
