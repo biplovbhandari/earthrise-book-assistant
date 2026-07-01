@@ -395,6 +395,16 @@ Managed via `docker-compose.yml` at repo root. Offline containers use `profiles:
 | `qdrant_data` | Vector storage | qdrant |
 | `models_cache` | HuggingFace model weights (~1-4GB) | app, indexer |
 | `data/` | Video chapter maps, transcripts | indexer |
+| `logs/` | Indexing and transcription logs | indexer |
+
+### Container Environment Overrides
+
+The `app` service overrides these env vars via `docker-compose.yml` `environment:` block (takes precedence over `.env`):
+
+| Var | Override value | Why |
+|---|---|---|
+| `QDRANT_URL` | `http://qdrant:6333` | Targets the compose service name, not localhost |
+| `LLM_BASE_URL` | `http://host.docker.internal:11434/v1` | Reaches Ollama on the host from inside the container |
 
 ---
 
