@@ -7,6 +7,7 @@ Usage:
 
 from __future__ import annotations
 
+import argparse
 import logging
 import sys
 from datetime import datetime, timezone
@@ -97,6 +98,15 @@ def _discover_transcripts(transcript_dir: Path) -> list[tuple[str, str]]:
 
 def main() -> int:
     _setup_logging()
+
+    parser = argparse.ArgumentParser(description="Index book content into Qdrant.")
+    parser.add_argument(
+        "--recreate-collection",
+        action="store_true",
+        help="Delete and recreate the Qdrant collection before indexing.",
+    )
+    args = parser.parse_args()
+
     settings = get_settings()
     source_dir = Path(settings.book_source_dir)
 
@@ -117,6 +127,18 @@ def main() -> int:
         return 1
 
     chapter_files = _extract_chapters(quarto_config)
+
+    if args.recreate_collection:
+        from qdrant_client import QdrantClient
+
+        client = QdrantClient(url=settings.qdrant_url)
+        if settings.qdrant_collection in [c.name for c in client.get_collections().collections]:
+            client.delete_collection(settings.qdrant_collection)
+            logger.info("Deleted collection '%s'", settings.qdrant_collection)
+        else:
+            logger.info(
+                "Collection '%s' does not exist, nothing to delete", settings.qdrant_collection
+            )
 
     from api.dependencies import create_indexing_pipeline
 
