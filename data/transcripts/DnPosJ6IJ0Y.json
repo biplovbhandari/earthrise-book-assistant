@@ -1,0 +1,2948 @@
+{
+  "video_id": "DnPosJ6IJ0Y",
+  "title": "DnPosJ6IJ0Y",
+  "duration_seconds": 4197.44,
+  "url": "https://www.youtube.com/watch?v=DnPosJ6IJ0Y",
+  "segments": [
+    {
+      "start": 0.0,
+      "end": 8.5,
+      "text": " Hello Internet, so my name is Muhammad Warizmi Wafiq, I am GIS analyst in Spatial Informatics Group."
+    },
+    {
+      "start": 8.5,
+      "end": 21.5,
+      "text": " So in this opportunity, we would like to train how about how using clay model for deforestation detection."
+    },
+    {
+      "start": 21.5,
+      "end": 37.26,
+      "text": " So before we dive down into the training, it's a little introduction about Spatial Informatics Group. So what is Spatial Informatics Group?"
+    },
+    {
+      "start": 37.26,
+      "end": 47.26,
+      "text": " We are a scientific think tank that are focusing on using geospatial data into impactful products"
+    },
+    {
+      "start": 47.26,
+      "end": 53.5,
+      "text": " and services that hopefully can empower decision makers to affect position change."
+    },
+    {
+      "start": 53.5,
+      "end": 62.44,
+      "text": " So the company is based on California, but we have a team across the globe."
+    },
+    {
+      "start": 62.44,
+      "end": 70.44,
+      "text": " So we are using strategic partnership, vertical integration, and commitment for open science"
+    },
+    {
+      "start": 70.44,
+      "end": 78.42,
+      "text": " to promote the collaboration among research scientists and then using that to address"
+    },
+    {
+      "start": 78.42,
+      "end": 87.0,
+      "text": " gap between what we have, the scientific, the solution that science have, and then what"
+    },
+    {
+      "start": 87.0,
+      "end": 89.75999999999999,
+      "text": " that can be practical in the field."
+    },
+    {
+      "start": 89.76,
+      "end": 97.92,
+      "text": " So with over 25 years experience in the environmental sector, we identified those gaps and then"
+    },
+    {
+      "start": 97.92,
+      "end": 109.60000000000001,
+      "text": " we using the open source, open data solution to address the issue that people have in the"
+    },
+    {
+      "start": 109.60000000000001,
+      "end": 111.60000000000001,
+      "text": " field."
+    },
+    {
+      "start": 111.60000000000001,
+      "end": 118.66000000000001,
+      "text": " And then we delivered the product globally, often at no cost, reinforcing the dedication"
+    },
+    {
+      "start": 118.66,
+      "end": 122.0,
+      "text": " to knowledge dissemination and positive global impact."
+    },
+    {
+      "start": 123.89999999999999,
+      "end": 125.46,
+      "text": " Next, okay."
+    },
+    {
+      "start": 125.46,
+      "end": 130.46,
+      "text": " So this is a bit of overview of the pipeline"
+    },
+    {
+      "start": 132.7,
+      "end": 135.76,
+      "text": " of the model that we have."
+    },
+    {
+      "start": 135.76,
+      "end": 138.35999999999999,
+      "text": " So with this training that we assume"
+    },
+    {
+      "start": 138.35999999999999,
+      "end": 143.35999999999999,
+      "text": " that you are already familiar with GIS in general."
+    },
+    {
+      "start": 143.5,
+      "end": 145.9,
+      "text": " So, and also the remote sensing"
+    },
+    {
+      "start": 145.9,
+      "end": 149.68,
+      "text": " because we will use the satellite imagery."
+    },
+    {
+      "start": 150.9,
+      "end": 155.9,
+      "text": " And then we also assume that you have experience,"
+    },
+    {
+      "start": 156.32,
+      "end": 158.78,
+      "text": " a bit of experience in Earth Engine"
+    },
+    {
+      "start": 158.78,
+      "end": 161.8,
+      "text": " and also the Python script,"
+    },
+    {
+      "start": 161.8,
+      "end": 166.8,
+      "text": " because this coding we will use the Google Colab"
+    },
+    {
+      "start": 167.72,
+      "end": 171.62,
+      "text": " or Jupyter Notebook if you are more comfortable with that."
+    },
+    {
+      "start": 171.62,
+      "end": 180.74,
+      "text": " So with that basic, we combine those to create this pipeline"
+    },
+    {
+      "start": 180.74,
+      "end": 185.18,
+      "text": " to start from the raw data into the deforestation map."
+    },
+    {
+      "start": 185.18,
+      "end": 192.02,
+      "text": " So from the left side, we are starting the pipeline"
+    },
+    {
+      "start": 192.02,
+      "end": 198.02,
+      "text": " from downloading the data from Google Earth Engine."
+    },
+    {
+      "start": 198.02,
+      "end": 206.02,
+      "text": " So this is just the most practical way to download Sentinel to data, in my opinion."
+    },
+    {
+      "start": 206.02,
+      "end": 216.58,
+      "text": " So what we need, the data that we need, is we need a deforestation data before and then after deforestation data."
+    },
+    {
+      "start": 216.58,
+      "end": 224.5,
+      "text": " and also we need to the manually labeled data label mass is the manually labeled data that"
+    },
+    {
+      "start": 226.5,
+      "end": 234.34,
+      "text": " is done manually by people in the field so they knew what deforestation so this is to tell the"
+    },
+    {
+      "start": 234.34,
+      "end": 243.86,
+      "text": " machine learning so this is uh the change that uh we are looking for so uh for this practice we will"
+    },
+    {
+      "start": 243.86,
+      "end": 252.02,
+      "text": " use the data deforestation data in cambodia we will train for that area uh so it so that means"
+    },
+    {
+      "start": 252.02,
+      "end": 258.98,
+      "text": " that it's most effective to uh detect the deforestation in across that area but maybe"
+    },
+    {
+      "start": 258.98,
+      "end": 266.90000000000003,
+      "text": " it's still yeah it can still work for another area that uh let's see uh southeast asia maybe"
+    },
+    {
+      "start": 266.9,
+      "end": 275.85999999999996,
+      "text": " it's maybe but if the model is very far away so sorry if the area of interest is very far away"
+    },
+    {
+      "start": 275.85999999999996,
+      "end": 284.65999999999997,
+      "text": " for example in the brazil or in the europe or united states maybe the model needs to be fine"
+    },
+    {
+      "start": 284.65999999999997,
+      "end": 291.46,
+      "text": " because again because with the data that from that area because maybe what it captures is different so"
+    },
+    {
+      "start": 291.46,
+      "end": 300.79999999999995,
+      "text": " So it's also, we are assuming that we will have cloud-free data from this process."
+    },
+    {
+      "start": 300.79999999999995,
+      "end": 308.85999999999996,
+      "text": " So if, and then in fact, yes, the data that we have is already the cloud-free data."
+    },
+    {
+      "start": 308.85999999999996,
+      "end": 315.7,
+      "text": " So we will, the training data can focus on the actual deforestation data changes, not"
+    },
+    {
+      "start": 315.7,
+      "end": 321.12,
+      "text": " the one that changed from the forest into cloud, something like that."
+    },
+    {
+      "start": 321.12,
+      "end": 330.24,
+      "text": " So the best practice for the using machine learning for the training is we have 70% data"
+    },
+    {
+      "start": 330.24,
+      "end": 334.56,
+      "text": " for training and 30% data for validation."
+    },
+    {
+      "start": 334.56,
+      "end": 344.18,
+      "text": " So after we get the data, the raw data from the Earth engine, we will then move our pipeline"
+    },
+    {
+      "start": 344.18,
+      "end": 350.06,
+      "text": " process into Google Colab, to the Python."
+    },
+    {
+      "start": 350.06,
+      "end": 357.42,
+      "text": " first we will normalize the data using calculation of mean and standard deviation and then we will"
+    },
+    {
+      "start": 357.42,
+      "end": 368.46,
+      "text": " use clay model to as an encoder and then we will use a cross attention methodology to detect the"
+    },
+    {
+      "start": 368.46,
+      "end": 378.06,
+      "text": " difference between what is before and then after and then using that we will decode again back into"
+    },
+    {
+      "start": 380.06,
+      "end": 399.66,
+      "text": " the score of high difference and low difference between those two, because we already fit the label mask, then the model will understand what is the area that we want to answer, we want to detect."
+    },
+    {
+      "start": 399.66,
+      "end": 414.66,
+      "text": " And then with this model, we still need to move it into a training because basically the clay encoder is already good enough, but it is general, right?"
+    },
+    {
+      "start": 414.66,
+      "end": 423.70000000000005,
+      "text": " So the foundation model, the clay is foundation model where it trains across a very big satellite imagery."
+    },
+    {
+      "start": 424.20000000000005,
+      "end": 426.42,
+      "text": " It is also quite agnostic."
+    },
+    {
+      "start": 426.42,
+      "end": 430.76,
+      "text": " you can use Sentinel, you can use Planet Data,"
+    },
+    {
+      "start": 430.76,
+      "end": 434.18,
+      "text": " it can, or you can use MODIS,"
+    },
+    {
+      "start": 435.18,
+      "end": 438.14000000000004,
+      "text": " it can ingest the data"
+    },
+    {
+      "start": 438.14000000000004,
+      "end": 442.06,
+      "text": " because it's the clay foundation model is a trend"
+    },
+    {
+      "start": 442.06,
+      "end": 444.70000000000005,
+      "text": " across all of the satellite imagery."
+    },
+    {
+      "start": 444.70000000000005,
+      "end": 448.72,
+      "text": " So it can define, it can detect the pattern,"
+    },
+    {
+      "start": 448.72,
+      "end": 452.46000000000004,
+      "text": " but we still need to fit the model"
+    },
+    {
+      "start": 452.46000000000004,
+      "end": 456.18,
+      "text": " on what question that we would like to answer."
+    },
+    {
+      "start": 456.18,
+      "end": 466.46,
+      "text": " So that's why we are giving these two images and then this label to fine-tune the currently"
+    },
+    {
+      "start": 466.46,
+      "end": 475.36,
+      "text": " available model to make it, okay, we want to answer the change between two images to"
+    },
+    {
+      "start": 475.36,
+      "end": 482.24,
+      "text": " detect deforestation so they can focus on that."
+    },
+    {
+      "start": 482.24,
+      "end": 494.8,
+      "text": " the training architecture uh we we have a loss analysis and we will have adam as the in how to"
+    },
+    {
+      "start": 494.8,
+      "end": 502.64,
+      "text": " enhance the model and then we have the cosine scheduler to manage the iteration between how"
+    },
+    {
+      "start": 502.64,
+      "end": 512.88,
+      "text": " we improve each model so the loss is basically to evaluate the models with these parameters and then"
+    },
+    {
+      "start": 512.88,
+      "end": 521.84,
+      "text": " adam is how we improve and then the cosine is how we uh kind of iterate between each uh each patch"
+    },
+    {
+      "start": 522.8,
+      "end": 532.48,
+      "text": " uh basically to uh then hopefully we will have uh the new model the new uh improved"
+    },
+    {
+      "start": 532.64,
+      "end": 541.28,
+      "text": " wait fine tune that parameters that are uh that are addressing what we want to answer with this"
+    },
+    {
+      "start": 541.28,
+      "end": 548.64,
+      "text": " model and then after we've done the training that the models will be updated as a checkpoint new"
+    },
+    {
+      "start": 549.36,
+      "end": 557.2,
+      "text": " iou so this is the best it then it can decide it between uh after each of the training which one"
+    },
+    {
+      "start": 557.2,
+      "end": 568.48,
+      "text": " is the best with our parameters and then next this model if we want to validate if you want"
+    },
+    {
+      "start": 568.48,
+      "end": 579.76,
+      "text": " to validate we can use the data that is not unseen by the model so to avoid the data being"
+    },
+    {
+      "start": 579.76,
+      "end": 585.2800000000001,
+      "text": " over generalized or remembering what the parameters so we can we will use the validation"
+    },
+    {
+      "start": 585.28,
+      "end": 593.4399999999999,
+      "text": " data set into the model and then using that checkpoint weight that already updated"
+    },
+    {
+      "start": 594.0,
+      "end": 601.4399999999999,
+      "text": " with the previous training we will again check how it performs so because this is new data that are"
+    },
+    {
+      "start": 602.0799999999999,
+      "end": 609.68,
+      "text": " not being seen by the the training process it will be more objective on identifying the performance"
+    },
+    {
+      "start": 609.68,
+      "end": 620.3199999999999,
+      "text": " So then we will evaluate how accurate this is into the detecting the deforestation because we also"
+    },
+    {
+      "start": 620.3199999999999,
+      "end": 627.92,
+      "text": " have the label right and then we also can compare deforestation prediction between the model detect"
+    },
+    {
+      "start": 627.92,
+      "end": 641.36,
+      "text": " and then uh the one that manually labeled by person by the uh human so now uh we can move"
+    },
+    {
+      "start": 641.36,
+      "end": 654.8,
+      "text": " into the actual the code so this uh this will be available in the link will be available in the"
+    },
+    {
+      "start": 654.8,
+      "end": 665.06,
+      "text": " video or this document that the document that you have access uh and then yeah maybe a bit again a"
+    },
+    {
+      "start": 665.06,
+      "end": 674.64,
+      "text": " bit uh project content so uh deforestation is kind of critical environment challenge to identify"
+    },
+    {
+      "start": 674.64,
+      "end": 688.54,
+      "text": " So with this, we hope that we can automate the detection process with the highly available data, such as Sentinel-2."
+    },
+    {
+      "start": 689.14,
+      "end": 696.9399999999999,
+      "text": " So now the objective is we want to convert geospatial data into model-ready format."
+    },
+    {
+      "start": 696.9399999999999,
+      "end": 703.3199999999999,
+      "text": " And then we would like to train the clay segmentation model to detect change."
+    },
+    {
+      "start": 703.32,
+      "end": 714.7,
+      "text": " And then we also want to be able to evaluate the model because whenever you are using AI, there is no perfect AI."
+    },
+    {
+      "start": 715.08,
+      "end": 730.7600000000001,
+      "text": " But if the AI is accurate enough, I think that's a kind of good solution to be utilized in the actual practice."
+    },
+    {
+      "start": 730.76,
+      "end": 741.02,
+      "text": " And then also we will inference the validation dataset into what is the deforestation map,"
+    },
+    {
+      "start": 741.46,
+      "end": 748.98,
+      "text": " deforestation probability map that are generated with these new models."
+    },
+    {
+      "start": 749.58,
+      "end": 752.9,
+      "text": " So that's the objectives."
+    },
+    {
+      "start": 753.34,
+      "end": 757.8199999999999,
+      "text": " And then the tools that we will use is PyTorch."
+    },
+    {
+      "start": 757.82,
+      "end": 764.1400000000001,
+      "text": " So PyTorch is for a deep learning framework to enable us."
+    },
+    {
+      "start": 764.6400000000001,
+      "end": 766.8000000000001,
+      "text": " So the training architecture is enabled."
+    },
+    {
+      "start": 767.7600000000001,
+      "end": 772.5600000000001,
+      "text": " And then training architecture, the one that for the validation"
+    },
+    {
+      "start": 772.5600000000001,
+      "end": 775.88,
+      "text": " and is available in PyTorch."
+    },
+    {
+      "start": 776.1800000000001,
+      "end": 782.24,
+      "text": " So Lightning is the one that simplify the training management,"
+    },
+    {
+      "start": 782.72,
+      "end": 784.5,
+      "text": " the training loop and then model management."
+    },
+    {
+      "start": 784.5,
+      "end": 791.4,
+      "text": " So, Earth Engine API, we will use this for a download Sentinel to imagery."
+    },
+    {
+      "start": 792.1,
+      "end": 798.08,
+      "text": " And then Rasterio, we are using this to read the QoTiff imagery."
+    },
+    {
+      "start": 798.46,
+      "end": 801.94,
+      "text": " So, when we are downloading the data from Earth Engine, it's QoTiff."
+    },
+    {
+      "start": 802.06,
+      "end": 806.4,
+      "text": " So, we need Rasterio to read the value of the registered data."
+    },
+    {
+      "start": 806.4,
+      "end": 816.0799999999999,
+      "text": " And then we need segmentation models that are inside the PyTorch to loss function for segmentation."
+    },
+    {
+      "start": 816.38,
+      "end": 823.68,
+      "text": " And then we also will be using other utilities as NumPy for basic math calculations,"
+    },
+    {
+      "start": 824.14,
+      "end": 826.88,
+      "text": " CPy, YML, Box, and Mathplotlib."
+    },
+    {
+      "start": 826.88,
+      "end": 831.88,
+      "text": " we are using Matplotlib for showing the,"
+    },
+    {
+      "start": 832.56,
+      "end": 834.38,
+      "text": " visualizing the satellite imagery"
+    },
+    {
+      "start": 834.38,
+      "end": 839.38,
+      "text": " and then the result in the map, in the Jupyter notebook."
+    },
+    {
+      "start": 839.4,
+      "end": 843.4,
+      "text": " So the workflow, the general workflow is first,"
+    },
+    {
+      "start": 843.4,
+      "end": 846.4,
+      "text": " we need to set up environment and install library,"
+    },
+    {
+      "start": 846.4,
+      "end": 849.52,
+      "text": " and then download satellite data from Earth Engine,"
+    },
+    {
+      "start": 849.52,
+      "end": 851.06,
+      "text": " train the claim model,"
+    },
+    {
+      "start": 851.06,
+      "end": 854.62,
+      "text": " validate the model on the test data and run inference."
+    },
+    {
+      "start": 854.62,
+      "end": 872.68,
+      "text": " So computational requirements, so when we are using the machine learning, so the general rules that it will be faster if we are using GPU."
+    },
+    {
+      "start": 872.68,
+      "end": 876.68,
+      "text": " So the CUDA enabled GPU is strongly recommended."
+    },
+    {
+      "start": 876.68,
+      "end": 886.0799999999999,
+      "text": " So basically, ideally you need to have a GPU at least 60 GB of VRAM to training workflow"
+    },
+    {
+      "start": 886.0799999999999,
+      "end": 892.38,
+      "text": " and then even more if you have more data that you want to use."
+    },
+    {
+      "start": 892.38,
+      "end": 901.28,
+      "text": " So for example, in this Google Colab, we need to make sure that we are choosing the runtime that has GPU enabled."
+    },
+    {
+      "start": 901.28,
+      "end": 910.72,
+      "text": " so you can check it here so if you click it run time tag change the runtime tag uh there's a few"
+    },
+    {
+      "start": 910.72,
+      "end": 919.12,
+      "text": " version that cpu only or t4 gpu so make sure you have this t4 gpu uh they have another flavor for"
+    },
+    {
+      "start": 919.12,
+      "end": 927.52,
+      "text": " gpu but usually it's a paid option so but the t4 gpu is uh already enough for this practice but if"
+    },
+    {
+      "start": 927.52,
+      "end": 935.6,
+      "text": " you scale your uh training machine learning training into with more data set more finer"
+    },
+    {
+      "start": 937.6,
+      "end": 944.56,
+      "text": " finer more approach more finer parameters i think it will be need more gpu or it will be run"
+    },
+    {
+      "start": 944.56,
+      "end": 952.8,
+      "text": " very long so yeah just your way of work so it's now make sure that we are using before gpu"
+    },
+    {
+      "start": 952.8,
+      "end": 961.4599999999999,
+      "text": " and if this already connected we have uh yeah this system ram gpu is already connected for now"
+    },
+    {
+      "start": 961.4599999999999,
+      "end": 971.0999999999999,
+      "text": " it's already we get 50 15 gigabyte of ram oh sorry of gpu vram it's good so now uh we need to"
+    },
+    {
+      "start": 971.0999999999999,
+      "end": 979.78,
+      "text": " install uh the library so if you are familiar with python uh so python can be enhanced with"
+    },
+    {
+      "start": 979.78,
+      "end": 986.5799999999999,
+      "text": " installing a lot of library that already available so now we want to install the library that"
+    },
+    {
+      "start": 986.5799999999999,
+      "end": 993.54,
+      "text": " we mentioned i mentioned before and pyrrha stereo and etc so basically we just run okay"
+    },
+    {
+      "start": 995.9399999999999,
+      "end": 1002.9,
+      "text": " we press run and then it's already installed i think because google collab"
+    },
+    {
+      "start": 1002.9,
+      "end": 1010.9,
+      "text": " already facilitated, already have this installed as a standard and then it's still reading"
+    },
+    {
+      "start": 1010.9,
+      "end": 1018.62,
+      "text": " installed some requirements so it doesn't have GDAL so it's installing GDAL so yeah"
+    },
+    {
+      "start": 1018.62,
+      "end": 1025.54,
+      "text": " now it's if you have this message library installed successfully then we are good to"
+    },
+    {
+      "start": 1025.54,
+      "end": 1036.58,
+      "text": " go and then second is uh when we are downloading the satellite imagery for sentinel 2 we need to"
+    },
+    {
+      "start": 1036.58,
+      "end": 1046.42,
+      "text": " have uh we need to have a space to save the data so where we save is save the satellite imagery is"
+    },
+    {
+      "start": 1046.42,
+      "end": 1054.02,
+      "text": " google drive so we need to mount our google drive so assuming you all also i think yeah assuming you"
+    },
+    {
+      "start": 1054.02,
+      "end": 1062.42,
+      "text": " have the google account because google collab google engine and also a google drive it need"
+    },
+    {
+      "start": 1062.42,
+      "end": 1071.46,
+      "text": " a google account so we can run this basically what it do is we are mounting the google drive"
+    },
+    {
+      "start": 1072.74,
+      "end": 1078.02,
+      "text": " into our google collab environment so we can access that data instead so"
+    },
+    {
+      "start": 1078.02,
+      "end": 1083.02,
+      "text": " So basically it asks to verify."
+    },
+    {
+      "start": 1087.96,
+      "end": 1090.2,
+      "text": " Usually you need to enter your password"
+    },
+    {
+      "start": 1090.2,
+      "end": 1092.6,
+      "text": " or confirm in your phone."
+    },
+    {
+      "start": 1096.9,
+      "end": 1100.0,
+      "text": " So after you confirm on your phone,"
+    },
+    {
+      "start": 1103.02,
+      "end": 1105.7,
+      "text": " make sure allow to Google Drive,"
+    },
+    {
+      "start": 1105.7,
+      "end": 1113.6200000000001,
+      "text": " and then follow the process that showing up in your browser."
+    },
+    {
+      "start": 1113.6200000000001,
+      "end": 1118.66,
+      "text": " And then after that, it confirm that wanted."
+    },
+    {
+      "start": 1118.66,
+      "end": 1121.42,
+      "text": " So if you want to confirm, basically,"
+    },
+    {
+      "start": 1121.42,
+      "end": 1123.7,
+      "text": " we'll have this amount that drive."
+    },
+    {
+      "start": 1123.7,
+      "end": 1130.8600000000001,
+      "text": " So this is basically your Google Drive data."
+    },
+    {
+      "start": 1135.7,
+      "end": 1153.6000000000001,
+      "text": " Okay, so next is, we are already mounted, I think it's duplicate."
+    },
+    {
+      "start": 1153.6000000000001,
+      "end": 1159.72,
+      "text": " And then now we need to create a new directory for this project."
+    },
+    {
+      "start": 1159.72,
+      "end": 1162.8400000000001,
+      "text": " So we are creating Deforestation Project data."
+    },
+    {
+      "start": 1162.84,
+      "end": 1166.1599999999999,
+      "text": " So we are creating a new folder in our Google Drive."
+    },
+    {
+      "start": 1166.1599999999999,
+      "end": 1170.28,
+      "text": " So to make sure that to confirm, quickly confirm."
+    },
+    {
+      "start": 1170.6399999999999,
+      "end": 1176.34,
+      "text": " So if it's run successfully, you can check it in your Google Drive."
+    },
+    {
+      "start": 1176.56,
+      "end": 1180.9599999999998,
+      "text": " And then we will have the frustration project and data folder."
+    },
+    {
+      "start": 1181.58,
+      "end": 1184.8999999999999,
+      "text": " So it means that it runs successfully."
+    },
+    {
+      "start": 1186.1,
+      "end": 1186.36,
+      "text": " Okay."
+    },
+    {
+      "start": 1186.36,
+      "end": 1194.9199999999998,
+      "text": " And then the next step is we will need to authentication and initialize to Google Earth Engine."
+    },
+    {
+      "start": 1195.62,
+      "end": 1199.6599999999999,
+      "text": " This is again for downloading the Sentinel to data."
+    },
+    {
+      "start": 1201.24,
+      "end": 1207.9399999999998,
+      "text": " So first, you need to know what is your project name in Earth Engine."
+    },
+    {
+      "start": 1208.6999999999998,
+      "end": 1216.12,
+      "text": " So how to do that is you need to go to code Earth Engine, open your engine platform."
+    },
+    {
+      "start": 1216.36,
+      "end": 1225.08,
+      "text": " So, for example, in here, in my example is that you can click on the top right."
+    },
+    {
+      "start": 1225.26,
+      "end": 1229.06,
+      "text": " So, make sure that you already registered to Google Earth Engine."
+    },
+    {
+      "start": 1229.5,
+      "end": 1236.4799999999998,
+      "text": " So, if you haven't, then there will be link detail on how to register on Earth Engine."
+    },
+    {
+      "start": 1236.9399999999998,
+      "end": 1244.8799999999999,
+      "text": " So, if you are already registered to Earth Engine, as for now, the Earth Engine requires you to have Google Cloud Project."
+    },
+    {
+      "start": 1244.88,
+      "end": 1253.38,
+      "text": " So, for example, this is the list of the cloud project name that available for me."
+    },
+    {
+      "start": 1253.38,
+      "end": 1257.38,
+      "text": " So you can choose whatever the cloud project that you have."
+    },
+    {
+      "start": 1257.38,
+      "end": 1261.88,
+      "text": " So for this training, I'm using this server EE project."
+    },
+    {
+      "start": 1261.88,
+      "end": 1266.38,
+      "text": " So basically any of this project could work."
+    },
+    {
+      "start": 1266.38,
+      "end": 1269.38,
+      "text": " So you can choose whatever that available for you."
+    },
+    {
+      "start": 1269.38,
+      "end": 1291.3200000000002,
+      "text": " So type the project name here, server.ee for my case, and then you need to change to whatever project, cloud project that's available for you. Run, and then we will start initiation project. Basically, we are authenticated into Earth Engine."
+    },
+    {
+      "start": 1291.32,
+      "end": 1308.32,
+      "text": " So if the cloud project is correct, basically you will be able to access any Earth Engine asset, any Earth Engine data that is available for you."
+    },
+    {
+      "start": 1308.32,
+      "end": 1313.32,
+      "text": " So Earth Engine is initialized successfully."
+    },
+    {
+      "start": 1313.32,
+      "end": 1320.32,
+      "text": " So the step four, we will download and storing data from Google Earth Engine."
+    },
+    {
+      "start": 1320.32,
+      "end": 1328.56,
+      "text": " engine. So we are saving the data as GUTIF because this is the most common raster data"
+    },
+    {
+      "start": 1328.56,
+      "end": 1340.48,
+      "text": " format and then the most practical data format in my opinion. So first the step that we need"
+    },
+    {
+      "start": 1340.48,
+      "end": 1347.6799999999998,
+      "text": " to do is we define the data download function and then we save the image and then organize"
+    },
+    {
+      "start": 1347.68,
+      "end": 1354.1000000000001,
+      "text": " the folder structure in Google Drive, and then we confirm that if the data is successfully"
+    },
+    {
+      "start": 1354.1000000000001,
+      "end": 1355.3400000000001,
+      "text": " downloaded."
+    },
+    {
+      "start": 1355.3400000000001,
+      "end": 1360.46,
+      "text": " So if you can see that we have this write guiative to create the guiative file function"
+    },
+    {
+      "start": 1360.46,
+      "end": 1371.8,
+      "text": " here, this block of code, and then we have this function to download by index, by download"
+    },
+    {
+      "start": 1371.8,
+      "end": 1377.2,
+      "text": " the data and then put it into this distinct folder."
+    },
+    {
+      "start": 1377.2,
+      "end": 1389.3600000000001,
+      "text": " So we can just click run here and then basically this is will be yeah this is just function"
+    },
+    {
+      "start": 1389.3600000000001,
+      "end": 1395.7,
+      "text": " so if you run it nothing will happen so the download process will be next in the next"
+    },
+    {
+      "start": 1395.7,
+      "end": 1403.88,
+      "text": " step so but this is the overview of the data in the Cambodia country so this is the the"
+    },
+    {
+      "start": 1403.88,
+      "end": 1408.88,
+      "text": " the Sentinel to 512 by 512 pixel resolution."
+    },
+    {
+      "start": 1413.96,
+      "end": 1416.2600000000002,
+      "text": " So it's about five kilometers, five kilometers."
+    },
+    {
+      "start": 1418.5,
+      "end": 1421.7600000000002,
+      "text": " And then we are, we'll download the data"
+    },
+    {
+      "start": 1421.7600000000002,
+      "end": 1422.7,
+      "text": " that already available."
+    },
+    {
+      "start": 1422.7,
+      "end": 1427.2600000000002,
+      "text": " So the data is, we already prepared the data for you."
+    },
+    {
+      "start": 1427.2600000000002,
+      "end": 1430.14,
+      "text": " So you just need to download for this training."
+    },
+    {
+      "start": 1430.14,
+      "end": 1433.1000000000001,
+      "text": " So if we are clicking this part,"
+    },
+    {
+      "start": 1433.1,
+      "end": 1441.08,
+      "text": " So we will have the download function, download image function, and then download by index function."
+    },
+    {
+      "start": 1441.08,
+      "end": 1447.4399999999998,
+      "text": " And then also the one that enable to download in a batch."
+    },
+    {
+      "start": 1447.6399999999999,
+      "end": 1450.7199999999998,
+      "text": " So it can download multiple assets at the same time."
+    },
+    {
+      "start": 1451.32,
+      "end": 1454.1,
+      "text": " So it will run."
+    },
+    {
+      "start": 1454.28,
+      "end": 1461.08,
+      "text": " So basically it's confirmed the process of its download."
+    },
+    {
+      "start": 1463.1,
+      "end": 1468.04,
+      "text": " So it's already downloading 50 imagery."
+    },
+    {
+      "start": 1471.04,
+      "end": 1474.9599999999998,
+      "text": " Because this is just from Google infrastructure to Google infrastructure,"
+    },
+    {
+      "start": 1475.24,
+      "end": 1477.34,
+      "text": " so the process will be very fast."
+    },
+    {
+      "start": 1478.0,
+      "end": 1481.82,
+      "text": " To confirm that you already have the data,"
+    },
+    {
+      "start": 1483.1599999999999,
+      "end": 1488.1399999999999,
+      "text": " you can check in your folder, in your Google Drive folder,"
+    },
+    {
+      "start": 1488.1399999999999,
+      "end": 1490.12,
+      "text": " the forestation project data."
+    },
+    {
+      "start": 1490.12,
+      "end": 1497.6999999999998,
+      "text": " and then it will have validation and training folder file is for validation validation you will"
+    },
+    {
+      "start": 1497.6999999999998,
+      "end": 1505.84,
+      "text": " have the label after before so this is for the label the raster of the deforestation label zero"
+    },
+    {
+      "start": 1505.84,
+      "end": 1513.2199999999998,
+      "text": " and one so zero is no deforestation one is deforestation and after is after deforestation"
+    },
+    {
+      "start": 1513.2199999999998,
+      "end": 1520.06,
+      "text": " imagery and then before is before deforestation imagery set in O2 so if you can see that"
+    },
+    {
+      "start": 1520.06,
+      "end": 1529.3799999999999,
+      "text": " this also have the name the name pattern is so 001 is that means that it's the 001 also in the"
+    },
+    {
+      "start": 1529.3799999999999,
+      "end": 1539.1799999999998,
+      "text": " after and also in the label so the name is implies that uh the same name is the same uh area that"
+    },
+    {
+      "start": 1539.1799999999998,
+      "end": 1546.02,
+      "text": " overlap just it had just have the temporal difference and then the the label mask represent"
+    },
+    {
+      "start": 1546.02,
+      "end": 1553.22,
+      "text": " also to that area with the same name so it's also the same situation with the training folder"
+    },
+    {
+      "start": 1553.22,
+      "end": 1567.06,
+      "text": " we have this uh format okay so uh this uh google confirm if we are currently not using gpu yes of"
+    },
+    {
+      "start": 1567.06,
+      "end": 1579.94,
+      "text": " course we are not using gpu yet uh so step five is uh we can also check if the data is"
+    },
+    {
+      "start": 1579.94,
+      "end": 1585.62,
+      "text": " downloaded correctly we can visualize the data so this we are using matplotlib to"
+    },
+    {
+      "start": 1585.62,
+      "end": 1598.4399999999998,
+      "text": " plot to visualize the data into the plot."
+    },
+    {
+      "start": 1598.4399999999998,
+      "end": 1606.4799999999998,
+      "text": " So because basically the raster data is a grid matrix, so we are using matplotlib not"
+    },
+    {
+      "start": 1606.4799999999998,
+      "end": 1609.4199999999998,
+      "text": " GIS software."
+    },
+    {
+      "start": 1609.42,
+      "end": 1616.5600000000002,
+      "text": " We can use the GIS software, but the Matplotlib can also read those grids of raster and then"
+    },
+    {
+      "start": 1616.5600000000002,
+      "end": 1618.76,
+      "text": " have parameter to visualize it."
+    },
+    {
+      "start": 1618.76,
+      "end": 1627.8000000000002,
+      "text": " So that's why we can see the image in the, what is the name, the true color representation."
+    },
+    {
+      "start": 1627.8000000000002,
+      "end": 1629.6000000000001,
+      "text": " So this is the before."
+    },
+    {
+      "start": 1629.6,
+      "end": 1642.5,
+      "text": " So we are visualizing currently we are visualizing the sample 001, 0011, I'm sorry."
+    },
+    {
+      "start": 1642.5,
+      "end": 1647.6399999999999,
+      "text": " So this is the before deforestation and then this is the after image."
+    },
+    {
+      "start": 1647.6399999999999,
+      "end": 1658.2199999999998,
+      "text": " So with this difference, we have the operator that manually labeled the data, the deforestation"
+    },
+    {
+      "start": 1658.22,
+      "end": 1668.34,
+      "text": " data so what they identify is the white area as a deforestation level so what this training would"
+    },
+    {
+      "start": 1668.34,
+      "end": 1684.8600000000001,
+      "text": " like to achieve is that it wants to hyper to tune to to tune the clay model to being better at"
+    },
+    {
+      "start": 1684.86,
+      "end": 1690.4599999999998,
+      "text": " identifying similar patterns so because this is what the answer that we want uh so this is the"
+    },
+    {
+      "start": 1690.4599999999998,
+      "end": 1697.34,
+      "text": " question that we want to answer right so uh we we ask the clay model okay this uh this is the"
+    },
+    {
+      "start": 1697.34,
+      "end": 1706.2199999999998,
+      "text": " result that we want and then they can adjust uh they it's weight it's models to uh being better"
+    },
+    {
+      "start": 1706.22,
+      "end": 1715.42,
+      "text": " at answering this question. So next is we are cloning the clay model. So first we need the"
+    },
+    {
+      "start": 1716.94,
+      "end": 1726.54,
+      "text": " repository itself to be able to utilize the clay model. So we are copy duplicating the"
+    },
+    {
+      "start": 1727.34,
+      "end": 1733.42,
+      "text": " clay model from its GitHub repo. So if you are clicking on this link you will also go to the"
+    },
+    {
+      "start": 1733.42,
+      "end": 1744.14,
+      "text": " github repo and then uh copy directly but here we want the clay repo to be inside our uh google"
+    },
+    {
+      "start": 1744.14,
+      "end": 1750.8600000000001,
+      "text": " collapse so we are using this script and then basically we put it in the this folder uh okay"
+    },
+    {
+      "start": 1752.8600000000001,
+      "end": 1760.38,
+      "text": " and then it say it failed because we already have that i think uh but uh no worry uh we can move"
+    },
+    {
+      "start": 1760.38,
+      "end": 1770.7800000000002,
+      "text": " forward to downloading the clay model so we have those client repository that basically the code to"
+    },
+    {
+      "start": 1770.7800000000002,
+      "end": 1775.98,
+      "text": " utilize the clay model and then now we need to download the clay model so this is the one that"
+    },
+    {
+      "start": 1779.5800000000002,
+      "end": 1787.3400000000001,
+      "text": " ai all of the ai parameters from the training of the a lot of a lot of remote sensing data"
+    },
+    {
+      "start": 1787.34,
+      "end": 1799.58,
+      "text": " satellite imagery so now i think the the size is almost 1.73 gigabytes so it's kind of big model"
+    },
+    {
+      "start": 1799.58,
+      "end": 1807.1799999999998,
+      "text": " so because they have stored a lot of parameters so now it confirmed that the model is already"
+    },
+    {
+      "start": 1807.18,
+      "end": 1818.5,
+      "text": " download so if you can see that the the name the name is dot g kpt so it's short form checkpoint"
+    },
+    {
+      "start": 1818.5,
+      "end": 1825.5600000000002,
+      "text": " so it means that okay this is the base model checkpoint and then after we train and then"
+    },
+    {
+      "start": 1825.5600000000002,
+      "end": 1832.78,
+      "text": " fine-tune the model basically we will have another checkpoint data so yeah we will begin we will be"
+    },
+    {
+      "start": 1832.78,
+      "end": 1844.56,
+      "text": " there. So now we already have the model downloaded. Now we want to have also the training environment"
+    },
+    {
+      "start": 1844.56,
+      "end": 1851.86,
+      "text": " ready. So now for the training environment, we need a ptorch, torvision, lightning and"
+    },
+    {
+      "start": 1851.86,
+      "end": 1859.36,
+      "text": " segmentation model. So we just need to run this. Okay, it's already installed some library,"
+    },
+    {
+      "start": 1859.36,
+      "end": 1871.78,
+      "text": " downloading another library and then it's done so now we are creating the"
+    },
+    {
+      "start": 1871.78,
+      "end": 1879.6999999999998,
+      "text": " environment that for the for the library to make sure that it can run well"
+    },
+    {
+      "start": 1879.6999999999998,
+      "end": 1885.3999999999999,
+      "text": " because in Python some library can be conflicted with each other even though"
+    },
+    {
+      "start": 1885.4,
+      "end": 1894.3600000000001,
+      "text": " you already download the library sometimes if you import into your environment it sometimes can run"
+    },
+    {
+      "start": 1894.3600000000001,
+      "end": 1900.2,
+      "text": " error but yeah this is to make sure that all of our environment our all of the library that we"
+    },
+    {
+      "start": 1900.2,
+      "end": 1907.96,
+      "text": " need can be loaded after we download we need to load it into jupiter or google cloud environment"
+    },
+    {
+      "start": 1907.96,
+      "end": 1917.8,
+      "text": " and then it's loaded successfully with no issue so and then also here we we confirm that if our"
+    },
+    {
+      "start": 1917.8,
+      "end": 1926.1200000000001,
+      "text": " environment our google collab environment is uh gpu enabled so if it's detect uh and"
+    },
+    {
+      "start": 1926.8400000000001,
+      "end": 1933.48,
+      "text": " cuda environment so it will also say it's have a cuda environment so that's why it it confirmed"
+    },
+    {
+      "start": 1933.48,
+      "end": 1944.6,
+      "text": " that we are having GPU as our that we have GPU available for this training analysis so if you are"
+    },
+    {
+      "start": 1944.6,
+      "end": 1955.16,
+      "text": " not having the GPU it will say CPU instead okay so the next step is step 10 building the clay"
+    },
+    {
+      "start": 1955.16,
+      "end": 1967.48,
+      "text": " based segmenter model so this is uh this part of the mod architecture where we are using the clay"
+    },
+    {
+      "start": 1967.48,
+      "end": 1977.0,
+      "text": " making the model architecture so first we are building a custom segment encoder using clay"
+    },
+    {
+      "start": 1977.0,
+      "end": 1984.6000000000001,
+      "text": " foundation model you are you are using vision transformer to extract special features and then"
+    },
+    {
+      "start": 1984.6,
+      "end": 1991.32,
+      "text": " we are using cross attention mechanism basically comparing two data set and then"
+    },
+    {
+      "start": 1996.84,
+      "end": 2003.48,
+      "text": " not between the task between two pair image and then we also up sampling the layer from the one"
+    },
+    {
+      "start": 2003.48,
+      "end": 2013.0,
+      "text": " that token that's being seen by the clay transformer and then into the data that"
+    },
+    {
+      "start": 2015.4,
+      "end": 2023.88,
+      "text": " basically change from okay so this here is the yeah this is the better explanation so"
+    },
+    {
+      "start": 2023.88,
+      "end": 2036.18,
+      "text": " So first is that we will have 5x12x12 pixel image, and then we will cut into 8x8 pixel blocks,"
+    },
+    {
+      "start": 2036.18,
+      "end": 2042.7800000000002,
+      "text": " and then the result is 60x4, 60x4, or 4,000 small tiles."
+    },
+    {
+      "start": 2043.1200000000001,
+      "end": 2048.32,
+      "text": " So this is the one patch."
+    },
+    {
+      "start": 2048.6,
+      "end": 2049.6800000000003,
+      "text": " We say this as one patch."
+    },
+    {
+      "start": 2049.68,
+      "end": 2060.68,
+      "text": " So then we will have, because it's 8 by 8 path, so it's like 80 meters on the ground."
+    },
+    {
+      "start": 2060.68,
+      "end": 2074.68,
+      "text": " So basically it means that this model not will just analyze by a pixel, but it will also aware of the surrounding of the 80 meters parameter."
+    },
+    {
+      "start": 2074.68,
+      "end": 2083.3999999999996,
+      "text": " so usually if we are focusing on okay if need infrared value if this number it says vegetation"
+    },
+    {
+      "start": 2083.3999999999996,
+      "end": 2089.3999999999996,
+      "text": " but now it's uh more aware of what it's surrounding and then hopefully it will identify"
+    },
+    {
+      "start": 2089.3999999999996,
+      "end": 2099.16,
+      "text": " better on what happened so for example now this is uh for each path that it will knew what is been"
+    },
+    {
+      "start": 2099.16,
+      "end": 2105.0,
+      "text": " one, then two, then three means and then for each dimension it will now"
+    },
+    {
+      "start": 2108.3599999999997,
+      "end": 2118.6,
+      "text": " identify for each patch what is the category or the identification of each patch. So for example"
+    },
+    {
+      "start": 2118.6,
+      "end": 2125.8799999999997,
+      "text": " for one is that it high probability of dense vegetation and then now it's four it's mean"
+    },
+    {
+      "start": 2125.88,
+      "end": 2130.56,
+      "text": " I mean, okay, it say that from dimension one,"
+    },
+    {
+      "start": 2130.56,
+      "end": 2134.02,
+      "text": " so, okay, back again on dimension."
+    },
+    {
+      "start": 2134.02,
+      "end": 2138.04,
+      "text": " So the clay model that the model that we choose,"
+    },
+    {
+      "start": 2138.04,
+      "end": 2140.6400000000003,
+      "text": " it's have 76, 768"
+    },
+    {
+      "start": 2144.02,
+      "end": 2147.2200000000003,
+      "text": " parameter dimension, or let's say it's not parameter,"
+    },
+    {
+      "start": 2147.2200000000003,
+      "end": 2152.04,
+      "text": " it's dimension that for each dimension,"
+    },
+    {
+      "start": 2152.04,
+      "end": 2153.04,
+      "text": " it have,"
+    },
+    {
+      "start": 2153.04,
+      "end": 2157.12,
+      "text": " it knew, somehow it knew that"
+    },
+    {
+      "start": 2157.12,
+      "end": 2160.66,
+      "text": " what each score it represents."
+    },
+    {
+      "start": 2160.9,
+      "end": 2164.16,
+      "text": " So this is just, what is it?"
+    },
+    {
+      "start": 2164.66,
+      "end": 2166.06,
+      "text": " Just kind of example."
+    },
+    {
+      "start": 2166.2799999999997,
+      "end": 2168.32,
+      "text": " It doesn't mean that, but for example,"
+    },
+    {
+      "start": 2168.42,
+      "end": 2170.72,
+      "text": " if dimension, one of dimension is,"
+    },
+    {
+      "start": 2171.52,
+      "end": 2173.2799999999997,
+      "text": " score is 0.82,"
+    },
+    {
+      "start": 2173.2799999999997,
+      "end": 2176.16,
+      "text": " so it will say that this is high probability"
+    },
+    {
+      "start": 2176.16,
+      "end": 2176.9,
+      "text": " of densification."
+    },
+    {
+      "start": 2177.74,
+      "end": 2181.02,
+      "text": " So if the dimension 2 is low,"
+    },
+    {
+      "start": 2181.02,
+      "end": 2190.3,
+      "text": " minus 0.34 so it means that it's it's not uh an urban and then if dimension three it's good at uh"
+    },
+    {
+      "start": 2191.34,
+      "end": 2201.18,
+      "text": " knowing if moisture is there something like that so they have all of the 768 uh parameters that"
+    },
+    {
+      "start": 2201.18,
+      "end": 2210.22,
+      "text": " help us into knowing what is happening in each patch that we are identifying so"
+    },
+    {
+      "start": 2212.3799999999997,
+      "end": 2225.02,
+      "text": " now for example uh if we identify if we fit two data to uh before and after image into the clay"
+    },
+    {
+      "start": 2225.02,
+      "end": 2236.54,
+      "text": " encoder so it can somehow knew that if the value is like this all of this dimension it can conclude"
+    },
+    {
+      "start": 2236.54,
+      "end": 2244.3,
+      "text": " that this is a dense forest signal and then the after is bare soil signal so now because"
+    },
+    {
+      "start": 2245.58,
+      "end": 2251.9,
+      "text": " we train this model into answering that question those two focusing okay we want to focus on these"
+    },
+    {
+      "start": 2251.9,
+      "end": 2264.62,
+      "text": " two different so now uh it will high high percentage of the uh forest differentiation uh"
+    },
+    {
+      "start": 2266.2200000000003,
+      "end": 2274.78,
+      "text": " signal but if the two score is still the change is uh dense forest and then it's still dense forest"
+    },
+    {
+      "start": 2274.78,
+      "end": 2284.0600000000004,
+      "text": " then it will have a low probability of then signal so after that uh it will upscale the"
+    },
+    {
+      "start": 2285.7400000000002,
+      "end": 2297.26,
+      "text": " 80 meter 80 meter tiles into the 512 512 pixel mass or 10 meter resolution of the the as a final"
+    },
+    {
+      "start": 2297.26,
+      "end": 2308.5400000000004,
+      "text": " product and it will look back at this the the the what is it the after an"
+    },
+    {
+      "start": 2308.5400000000004,
+      "end": 2315.26,
+      "text": " image satellite imagery to get the final score of what is the the final"
+    },
+    {
+      "start": 2315.26,
+      "end": 2333.5800000000004,
+      "text": " probability score okay let's back to the training so okay we will have this so"
+    },
+    {
+      "start": 2333.5800000000004,
+      "end": 2340.1600000000003,
+      "text": " this is the function from load from checkpoint so basically we are loading"
+    },
+    {
+      "start": 2340.16,
+      "end": 2348.0,
+      "text": " model and then with this is generate positional encoding so generate uh positional encoding is"
+    },
+    {
+      "start": 2348.56,
+      "end": 2357.68,
+      "text": " the one that uh so if you can see that it's have b ld so b it's bed sites l is"
+    },
+    {
+      "start": 2357.68,
+      "end": 2365.2799999999997,
+      "text": " sequent length and d is dimension the one that i mentioned before so uh yeah this is the more"
+    },
+    {
+      "start": 2365.28,
+      "end": 2374.6400000000003,
+      "text": " complete explanation so b it's pet size l is length sequence number of pets token in sequence so"
+    },
+    {
+      "start": 2375.6000000000004,
+      "end": 2386.88,
+      "text": " uh if the us as a gis uh practitioner we are more familiar with concept of pixel right but"
+    },
+    {
+      "start": 2386.88,
+      "end": 2394.0800000000004,
+      "text": " uh when we are entering the machine learning the machine learning will transform those pixel"
+    },
+    {
+      "start": 2394.08,
+      "end": 2402.48,
+      "text": " into like an array that and then they will call it as a token so yeah that's kind of uh it's more"
+    },
+    {
+      "start": 2402.48,
+      "end": 2411.84,
+      "text": " like a different uh different uh different name and then the dimension is the size of feature"
+    },
+    {
+      "start": 2411.84,
+      "end": 2419.36,
+      "text": " factor per path channels is number of pen h is the number of pixel row and then with is number of"
+    },
+    {
+      "start": 2419.36,
+      "end": 2430.48,
+      "text": " pixel columns so when we are using the transformer it will transform the pixel the satellite imagery"
+    },
+    {
+      "start": 2430.48,
+      "end": 2440.44,
+      "text": " into the one that are more uh the trans the one that are more familiar the one that uh can be seen"
+    },
+    {
+      "start": 2440.44,
+      "end": 2448.0,
+      "text": " by transformer which is the patch uh length and dimension so bld so it will looks like this the"
+    },
+    {
+      "start": 2448.0,
+      "end": 2456.18,
+      "text": " visualization so you have patch per patch so patch 0 1 2 3 so basically per patch is like the 80 percent"
+    },
+    {
+      "start": 2456.18,
+      "end": 2468.14,
+      "text": " sorry 80 meters by 80 meters patch and then it will transform into one single array so we will"
+    },
+    {
+      "start": 2468.14,
+      "end": 2481.04,
+      "text": " have all of those data blank is 4096 by its parameters and then it will have it"
+    },
+    {
+      "start": 2481.04,
+      "end": 2494.02,
+      "text": " the length is 40 sorry the going down is 4096 rows because it and then it will"
+    },
+    {
+      "start": 2494.02,
+      "end": 2500.72,
+      "text": " have 768 columns feature dimension to the right so yeah that's where I'm a bit"
+    },
+    {
+      "start": 2500.72,
+      "end": 2507.48,
+      "text": " confusing I apologize and then this is the what transformer more familiar and"
+    },
+    {
+      "start": 2507.48,
+      "end": 2514.18,
+      "text": " then in the right is the what us the sick stories"
+    },
+    {
+      "start": 2514.18,
+      "end": 2521.94,
+      "text": " GIS practitioner more familiar so we have this for batch of chips so it's"
+    },
+    {
+      "start": 2521.94,
+      "end": 2529.68,
+      "text": " evaluate every four image and then the channel is we have 10 sentinel band that"
+    },
+    {
+      "start": 2529.68,
+      "end": 2535.36,
+      "text": " we are using and then with the height is 512 pixel and then width is 512 so the"
+    },
+    {
+      "start": 2535.36,
+      "end": 2543.14,
+      "text": " dimension is 4, 10, 50, 512 and 512 so it will look like this so you will in the"
+    },
+    {
+      "start": 2543.14,
+      "end": 2548.5,
+      "text": " right you will have 512 and then bottom you have 500 column and then you have"
+    },
+    {
+      "start": 2548.5,
+      "end": 2555.06,
+      "text": " each band so this is the visualization of the one that we are more familiar so it's been is uh it's"
+    },
+    {
+      "start": 2555.62,
+      "end": 2565.78,
+      "text": " a patch that or band it's representing the band in the sentinel to imagery so now this is the"
+    },
+    {
+      "start": 2566.58,
+      "end": 2575.38,
+      "text": " how the transformation happen so first it will have the satellite imagery format right so 4 10"
+    },
+    {
+      "start": 2575.38,
+      "end": 2585.54,
+      "text": " 512 512 and then it will uh cut into 8x8 patches and then it will transform the layer so into"
+    },
+    {
+      "start": 2585.54,
+      "end": 2593.54,
+      "text": " the ld format and then it will rearrange again from the flat list into back to 2d special grid"
+    },
+    {
+      "start": 2593.54,
+      "end": 2608.54,
+      "text": " but it's still 8x8 patch, so it needs to rescale again into the 10 meter spatial resolution, 512x512,"
+    },
+    {
+      "start": 2608.54,
+      "end": 2617.54,
+      "text": " and then finally it will only have one band of the probability of deforestation layer."
+    },
+    {
+      "start": 2617.54,
+      "end": 2621.54,
+      "text": " So in general that's how it works."
+    },
+    {
+      "start": 2623.54,
+      "end": 2630.68,
+      "text": " Okay, so we have this forward pass for segmenter."
+    },
+    {
+      "start": 2630.68,
+      "end": 2639.34,
+      "text": " So basically it's the one that has receiving the input and then outputting this process,"
+    },
+    {
+      "start": 2639.34,
+      "end": 2641.46,
+      "text": " the one that I just mentioned."
+    },
+    {
+      "start": 2641.46,
+      "end": 2646.6,
+      "text": " And then this is cross attention function to compare those data."
+    },
+    {
+      "start": 2646.6,
+      "end": 2648.86,
+      "text": " And then again, the segmenter."
+    },
+    {
+      "start": 2648.86,
+      "end": 2654.08,
+      "text": " And yeah, basically this is all of the functions that we need for the process."
+    },
+    {
+      "start": 2654.08,
+      "end": 2662.2400000000002,
+      "text": " And then now we will build the segmenter-likely module."
+    },
+    {
+      "start": 2662.2400000000002,
+      "end": 2675.1600000000003,
+      "text": " So basically this is the one that trains the change segmenter into the one that via question"
+    },
+    {
+      "start": 2675.1600000000003,
+      "end": 2677.26,
+      "text": " that we would like to answer."
+    },
+    {
+      "start": 2677.26,
+      "end": 2686.44,
+      "text": " So we have this first, we have the classic miniature model, and then we will internalize"
+    },
+    {
+      "start": 2686.44,
+      "end": 2693.98,
+      "text": " the loss function to one that in top of the right, top right here, loss segmentation."
+    },
+    {
+      "start": 2693.98,
+      "end": 2697.5400000000004,
+      "text": " And then the next is we will have Adam to optimize."
+    },
+    {
+      "start": 2697.5400000000004,
+      "end": 2705.2400000000002,
+      "text": " And then we set the cosine unlink to set the learning rate scheduler."
+    },
+    {
+      "start": 2705.24,
+      "end": 2708.24,
+      "text": " So how it iterates and then when it stops, something like that."
+    },
+    {
+      "start": 2709.52,
+      "end": 2714.02,
+      "text": " So then we need also to define what is the dataset."
+    },
+    {
+      "start": 2714.7599999999998,
+      "end": 2718.0,
+      "text": " And then for one method, as I mentioned before,"
+    },
+    {
+      "start": 2718.0,
+      "end": 2720.8199999999997,
+      "text": " this is take the before and after dataset as input"
+    },
+    {
+      "start": 2720.8199999999997,
+      "end": 2726.6,
+      "text": " and then add wavelength and GSD metadata into the data cube"
+    },
+    {
+      "start": 2726.6,
+      "end": 2731.14,
+      "text": " and then return the model prediction for the uncover change."
+    },
+    {
+      "start": 2731.14,
+      "end": 2740.3599999999997,
+      "text": " And then loss function here, we are setting the VCE, dice loss, and first key loss."
+    },
+    {
+      "start": 2740.8399999999997,
+      "end": 2743.06,
+      "text": " So this is the parameter that we are using."
+    },
+    {
+      "start": 2743.14,
+      "end": 2760.14,
+      "text": " So this means basically we are using these parameters to make sure that the data, the models, the interpreter, the infer process is quite generalized but not overgeneralized."
+    },
+    {
+      "start": 2761.14,
+      "end": 2768.2999999999997,
+      "text": " like that and then at we will also have the evaluation metric intersection of reunion so"
+    },
+    {
+      "start": 2768.2999999999997,
+      "end": 2775.2799999999997,
+      "text": " measure overlap between predicted and actual mass basically the how much uh how good is our"
+    },
+    {
+      "start": 2775.2799999999997,
+      "end": 2782.92,
+      "text": " prediction and then f1 score to precision and recall so basically how accurate that is and"
+    },
+    {
+      "start": 2782.92,
+      "end": 2788.3199999999997,
+      "text": " then precision and recall measure sorry uh balance the balance of precision and recall and then"
+    },
+    {
+      "start": 2788.32,
+      "end": 2795.04,
+      "text": " precision and recall which measure the how accurate the deforestation is detected and then"
+    },
+    {
+      "start": 2795.04,
+      "end": 2801.36,
+      "text": " we will have shared step method so we are used for both in training validation because basically"
+    },
+    {
+      "start": 2801.36,
+      "end": 2808.0800000000004,
+      "text": " it's the same basically when training uh we are at training the model but the validation we skip"
+    },
+    {
+      "start": 2808.0800000000004,
+      "end": 2815.6800000000003,
+      "text": " of the iteration so but we still count the loss uh because for evaluation so that's why the code"
+    },
+    {
+      "start": 2815.68,
+      "end": 2823.2,
+      "text": " is similar and then we lock the metric in the tensor board for evaluation"
+    },
+    {
+      "start": 2827.6,
+      "end": 2834.3999999999996,
+      "text": " okay now we define all of the functions so here is we just define the function the"
+    },
+    {
+      "start": 2834.96,
+      "end": 2842.72,
+      "text": " change the segmenter that have forward and we are the configured the optimizer the adam"
+    },
+    {
+      "start": 2842.72,
+      "end": 2851.7799999999997,
+      "text": " optimizer and then so this is we have shared step for both validation and training because"
+    },
+    {
+      "start": 2851.7799999999997,
+      "end": 2859.0,
+      "text": " it's quite simple so this is the training step and then this is the validation step"
+    },
+    {
+      "start": 2859.0,
+      "end": 2869.2,
+      "text": " and then next is we are building the pipeline to uh to detect the change between Sentinel"
+    },
+    {
+      "start": 2869.2,
+      "end": 2880.7999999999997,
+      "text": " to satellite imagery. So in this step we will use the function or class to handle the loading,"
+    },
+    {
+      "start": 2880.7999999999997,
+      "end": 2888.08,
+      "text": " the processing satellite imagery pairs and then this will be used to prepare input for data"
+    },
+    {
+      "start": 2888.08,
+      "end": 2897.6,
+      "text": " training. So because previously the data is still gative, we need to create function and then"
+    },
+    {
+      "start": 2897.6,
+      "end": 2904.64,
+      "text": " transform that those data into the one that are acceptable by the machine learning pipeline so"
+    },
+    {
+      "start": 2905.6,
+      "end": 2913.2,
+      "text": " first is we are takes before and after and label image as an input and then extract the image file"
+    },
+    {
+      "start": 2913.2,
+      "end": 2919.6,
+      "text": " paths and store them in list and then we need to set the mean and standard deviation for Sentinel-2"
+    },
+    {
+      "start": 2919.6,
+      "end": 2926.88,
+      "text": " this is also already pre-computed so if you using your custom you need to set the means and standard"
+    },
+    {
+      "start": 2926.88,
+      "end": 2935.92,
+      "text": " deviation for your code and then for your data set and then define normalization transform for input"
+    },
+    {
+      "start": 2935.92,
+      "end": 2943.12,
+      "text": " consistency and then the second is we are loading and pre-processing the data using the raster you"
+    },
+    {
+      "start": 2943.12,
+      "end": 2950.6400000000003,
+      "text": " to read the geotiff normalize the image and then now we will have the data cube or the nump data"
+    },
+    {
+      "start": 2950.6400000000003,
+      "end": 2956.8,
+      "text": " cube basically the matrix which have pixel value uh placeholder information and placeholder"
+    },
+    {
+      "start": 2956.8,
+      "end": 2958.2000000000003,
+      "text": " for geographic coordination."
+    },
+    {
+      "start": 2960.1200000000003,
+      "end": 2962.78,
+      "text": " And then data retriever,"
+    },
+    {
+      "start": 2963.04,
+      "end": 2964.9,
+      "text": " we get item to return"
+    },
+    {
+      "start": 2964.9,
+      "end": 2966.84,
+      "text": " the before, after data"
+    },
+    {
+      "start": 2966.84,
+      "end": 2967.6800000000003,
+      "text": " as dictionary"
+    },
+    {
+      "start": 2967.6800000000003,
+      "end": 2970.1800000000003,
+      "text": " and then using transformation pipeline"
+    },
+    {
+      "start": 2970.1800000000003,
+      "end": 2971.6000000000004,
+      "text": " to standardize the data format."
+    },
+    {
+      "start": 2972.0,
+      "end": 2973.1000000000004,
+      "text": " And then at the end,"
+    },
+    {
+      "start": 2973.26,
+      "end": 2974.98,
+      "text": " we will return the total number"
+    },
+    {
+      "start": 2974.98,
+      "end": 2976.1000000000004,
+      "text": " of image pair available."
+    },
+    {
+      "start": 2976.52,
+      "end": 2979.34,
+      "text": " And then what this code is,"
+    },
+    {
+      "start": 2979.6000000000004,
+      "end": 2980.76,
+      "text": " what to do is that"
+    },
+    {
+      "start": 2980.76,
+      "end": 2983.36,
+      "text": " it want to handle the data loading"
+    },
+    {
+      "start": 2983.36,
+      "end": 2984.5600000000004,
+      "text": " during training and validation"
+    },
+    {
+      "start": 2984.56,
+      "end": 2986.6,
+      "text": " and then make sure it's normalized."
+    },
+    {
+      "start": 2987.14,
+      "end": 2991.66,
+      "text": " And then that's why the model will receive consistent input base."
+    },
+    {
+      "start": 2991.66,
+      "end": 2994.36,
+      "text": " Then, yeah, improving the training stability."
+    },
+    {
+      "start": 2995.2,
+      "end": 2997.38,
+      "text": " Okay, we just run because this is just the,"
+    },
+    {
+      "start": 2998.08,
+      "end": 3002.22,
+      "text": " so this is the mean value that from the each band."
+    },
+    {
+      "start": 3002.56,
+      "end": 3005.88,
+      "text": " So mean value and standard value for each band."
+    },
+    {
+      "start": 3006.02,
+      "end": 3007.2799999999997,
+      "text": " So this already pre-computed."
+    },
+    {
+      "start": 3007.28,
+      "end": 3016.6000000000004,
+      "text": " and then we also get the mean and standard deviation for the normalization and then at"
+    },
+    {
+      "start": 3016.6000000000004,
+      "end": 3024.02,
+      "text": " the end we return the data for the process now the step 13 is we are training the model"
+    },
+    {
+      "start": 3024.02,
+      "end": 3029.7000000000003,
+      "text": " with p-torch lightning so why we are using p-torch lightning because we would like to"
+    },
+    {
+      "start": 3029.7000000000003,
+      "end": 3036.6600000000003,
+      "text": " streamline the training and validation process because as for example now we just use the same"
+    },
+    {
+      "start": 3036.66,
+      "end": 3042.8199999999997,
+      "text": " function for both training and validation which is make it more efficient and then second pytorch"
+    },
+    {
+      "start": 3042.8199999999997,
+      "end": 3051.62,
+      "text": " is also you supports the gpu training uh without any configuration uh and then it also have logging"
+    },
+    {
+      "start": 3051.62,
+      "end": 3059.62,
+      "text": " and checkpoint and also uh we can monitoring what happened in tensorboard so we can see the how"
+    },
+    {
+      "start": 3059.62,
+      "end": 3065.54,
+      "text": " the model learns in the tensorboard because uh yeah it's kind of interesting to see how the model"
+    },
+    {
+      "start": 3065.54,
+      "end": 3072.74,
+      "text": " get getting better getting better across the iteration and then the training process is first"
+    },
+    {
+      "start": 3072.74,
+      "end": 3080.18,
+      "text": " we are inutilized data using the sentinel to change data set class that we defined just before"
+    },
+    {
+      "start": 3080.18,
+      "end": 3084.5,
+      "text": " and then we load the data into the batch and the sample data"
+    },
+    {
+      "start": 3087.06,
+      "end": 3094.98,
+      "text": " and then we load the model that using check change segmented model class and then we use"
+    },
+    {
+      "start": 3094.98,
+      "end": 3101.14,
+      "text": " tensorboard logger to lock the training matrix so when the process is training the log is already"
+    },
+    {
+      "start": 3101.14,
+      "end": 3109.46,
+      "text": " there but we are using tensorboard to visualize it for us uh the the logs also stored in lightning"
+    },
+    {
+      "start": 3109.46,
+      "end": 3117.14,
+      "text": " logs directory and then for this training we are using the max evoke of three you're using"
+    },
+    {
+      "start": 3117.14,
+      "end": 3125.7,
+      "text": " accelerated GPU assuming it's available and then we are using TensorBoard as monitoring and then"
+    },
+    {
+      "start": 3125.7,
+      "end": 3133.46,
+      "text": " progress bear to make it easier for us to read the progress and then we are try to log every step to"
+    },
+    {
+      "start": 3134.1,
+      "end": 3140.02,
+      "text": " get much understanding and then when we are running the training.fit it will start the"
+    },
+    {
+      "start": 3140.02,
+      "end": 3147.86,
+      "text": " training process and then which basically combines the training and then validation data into"
+    },
+    {
+      "start": 3147.86,
+      "end": 3155.78,
+      "text": " training and evaluation of the clay model so the expected outcome is the model will be trained"
+    },
+    {
+      "start": 3155.78,
+      "end": 3160.98,
+      "text": " a fine tune into the specific number of epoch and then training will progress and metric will be"
+    },
+    {
+      "start": 3160.98,
+      "end": 3166.74,
+      "text": " locked and can visualize with the tensorboard so we can see what's happening and then the model"
+    },
+    {
+      "start": 3166.74,
+      "end": 3171.22,
+      "text": " will be progressively improve its performance in detecting deforestation parameter."
+    },
+    {
+      "start": 3173.7,
+      "end": 3182.58,
+      "text": " So we can run this process so you can see that at the end we have this trainer.fit"
+    },
+    {
+      "start": 3182.58,
+      "end": 3189.3799999999997,
+      "text": " with all of the parameter, what is the model, training data loader, data and then validation"
+    },
+    {
+      "start": 3189.38,
+      "end": 3197.86,
+      "text": " data so model that we uh want to train and then training data input and then validation"
+    },
+    {
+      "start": 3197.86,
+      "end": 3204.6600000000003,
+      "text": " data output so it's taking the three uh parameters so if we are running this"
+    },
+    {
+      "start": 3206.7400000000002,
+      "end": 3217.3,
+      "text": " it will okay say gpu is available and then it's being used and then it will have this model"
+    },
+    {
+      "start": 3217.3,
+      "end": 3229.78,
+      "text": " it's still zero because it's still not updated yet and then the training parameters is 16 million"
+    },
+    {
+      "start": 3229.78,
+      "end": 3235.54,
+      "text": " and then non-trainable parameters is 92 million this is from the clay model and then this total"
+    },
+    {
+      "start": 3235.54,
+      "end": 3245.0600000000004,
+      "text": " parameters this much so this is also from the clay model so again it will run the iteration"
+    },
+    {
+      "start": 3245.06,
+      "end": 3256.94,
+      "text": " per epoch until it's done and then I think it will update the parameters here."
+    },
+    {
+      "start": 3256.94,
+      "end": 3260.9,
+      "text": " So we can wait until this process is done."
+    },
+    {
+      "start": 3260.9,
+      "end": 3272.62,
+      "text": " So basically it will take some time."
+    },
+    {
+      "start": 3272.62,
+      "end": 3277.52,
+      "text": " So as you can see that we just get one epoch."
+    },
+    {
+      "start": 3277.52,
+      "end": 3286.08,
+      "text": " So if you are seeing that this parameter here, the train loss, train IOU, something like"
+    },
+    {
+      "start": 3286.08,
+      "end": 3287.08,
+      "text": " that."
+    },
+    {
+      "start": 3287.08,
+      "end": 3295.6,
+      "text": " So it will improve, hopefully improve because now the train loss is 0.846."
+    },
+    {
+      "start": 3295.6,
+      "end": 3304.94,
+      "text": " Now then we will log what is the final loss data that we have and then how is the validation."
+    },
+    {
+      "start": 3304.94,
+      "end": 3308.96,
+      "text": " So it's 0.8."
+    },
+    {
+      "start": 3308.96,
+      "end": 3314.18,
+      "text": " So now because this is the first iteration, it's still low and then hopefully this will"
+    },
+    {
+      "start": 3314.18,
+      "end": 3316.38,
+      "text": " improve over time."
+    },
+    {
+      "start": 3316.38,
+      "end": 3324.1,
+      "text": " But monitoring this is something that is very interesting too because can you how the model,"
+    },
+    {
+      "start": 3324.1,
+      "end": 3330.2,
+      "text": " Okay maybe the acceleration is slower, now it's finding something and now it's 0.6, back"
+    },
+    {
+      "start": 3330.2,
+      "end": 3333.14,
+      "text": " again 0.8."
+    },
+    {
+      "start": 3333.14,
+      "end": 3336.52,
+      "text": " Okay this is the wrong direction and then it can go, okay this is the one that is going"
+    },
+    {
+      "start": 3336.52,
+      "end": 3347.08,
+      "text": " better so that's usually how the machine learning works."
+    },
+    {
+      "start": 3347.08,
+      "end": 3370.2,
+      "text": " Okay, back again. Now when we are starting with epoch of, sorry, the trend loss, the epoch one when the trend loss is 0.8. Now in the final epoch, it's already down to 0.3. We hit 0.2 and now back to 0.3."
+    },
+    {
+      "start": 3370.2,
+      "end": 3379.6,
+      "text": " with overlap of between the training and the actual 60% 62%"
+    },
+    {
+      "start": 3379.6,
+      "end": 3391.7999999999997,
+      "text": " and yeah all of the F1 0.7, position 0.7, recall 0.7 also"
+    },
+    {
+      "start": 3391.8,
+      "end": 3401.0,
+      "text": " so yeah uh now you can see that it is the the value parameters keep getting better"
+    },
+    {
+      "start": 3401.96,
+      "end": 3406.92,
+      "text": " as it's reaching the final epoch uh"
+    },
+    {
+      "start": 3410.36,
+      "end": 3419.32,
+      "text": " yeah now we are uh finishing the training the final epoch validation and see what's uh the"
+    },
+    {
+      "start": 3419.32,
+      "end": 3421.6200000000003,
+      "text": " the final value that we have."
+    },
+    {
+      "start": 3425.06,
+      "end": 3430.06,
+      "text": " Okay, we are finalizing at 0.3 train loss data."
+    },
+    {
+      "start": 3431.28,
+      "end": 3434.56,
+      "text": " And then this script is also,"
+    },
+    {
+      "start": 3434.56,
+      "end": 3437.84,
+      "text": " it's running for 35 minutes for me."
+    },
+    {
+      "start": 3437.84,
+      "end": 3439.98,
+      "text": " So yeah, it's take some time."
+    },
+    {
+      "start": 3439.98,
+      "end": 3444.98,
+      "text": " So take your time because for me it's 35 minutes."
+    },
+    {
+      "start": 3445.84,
+      "end": 3448.54,
+      "text": " Maybe you can maybe run faster,"
+    },
+    {
+      "start": 3448.54,
+      "end": 3458.58,
+      "text": " can run slower depending on your architecture, your GPU or the cloud computer available."
+    },
+    {
+      "start": 3458.58,
+      "end": 3467.14,
+      "text": " And then the next is that while we are having this, the statistics available here, we still"
+    },
+    {
+      "start": 3467.14,
+      "end": 3472.16,
+      "text": " can visualize the training progress with TensorPort."
+    },
+    {
+      "start": 3472.16,
+      "end": 3485.54,
+      "text": " So the nice thing about this is that actually we can use this to monitor this live as the"
+    },
+    {
+      "start": 3485.54,
+      "end": 3487.44,
+      "text": " things happen."
+    },
+    {
+      "start": 3487.44,
+      "end": 3493.98,
+      "text": " So see now it is showing the interface."
+    },
+    {
+      "start": 3493.98,
+      "end": 3507.98,
+      "text": " So you can see that this it is epoch that it show the improvement between the time and"
+    },
+    {
+      "start": 3507.98,
+      "end": 3524.0,
+      "text": " And then we also have a metric of, let's see, yeah, how this improves over time to, let's"
+    },
+    {
+      "start": 3524.0,
+      "end": 3549.68,
+      "text": " okay this one yeah so this one uh here you can see that uh the f1 score uh and then the iu iu"
+    },
+    {
+      "start": 3549.68,
+      "end": 3552.02,
+      "text": " between each iteration."
+    },
+    {
+      "start": 3552.58,
+      "end": 3554.3199999999997,
+      "text": " So you can see that here,"
+    },
+    {
+      "start": 3554.56,
+      "end": 3558.7799999999997,
+      "text": " the model is start from around 0.2"
+    },
+    {
+      "start": 3558.7799999999997,
+      "end": 3560.1,
+      "text": " and then it's improved"
+    },
+    {
+      "start": 3560.1,
+      "end": 3561.5,
+      "text": " and then it's going down again."
+    },
+    {
+      "start": 3561.8199999999997,
+      "end": 3563.3999999999996,
+      "text": " It's consistently improving."
+    },
+    {
+      "start": 3563.3999999999996,
+      "end": 3564.3999999999996,
+      "text": " And then finally,"
+    },
+    {
+      "start": 3565.3599999999997,
+      "end": 3569.62,
+      "text": " it's stopped in around,"
+    },
+    {
+      "start": 3570.12,
+      "end": 3571.8999999999996,
+      "text": " what is it, the number?"
+    },
+    {
+      "start": 3576.8999999999996,
+      "end": 3577.98,
+      "text": " It's so small."
+    },
+    {
+      "start": 3577.98,
+      "end": 3591.2,
+      "text": " it is 0.65 so but the maximum i think can we are reaching around the 0.718 uh overlap and then this"
+    },
+    {
+      "start": 3591.2,
+      "end": 3596.6,
+      "text": " is the trend loss over time so you can see that it should be going down as with the model improving"
+    },
+    {
+      "start": 3596.6,
+      "end": 3604.76,
+      "text": " and then the precision also improving now first it's looks okay but now maybe it's uh because"
+    },
+    {
+      "start": 3604.76,
+      "end": 3607.44,
+      "text": " because of the"
+    },
+    {
+      "start": 3607.44,
+      "end": 3609.5200000000004,
+      "text": " because"
+    },
+    {
+      "start": 3609.5200000000004,
+      "end": 3611.5200000000004,
+      "text": " maybe it's just"
+    },
+    {
+      "start": 3611.5200000000004,
+      "end": 3613.38,
+      "text": " at the time it's"
+    },
+    {
+      "start": 3613.38,
+      "end": 3615.6000000000004,
+      "text": " we are looking at coincidentally"
+    },
+    {
+      "start": 3615.6000000000004,
+      "end": 3617.7200000000003,
+      "text": " okay but again it's"
+    },
+    {
+      "start": 3617.7200000000003,
+      "end": 3619.6400000000003,
+      "text": " checked with reality and then it's"
+    },
+    {
+      "start": 3619.6400000000003,
+      "end": 3621.3,
+      "text": " improving it's also keep improving"
+    },
+    {
+      "start": 3621.3,
+      "end": 3623.1600000000003,
+      "text": " and then recall it's still"
+    },
+    {
+      "start": 3623.1600000000003,
+      "end": 3625.7000000000003,
+      "text": " immediately it's still"
+    },
+    {
+      "start": 3625.7000000000003,
+      "end": 3627.6200000000003,
+      "text": " quite high but I think it's"
+    },
+    {
+      "start": 3627.6200000000003,
+      "end": 3628.5600000000004,
+      "text": " yeah it's okay"
+    },
+    {
+      "start": 3628.5600000000004,
+      "end": 3631.1800000000003,
+      "text": " but"
+    },
+    {
+      "start": 3631.1800000000003,
+      "end": 3633.6800000000003,
+      "text": " the key takeaway is that"
+    },
+    {
+      "start": 3633.68,
+      "end": 3645.68,
+      "text": " we can see how the model progressing, the train loss is decreasing and the accuracy is improving."
+    },
+    {
+      "start": 3645.68,
+      "end": 3651.68,
+      "text": " And then we can see that because this is we are using the small batch of data,"
+    },
+    {
+      "start": 3651.68,
+      "end": 3658.68,
+      "text": " this is the statistic is the gap is very, very tight."
+    },
+    {
+      "start": 3658.68,
+      "end": 3669.96,
+      "text": " But if when we are dealing for machine learning with larger data set, you will see that the data is more smooth because you have more epoch."
+    },
+    {
+      "start": 3669.96,
+      "end": 3680.8399999999997,
+      "text": " Then you have a more stable graph because the difference may be not the difference."
+    },
+    {
+      "start": 3680.84,
+      "end": 3685.86,
+      "text": " but at some point, the machine learning will learn something"
+    },
+    {
+      "start": 3685.86,
+      "end": 3690.5,
+      "text": " and then it can drastically improve the accuracy, something like that."
+    },
+    {
+      "start": 3690.6600000000003,
+      "end": 3693.96,
+      "text": " And maybe it can decrease dramatically,"
+    },
+    {
+      "start": 3694.1400000000003,
+      "end": 3698.84,
+      "text": " but it still can remember what is the best, the last state that is best,"
+    },
+    {
+      "start": 3699.06,
+      "end": 3700.48,
+      "text": " so it can refer back to that."
+    },
+    {
+      "start": 3700.6400000000003,
+      "end": 3703.92,
+      "text": " But what's interesting is that at some point,"
+    },
+    {
+      "start": 3704.1600000000003,
+      "end": 3705.6600000000003,
+      "text": " when you are doing machine learning,"
+    },
+    {
+      "start": 3705.66,
+      "end": 3713.7799999999997,
+      "text": " and as you put a lot of data, it can somehow improve a lot"
+    },
+    {
+      "start": 3713.7799999999997,
+      "end": 3717.3999999999996,
+      "text": " because it finds something in the data set"
+    },
+    {
+      "start": 3717.3999999999996,
+      "end": 3723.3599999999997,
+      "text": " and then it can find something in the pattern that really, really improves the model."
+    },
+    {
+      "start": 3723.3599999999997,
+      "end": 3728.42,
+      "text": " So it is some kind of finding that is interesting in the machine learning."
+    },
+    {
+      "start": 3729.22,
+      "end": 3732.54,
+      "text": " But because we are using simple data set, this is what we have."
+    },
+    {
+      "start": 3732.54,
+      "end": 3740.98,
+      "text": " So, okay, with these statistics, we conclude that our data is good enough."
+    },
+    {
+      "start": 3743.34,
+      "end": 3749.2599999999998,
+      "text": " And then we can evaluate the metrics for deforestation detection."
+    },
+    {
+      "start": 3750.14,
+      "end": 3759.32,
+      "text": " So basically, we check what's going on in a JS measure."
+    },
+    {
+      "start": 3759.32,
+      "end": 3770.2000000000003,
+      "text": " So if this we are evaluating the progress in the machine learning parameters perspective,"
+    },
+    {
+      "start": 3770.2000000000003,
+      "end": 3776.44,
+      "text": " in machine learning perspective, from this we are checking the performance using the validation data"
+    },
+    {
+      "start": 3777.0,
+      "end": 3786.6800000000003,
+      "text": " in more like a GIS perspective on how is the true positive, false positive, and overall score."
+    },
+    {
+      "start": 3786.68,
+      "end": 3800.6,
+      "text": " So now we conclude that with the data validation data, we are achieving around 74% accuracy"
+    },
+    {
+      "start": 3800.6,
+      "end": 3813.08,
+      "text": " of detecting the deforestation. The overlap is around 59 or 60% of overlap. Somehow the overlap"
+    },
+    {
+      "start": 3813.08,
+      "end": 3825.16,
+      "text": " is if you look at the maybe because overlap is really how it is overall overlap the first"
+    },
+    {
+      "start": 3825.16,
+      "end": 3831.7999999999997,
+      "text": " session so maybe if the one point sorry one area is detecting the first session but it"
+    },
+    {
+      "start": 3831.7999999999997,
+      "end": 3839.0,
+      "text": " is not overlap overall it's still so there is still contribute the ios score that is lower"
+    },
+    {
+      "start": 3839.0,
+      "end": 3851.74,
+      "text": " Now, and then finally, we can check how this model that the model that are already fine-tuned,"
+    },
+    {
+      "start": 3851.74,
+      "end": 3855.8,
+      "text": " how this can generate the deforestation map."
+    },
+    {
+      "start": 3855.8,
+      "end": 3861.74,
+      "text": " And also we can compare it with the actual field dataset."
+    },
+    {
+      "start": 3861.74,
+      "end": 3869.7999999999997,
+      "text": " So basically with this is we load the new validation mode, validation image before and"
+    },
+    {
+      "start": 3869.7999999999997,
+      "end": 3875.68,
+      "text": " after and then the output is the one that are going through the model."
+    },
+    {
+      "start": 3875.68,
+      "end": 3879.7599999999998,
+      "text": " So we are not train the model anymore."
+    },
+    {
+      "start": 3879.7599999999998,
+      "end": 3883.7,
+      "text": " So if we click run, it will infer."
+    },
+    {
+      "start": 3883.7,
+      "end": 3893.18,
+      "text": " So there is an infer process on the fly when they are getting to before and after image"
+    },
+    {
+      "start": 3893.18,
+      "end": 3906.6,
+      "text": " and then it will output the deforestation map from our new fine-tuned model."
+    },
+    {
+      "start": 3906.6,
+      "end": 3912.54,
+      "text": " See we are checking some validation image."
+    },
+    {
+      "start": 3912.54,
+      "end": 3921.42,
+      "text": " So from here, so this is the, let's go to sample one."
+    },
+    {
+      "start": 3922.2,
+      "end": 3924.02,
+      "text": " So before and after."
+    },
+    {
+      "start": 3924.7799999999997,
+      "end": 3929.16,
+      "text": " So you can see that there is some patch of deforestation here."
+    },
+    {
+      "start": 3930.22,
+      "end": 3933.62,
+      "text": " See in the before and in here is also there is some deforestation."
+    },
+    {
+      "start": 3934.62,
+      "end": 3939.06,
+      "text": " And then also here is a bit from here."
+    },
+    {
+      "start": 3939.06,
+      "end": 3948.74,
+      "text": " So, and then the white, so the ground truth is the manually filled data."
+    },
+    {
+      "start": 3948.96,
+      "end": 3952.2599999999998,
+      "text": " And then the prediction is what our model predict."
+    },
+    {
+      "start": 3952.54,
+      "end": 3961.36,
+      "text": " So you can see that in some area, it looks okay, like in the identifying."
+    },
+    {
+      "start": 3961.36,
+      "end": 3971.36,
+      "text": " so we identify this to to spot but sometimes we create a new one that are dot here and then area"
+    },
+    {
+      "start": 3971.36,
+      "end": 3977.6,
+      "text": " here the position it say it looks the model looks this as the precision probability of the precision"
+    },
+    {
+      "start": 3977.6,
+      "end": 3987.84,
+      "text": " but in overall in the large area i think the the models and the and the ground truth is agree but"
+    },
+    {
+      "start": 3987.84,
+      "end": 3993.6800000000003,
+      "text": " in in this one it's quite small so maybe this is the one that the model do not really detect well"
+    },
+    {
+      "start": 3993.6800000000003,
+      "end": 3999.92,
+      "text": " but yeah overall you get the same pattern in including this one the one that uh uh"
+    },
+    {
+      "start": 4000.8,
+      "end": 4007.52,
+      "text": " have a big different station different area clearing area here and then yeah it's still"
+    },
+    {
+      "start": 4007.52,
+      "end": 4014.56,
+      "text": " detect and then you can see that me uh in the one that quite small it is not detected because maybe"
+    },
+    {
+      "start": 4014.56,
+      "end": 4021.7599999999998,
+      "text": " it still to generalize this area but overall for early warning detection i think this is"
+    },
+    {
+      "start": 4021.7599999999998,
+      "end": 4027.84,
+      "text": " uh good enough for the practices because then we can still go to the field to check what happened"
+    },
+    {
+      "start": 4027.84,
+      "end": 4034.08,
+      "text": " in that area to make sure that if it is a differentiation actually happened so"
+    },
+    {
+      "start": 4034.08,
+      "end": 4041.72,
+      "text": " So yeah, okay."
+    },
+    {
+      "start": 4041.72,
+      "end": 4050.42,
+      "text": " With this training, this is as a proof of concept that foundation models such as clay"
+    },
+    {
+      "start": 4050.42,
+      "end": 4056.04,
+      "text": " represent shift in remote sensing analysis that can be performed."
+    },
+    {
+      "start": 4056.04,
+      "end": 4069.04,
+      "text": " Previously remote sensing, we are focusing on the pixel-to-pixel analysis, and then you are using our own classification train area."
+    },
+    {
+      "start": 4069.04,
+      "end": 4086.44,
+      "text": " Now with these embeddings, with these foundation models, we just need to fine-tune the data that already pre-trained on large volume of satellite imagery."
+    },
+    {
+      "start": 4086.44,
+      "end": 4093.16,
+      "text": " and then because that's pre-trained generalization generalized model"
+    },
+    {
+      "start": 4093.16,
+      "end": 4099.08,
+      "text": " already good enough to detect something in what happened in the earth"
+    },
+    {
+      "start": 4099.08,
+      "end": 4105.8,
+      "text": " then we can fine tune it to answer the question that we want"
+    },
+    {
+      "start": 4105.8,
+      "end": 4108.86,
+      "text": " for the example that to detect before and after"
+    },
+    {
+      "start": 4108.86,
+      "end": 4110.88,
+      "text": " to detect before and after"
+    },
+    {
+      "start": 4110.88,
+      "end": 4115.16,
+      "text": " to detect deforestation area using before and after"
+    },
+    {
+      "start": 4115.16,
+      "end": 4119.2,
+      "text": " satellite imagery."
+    },
+    {
+      "start": 4119.2,
+      "end": 4125.099999999999,
+      "text": " So allowing us to highlight the forest disturbance pattern without requiring specific tasks and"
+    },
+    {
+      "start": 4125.099999999999,
+      "end": 4137.12,
+      "text": " then using a fully cloud, quite small resource machine learning that is easily available."
+    },
+    {
+      "start": 4137.12,
+      "end": 4141.82,
+      "text": " So as a result, while foundation model of a powerful new paradigm for remote sensing"
+    },
+    {
+      "start": 4141.82,
+      "end": 4148.86,
+      "text": " by transferring learning across application careful tuning validation and interpretation"
+    },
+    {
+      "start": 4148.86,
+      "end": 4157.259999999999,
+      "text": " remain important because while machine learning is there we still to need to know what we are doing"
+    },
+    {
+      "start": 4157.259999999999,
+      "end": 4165.099999999999,
+      "text": " and then we still need to know the expectation the quality of the models that we have so for now to"
+    },
+    {
+      "start": 4165.1,
+      "end": 4175.18,
+      "text": " the sample is around 70 percent so we still can expect that uh there is a miss area miss area area"
+    },
+    {
+      "start": 4175.18,
+      "end": 4186.620000000001,
+      "text": " that not map correctly but in general it's good enough to be used okay uh i think for uh for"
+    },
+    {
+      "start": 4186.62,
+      "end": 4193.48,
+      "text": " For reference, you can read all of this paper for further reading."
+    },
+    {
+      "start": 4194.04,
+      "end": 4197.44,
+      "text": " And then, yeah, see you in the next one."
+    }
+  ]
+}

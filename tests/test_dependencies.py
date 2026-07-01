@@ -104,3 +104,24 @@ def test_create_indexing_pipeline_no_strategy(monkeypatch):
 
     assert pipeline is not None
     assert hasattr(pipeline, "index_source")
+
+
+def test_create_indexing_pipeline_registers_pdf_and_json(monkeypatch):
+    _patch_adapters(monkeypatch)
+    monkeypatch.setattr(
+        "api.dependencies._load_video_chapter_map",
+        lambda: {},
+    )
+    settings = Settings(
+        retrieval_strategy="hybrid",
+        qdrant_url="http://fake:6333",
+    )
+
+    from api.dependencies import create_indexing_pipeline
+
+    pipeline = create_indexing_pipeline(settings)
+
+    assert ".pdf" in pipeline.parsers
+    assert ".json" in pipeline.parsers
+    assert ".pdf" in pipeline.chunkers
+    assert ".json" in pipeline.chunkers

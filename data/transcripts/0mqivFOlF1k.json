@@ -1,0 +1,1953 @@
+{
+  "video_id": "0mqivFOlF1k",
+  "title": "0mqivFOlF1k",
+  "duration_seconds": 3279.3399999999997,
+  "url": "https://www.youtube.com/watch?v=0mqivFOlF1k",
+  "segments": [
+    {
+      "start": 0.0,
+      "end": 11.0,
+      "text": " Hello everyone, welcome to this chapter, Phenology-guided deep learning with uncertainty quantification for soybean yield prediction."
+    },
+    {
+      "start": 11.0,
+      "end": 29.0,
+      "text": " I'm Chishan Zhang, and today I'm going to walk through with you with this chapter, which mainly covered how to use time series based deep learning models to do the crop yield prediction."
+    },
+    {
+      "start": 29.0,
+      "end": 36.0,
+      "text": " I will first introduce a little bit about introduction and the background."
+    },
+    {
+      "start": 36.0,
+      "end": 42.0,
+      "text": " So why crop yield estimation matters, especially soybean yield prediction."
+    },
+    {
+      "start": 42.0,
+      "end": 47.0,
+      "text": " So as you may already know, in the near future,"
+    },
+    {
+      "start": 47.0,
+      "end": 52.0,
+      "text": " the one critical global issue is food security,"
+    },
+    {
+      "start": 52.0,
+      "end": 60.0,
+      "text": " mainly because we are having a very fast growing population in the recent years."
+    },
+    {
+      "start": 60.0,
+      "end": 68.0,
+      "text": " And the soybeans among all those foods can be the main source of protein,"
+    },
+    {
+      "start": 68.0,
+      "end": 73.0,
+      "text": " can be critical for the animal feed, oil production and global trade."
+    },
+    {
+      "start": 73.0,
+      "end": 79.0,
+      "text": " So it's very important to know the global soybean production."
+    },
+    {
+      "start": 79.0,
+      "end": 84.0,
+      "text": " To know that we need to do the yield prediction first."
+    },
+    {
+      "start": 84.0,
+      "end": 94.0,
+      "text": " And it's not only important for the decision making like the policy and market decision, risk management and early warning."
+    },
+    {
+      "start": 94.0,
+      "end": 100.0,
+      "text": " But also pretty important for optimizing the management practice like for farmers."
+    },
+    {
+      "start": 100.0,
+      "end": 107.0,
+      "text": " They can optimize their irrigation strategies and the planting days windows."
+    },
+    {
+      "start": 107.0,
+      "end": 114.0,
+      "text": " And for now, there are two mainstream methods to do the yield projection."
+    },
+    {
+      "start": 114.0,
+      "end": 117.0,
+      "text": " The first is process-based crop models."
+    },
+    {
+      "start": 117.0,
+      "end": 125.0,
+      "text": " Those kind of models are based on the complicated but realistic crop and soil process."
+    },
+    {
+      "start": 125.0,
+      "end": 136.0,
+      "text": " So those models can be quite accurate, but it requires extensive field-level input data."
+    },
+    {
+      "start": 136.0,
+      "end": 143.08,
+      "text": " and you need to calibrate to different regions, different crops."
+    },
+    {
+      "start": 143.86,
+      "end": 150.62,
+      "text": " So usually collecting those input data can be quite time-consuming and expensive."
+    },
+    {
+      "start": 151.02,
+      "end": 157.04,
+      "text": " So it would be very difficult to apply those kind of models to a large area."
+    },
+    {
+      "start": 157.66,
+      "end": 161.74,
+      "text": " So in another way, we have the empirical models."
+    },
+    {
+      "start": 161.74,
+      "end": 182.24,
+      "text": " So different from the process models, we're just trying to build a flexible empirical relationship, which may not complicate, which may not realistic crop and soil process, but can be quite more flexible."
+    },
+    {
+      "start": 182.24,
+      "end": 190.16,
+      "text": " like here if you look at figures just we are trying to build a relationship with NDVI and the"
+    },
+    {
+      "start": 190.72,
+      "end": 198.8,
+      "text": " crop use and usually those NDVI and other environment variables they are much more"
+    },
+    {
+      "start": 198.8,
+      "end": 209.04000000000002,
+      "text": " accessible so those kind of methods has been successful successfully applied to large area"
+    },
+    {
+      "start": 209.04,
+      "end": 217.51999999999998,
+      "text": " especially nowadays we have the advancement of AI and deep learning models and a lot of"
+    },
+    {
+      "start": 218.72,
+      "end": 224.48,
+      "text": " time-series based deep learning models can be used in these applications like"
+    },
+    {
+      "start": 225.68,
+      "end": 231.68,
+      "text": " deep neural networks long short-term memory LSTM models and convolutional neural networks"
+    },
+    {
+      "start": 232.56,
+      "end": 239.52,
+      "text": " they all share the similar input variables which is like the time series data of remote sensing"
+    },
+    {
+      "start": 240.08,
+      "end": 250.32,
+      "text": " climate variables and soil so those models are quite powerful but they still face some challenges"
+    },
+    {
+      "start": 250.32,
+      "end": 257.84000000000003,
+      "text": " especially in the crop yield modeling application so first i will call it deterministic prediction"
+    },
+    {
+      "start": 257.84,
+      "end": 265.5,
+      "text": " because usually the standard deep learning models output single values like 55 Boucher curves"
+    },
+    {
+      "start": 265.5,
+      "end": 267.9,
+      "text": " without the error bounds."
+    },
+    {
+      "start": 268.52,
+      "end": 273.02,
+      "text": " So like I said, the crop yield estimation usually are very important"
+    },
+    {
+      "start": 273.02,
+      "end": 276.28,
+      "text": " and can be used for the decision making."
+    },
+    {
+      "start": 276.28,
+      "end": 283.29999999999995,
+      "text": " But the users cannot distinguish the high and the low confidence of those predictions."
+    },
+    {
+      "start": 283.3,
+      "end": 289.3,
+      "text": " So that could be a very big issue for the decision making."
+    },
+    {
+      "start": 289.3,
+      "end": 296.3,
+      "text": " Like for example, knowing tomorrow is 25 Celsius is far less useful without the probability of a raining."
+    },
+    {
+      "start": 296.3,
+      "end": 302.3,
+      "text": " So that's the first challenge. The second one is about the time series data itself."
+    },
+    {
+      "start": 302.3,
+      "end": 309.3,
+      "text": " Because if you use the remote sensing data or climate data,"
+    },
+    {
+      "start": 309.3,
+      "end": 316.1,
+      "text": " climate data usually the traditional models aggregate those inputs by calendar weeks and months"
+    },
+    {
+      "start": 316.66,
+      "end": 326.42,
+      "text": " so that's very natural when we're collecting those data but when we do the crop yield modeling"
+    },
+    {
+      "start": 326.42,
+      "end": 334.82,
+      "text": " because of the crop biology crop grows based on the thermal units and soil so it's not"
+    },
+    {
+      "start": 334.82,
+      "end": 344.42,
+      "text": " based on the date so it can be shipped dates annually and locally so which means like the same"
+    },
+    {
+      "start": 346.5,
+      "end": 355.3,
+      "text": " date if you look at the calendar it will means totally different growing stages for the crops"
+    },
+    {
+      "start": 356.18,
+      "end": 364.34,
+      "text": " across regions and because of those different stages the climate impacts on the stages can be"
+    },
+    {
+      "start": 364.34,
+      "end": 371.29999999999995,
+      "text": " quite different so if you directly give in the calendar based time series data to crop"
+    },
+    {
+      "start": 371.29999999999995,
+      "end": 376.73999999999995,
+      "text": " to those different models that cause issue so to address those two"
+    },
+    {
+      "start": 378.73999999999995,
+      "end": 385.53999999999996,
+      "text": " challenges here we have two ways one is like we call like a thin logic guide input alignment"
+    },
+    {
+      "start": 385.53999999999996,
+      "end": 392.9,
+      "text": " so the main idea is like instead of using fixed calendar dates we are aggregating the satellite"
+    },
+    {
+      "start": 392.9,
+      "end": 401.21999999999997,
+      "text": " data and environmental variables to critical crop phenology stages makes and force it match the data"
+    },
+    {
+      "start": 401.21999999999997,
+      "end": 408.65999999999997,
+      "text": " to the biological growth signal wise like we are trying to build a probabilistic output distributions"
+    },
+    {
+      "start": 409.21999999999997,
+      "end": 417.29999999999995,
+      "text": " so it's instead of giving the single point values we will the models will output the parameters of"
+    },
+    {
+      "start": 417.3,
+      "end": 423.22,
+      "text": " the probability distributions and that will allow us to calculate the prediction authority"
+    },
+    {
+      "start": 424.98,
+      "end": 434.58000000000004,
+      "text": " so this is the figure of how we do the phenology guided time series so the right figure is just"
+    },
+    {
+      "start": 434.58000000000004,
+      "end": 442.02,
+      "text": " a evi2 which is just you can imagine it's the enhanced ndvi and calculated based on the"
+    },
+    {
+      "start": 442.02,
+      "end": 450.9,
+      "text": " time series data satellite so you can see that we can use the algorithms to calculate"
+    },
+    {
+      "start": 450.9,
+      "end": 460.71999999999997,
+      "text": " different fillage date so here we just have six different fillage stages and we will aggregate"
+    },
+    {
+      "start": 460.71999999999997,
+      "end": 468.74,
+      "text": " the original the row time series data according to these six different stages and after this"
+    },
+    {
+      "start": 468.74,
+      "end": 480.98,
+      "text": " alignment so all those time series will be free knowledge alignment so second we will build this"
+    },
+    {
+      "start": 480.98,
+      "end": 487.22,
+      "text": " probabilistic modeling framework the main idea here is just extend the eu prediction models to"
+    },
+    {
+      "start": 487.22,
+      "end": 493.86,
+      "text": " output a gaussian distribution instead of a single value so if you look at the right figure uh usually"
+    },
+    {
+      "start": 493.86,
+      "end": 503.3,
+      "text": " when we have input and the different models and the output here is just one value but here we have"
+    },
+    {
+      "start": 503.3,
+      "end": 510.5,
+      "text": " two which is not only the mean of the yield predictions but worth of standard deviation"
+    },
+    {
+      "start": 511.3,
+      "end": 523.3000000000001,
+      "text": " with those two parameters we can just have gaussian distributions and because the the normal"
+    },
+    {
+      "start": 523.3,
+      "end": 530.0999999999999,
+      "text": " the previous loss function usually cannot handle like the two parameters so we need to modify the"
+    },
+    {
+      "start": 530.0999999999999,
+      "end": 538.42,
+      "text": " loss functions here we just use the negative log likelihood loss functions to force the neural"
+    },
+    {
+      "start": 538.42,
+      "end": 545.38,
+      "text": " networks to optimize both the prediction accuracy but also the uncertainties at the same time"
+    },
+    {
+      "start": 545.38,
+      "end": 561.38,
+      "text": " So that's about the introduction part. Then we will go to the Jupyter notebook and I will show you how to run those models in the real application."
+    },
+    {
+      "start": 561.38,
+      "end": 572.38,
+      "text": " So here we are using Colab. So you can update, upload those notebooks to Colab and directly run that."
+    },
+    {
+      "start": 572.38,
+      "end": 583.5,
+      "text": " run that and because we are using them uh deep learning models so we need to connect to a gpu"
+    },
+    {
+      "start": 585.26,
+      "end": 590.7,
+      "text": " machine so you can change your runtime type so you can see that there are different hardware"
+    },
+    {
+      "start": 591.66,
+      "end": 600.14,
+      "text": " usually it it will give you the cpu but you will convert so use the t4 gpu here we choose a t4 gpu"
+    },
+    {
+      "start": 600.14,
+      "end": 607.26,
+      "text": " if you paid for the colab you can have better gpus but for now for this"
+    },
+    {
+      "start": 609.34,
+      "end": 617.66,
+      "text": " we just use the t4 and now i will connect to the colab so you can see that"
+    },
+    {
+      "start": 621.42,
+      "end": 629.98,
+      "text": " like i said we are trying to address the challenges of current your prediction models"
+    },
+    {
+      "start": 629.98,
+      "end": 636.78,
+      "text": " So we are building the probabilistic deep learning models."
+    },
+    {
+      "start": 636.78,
+      "end": 638.98,
+      "text": " Here we have two models."
+    },
+    {
+      "start": 638.98,
+      "end": 641.98,
+      "text": " One is a probabilistic LSTM model."
+    },
+    {
+      "start": 641.98,
+      "end": 645.98,
+      "text": " So this is a long-term, long short-term memory network,"
+    },
+    {
+      "start": 645.98,
+      "end": 651.98,
+      "text": " which is very good at capturing temporal dependence in the crop growth."
+    },
+    {
+      "start": 651.98,
+      "end": 654.98,
+      "text": " So we will mainly use this model,"
+    },
+    {
+      "start": 655.54,
+      "end": 662.74,
+      "text": " but we also build the one-dimensional convolutional network models this model can also"
+    },
+    {
+      "start": 663.62,
+      "end": 672.26,
+      "text": " be used to capture the local temporal patterns so we will have because the probabilistic"
+    },
+    {
+      "start": 672.26,
+      "end": 682.4200000000001,
+      "text": " different the modeling can be applied to almost all the different different models so here we just"
+    },
+    {
+      "start": 682.42,
+      "end": 689.86,
+      "text": " just applied two here and to let you know the how they are different and the third one would"
+    },
+    {
+      "start": 689.86,
+      "end": 697.18,
+      "text": " be the Gaussian process regression model so this is just a traditional uh machinery models it's a"
+    },
+    {
+      "start": 697.18,
+      "end": 707.62,
+      "text": " Bayesian non-probability parameter Bayesian model and it can also give you the natural or"
+    },
+    {
+      "start": 707.62,
+      "end": 713.7,
+      "text": " quantification but they are not different models so we will use this third one as a baseline"
+    },
+    {
+      "start": 714.66,
+      "end": 723.94,
+      "text": " and we will have some key functionalities so first would be the data processing which is means just"
+    },
+    {
+      "start": 727.3,
+      "end": 734.1,
+      "text": " load the data set i have prepared and then to the normalization and then we will have the"
+    },
+    {
+      "start": 734.1,
+      "end": 741.46,
+      "text": " model training and evaluation functions um and the third one would be the uncertainty"
+    },
+    {
+      "start": 741.46,
+      "end": 746.4200000000001,
+      "text": " quantification like i said uncertainty quantification can be very important"
+    },
+    {
+      "start": 746.98,
+      "end": 755.14,
+      "text": " and so all those three models can output as a probabilistic so we will just quantify their"
+    },
+    {
+      "start": 755.14,
+      "end": 762.1800000000001,
+      "text": " uncertainties and compare their results and the last would be the feature importance analyzed and"
+    },
+    {
+      "start": 762.18,
+      "end": 771.3,
+      "text": " a special temporal analysis of the maps so let's go to the first sale so i will introduce like um"
+    },
+    {
+      "start": 771.8599999999999,
+      "end": 778.66,
+      "text": " there are some main packages we use here the first one would be the tensorflow so this is the"
+    },
+    {
+      "start": 778.66,
+      "end": 787.9399999999999,
+      "text": " packages we use to build the deep learning models and we also use some like numpy pandas and"
+    },
+    {
+      "start": 787.94,
+      "end": 800.9000000000001,
+      "text": " GeoPanda's packages so let's run this model but be careful as we are using Colab to demonstrate those"
+    },
+    {
+      "start": 802.1,
+      "end": 809.3000000000001,
+      "text": " notebook so maybe they could if you run if the google changes the default"
+    },
+    {
+      "start": 810.34,
+      "end": 817.3800000000001,
+      "text": " packages so you may get a slightly different version of those packages but usually"
+    },
+    {
+      "start": 817.94,
+      "end": 820.94,
+      "text": " you will be fine"
+    },
+    {
+      "start": 822.94,
+      "end": 828.94,
+      "text": " then you can see that it seems like we got all these packages"
+    },
+    {
+      "start": 828.94,
+      "end": 833.94,
+      "text": " so we can directly go to the data part"
+    },
+    {
+      "start": 833.94,
+      "end": 835.94,
+      "text": " the first study area"
+    },
+    {
+      "start": 835.94,
+      "end": 838.94,
+      "text": " so in this study"
+    },
+    {
+      "start": 838.94,
+      "end": 845.94,
+      "text": " building a deep learning model can be quite slow and expensive"
+    },
+    {
+      "start": 845.94,
+      "end": 855.0600000000001,
+      "text": " So we are trying to focus on three major soybean production states, Illinois, Indiana, and"
+    },
+    {
+      "start": 855.0600000000001,
+      "end": 859.48,
+      "text": " Iowa in United States Corn Belt."
+    },
+    {
+      "start": 859.48,
+      "end": 870.3800000000001,
+      "text": " And we focus on the county level soybean yields for the 2018 to 2022 year."
+    },
+    {
+      "start": 870.3800000000001,
+      "end": 873.3000000000001,
+      "text": " So here's the dataset."
+    },
+    {
+      "start": 873.3,
+      "end": 883.62,
+      "text": " first you can download our data set using this link so it's on github and because original remote"
+    },
+    {
+      "start": 883.62,
+      "end": 893.6999999999999,
+      "text": " system data and environmental variables they are they are much larger so here we just provide you"
+    },
+    {
+      "start": 893.6999999999999,
+      "end": 902.9799999999999,
+      "text": " the post processing we've already done the post processing and you can directly use this data set"
+    },
+    {
+      "start": 902.98,
+      "end": 911.54,
+      "text": " to run your model yeah so we basically just providing two training set and a testing set"
+    },
+    {
+      "start": 912.26,
+      "end": 920.26,
+      "text": " and those data will have 14 different environmental variables they are pretty much all"
+    },
+    {
+      "start": 920.9,
+      "end": 929.0600000000001,
+      "text": " time series variables and the target variables would be the county level yield soybean yield"
+    },
+    {
+      "start": 929.06,
+      "end": 935.6999999999999,
+      "text": " and the data structure is like a samples and time steps and features so it's like a 3d"
+    },
+    {
+      "start": 936.42,
+      "end": 943.6199999999999,
+      "text": " uh three-dimensional area um and then be careful when you build your own models you need to be"
+    },
+    {
+      "start": 943.6199999999999,
+      "end": 952.3399999999999,
+      "text": " careful like the the input shapes sometimes if you use different packages the time step and"
+    },
+    {
+      "start": 952.34,
+      "end": 961.46,
+      "text": " features may switch the positions in that case you need to also to switch your data set according to"
+    },
+    {
+      "start": 961.46,
+      "end": 969.22,
+      "text": " the which models you are using and for the temporal resolution most of our time service"
+    },
+    {
+      "start": 969.94,
+      "end": 974.1800000000001,
+      "text": " data they are weekly to bi-weekly observations during the growing season"
+    },
+    {
+      "start": 974.9,
+      "end": 978.98,
+      "text": " and the special resolution is just a county level application"
+    },
+    {
+      "start": 978.98,
+      "end": 984.82,
+      "text": " and for the years we have 2018 to 2021"
+    },
+    {
+      "start": 984.82,
+      "end": 996.36,
+      "text": " yeah like we said we have 14 different environmental variables here just I will"
+    },
+    {
+      "start": 996.36,
+      "end": 1003.04,
+      "text": " give you a overlook so first we have the EVI2 it's an enhanced vegetation index 2"
+    },
+    {
+      "start": 1003.5999999999999,
+      "end": 1010.8,
+      "text": " so the reason we choose evi2 is that we found that it performs better than other vegetation"
+    },
+    {
+      "start": 1010.8,
+      "end": 1019.12,
+      "text": " index like ndvi for for the soybean yield prediction but you can choose other"
+    },
+    {
+      "start": 1022.16,
+      "end": 1029.52,
+      "text": " you can choose other vegetation index for your own regions your own study area and"
+    },
+    {
+      "start": 1029.52,
+      "end": 1032.28,
+      "text": " and crop species."
+    },
+    {
+      "start": 1033.22,
+      "end": 1036.98,
+      "text": " Yeah, and then we have the light data"
+    },
+    {
+      "start": 1036.98,
+      "end": 1040.58,
+      "text": " and light land surface temperature,"
+    },
+    {
+      "start": 1040.58,
+      "end": 1044.96,
+      "text": " the maximum and minimum daily air temperature,"
+    },
+    {
+      "start": 1044.96,
+      "end": 1049.96,
+      "text": " precipitation, VPD, evaporation, and soil moisture."
+    },
+    {
+      "start": 1050.36,
+      "end": 1054.9,
+      "text": " So you can see that there are a lot different variables,"
+    },
+    {
+      "start": 1054.9,
+      "end": 1058.7,
+      "text": " but they are mainly just the satellite data,"
+    },
+    {
+      "start": 1058.7,
+      "end": 1063.7,
+      "text": " climate variables and the soil variables"
+    },
+    {
+      "start": 1063.74,
+      "end": 1065.1000000000001,
+      "text": " and the targeting variables"
+    },
+    {
+      "start": 1065.1000000000001,
+      "end": 1068.78,
+      "text": " at just the county level soil being yield."
+    },
+    {
+      "start": 1070.04,
+      "end": 1073.46,
+      "text": " So for the next session,"
+    },
+    {
+      "start": 1073.46,
+      "end": 1077.5800000000002,
+      "text": " we are just first need to download the data"
+    },
+    {
+      "start": 1077.5800000000002,
+      "end": 1081.02,
+      "text": " from the link I have provide,"
+    },
+    {
+      "start": 1081.02,
+      "end": 1084.8,
+      "text": " and we will check the folder whether it exists."
+    },
+    {
+      "start": 1084.8,
+      "end": 1087.5,
+      "text": " If not, we will create that folder."
+    },
+    {
+      "start": 1088.7,
+      "end": 1094.22,
+      "text": " and then load those processed time series data"
+    },
+    {
+      "start": 1097.22,
+      "end": 1099.22,
+      "text": " you can see it's very fast"
+    },
+    {
+      "start": 1099.22,
+      "end": 1104.5800000000002,
+      "text": " now we have downloaded the training and testing data"
+    },
+    {
+      "start": 1104.5800000000002,
+      "end": 1107.14,
+      "text": " and you can see the shape here"
+    },
+    {
+      "start": 1107.14,
+      "end": 1114.1000000000001,
+      "text": " it's like 2744 which means we have"
+    },
+    {
+      "start": 1114.1000000000001,
+      "end": 1118.5800000000002,
+      "text": " almost 3000 samples for training this model"
+    },
+    {
+      "start": 1118.58,
+      "end": 1124.58,
+      "text": " and we have almost 1,000 samples for testing."
+    },
+    {
+      "start": 1124.58,
+      "end": 1130.58,
+      "text": " And the second dimension is 6, which means the time step,"
+    },
+    {
+      "start": 1130.58,
+      "end": 1133.58,
+      "text": " and 14 means the features."
+    },
+    {
+      "start": 1133.58,
+      "end": 1144.58,
+      "text": " So you can see that 3,000 samples usually is not a large number to build complicated deep learning models."
+    },
+    {
+      "start": 1144.58,
+      "end": 1162.34,
+      "text": " So in your study case, I would encourage you to collect more data, but here we just try to control the size of different models to build and to make those time series based models work here."
+    },
+    {
+      "start": 1162.34,
+      "end": 1176.8999999999999,
+      "text": " And this is just a pre printed some features to help you to check whether you have correctly"
+    },
+    {
+      "start": 1176.8999999999999,
+      "end": 1179.62,
+      "text": " downloaded the data."
+    },
+    {
+      "start": 1179.62,
+      "end": 1185.6,
+      "text": " Then we try to virtualize the input feature dynamics."
+    },
+    {
+      "start": 1185.6,
+      "end": 1197.6,
+      "text": " i have introduced to you we have we need to do the uh finology alignment and to process the original"
+    },
+    {
+      "start": 1198.32,
+      "end": 1205.84,
+      "text": " time series data so when you have those data they are already aligned with the crop growth"
+    },
+    {
+      "start": 1205.84,
+      "end": 1211.52,
+      "text": " the crop fin knowledge and here is just the sale"
+    },
+    {
+      "start": 1217.1999999999998,
+      "end": 1222.8799999999999,
+      "text": " and you can see here like we just choose three samples which means like three"
+    },
+    {
+      "start": 1223.9199999999998,
+      "end": 1232.48,
+      "text": " county with 13 years and we plot the evi2 which is the first column and then we have the temperature"
+    },
+    {
+      "start": 1233.28,
+      "end": 1240.4,
+      "text": " and third one would be the precipitation so first if you look at the evi2 you can you can see that"
+    },
+    {
+      "start": 1240.4,
+      "end": 1246.24,
+      "text": " their patterns looks pretty much very similar the only big difference is just the"
+    },
+    {
+      "start": 1247.44,
+      "end": 1253.92,
+      "text": " the values of magnitude like you can see the simple two the uvi to the maximum event is"
+    },
+    {
+      "start": 1253.92,
+      "end": 1264.3600000000001,
+      "text": " is almost it's close to 0.6 but for other two they are larger than 0.7 so which means"
+    },
+    {
+      "start": 1266.7,
+      "end": 1274.0800000000002,
+      "text": " the growth can be quite different but you can see that the patterns are quite consistent"
+    },
+    {
+      "start": 1274.08,
+      "end": 1284.08,
+      "text": " like at stage 3 and 4, they always reach the maximum and stay as a plateau"
+    },
+    {
+      "start": 1284.08,
+      "end": 1291.08,
+      "text": " and after that will start to drop, start to decrease"
+    },
+    {
+      "start": 1291.08,
+      "end": 1299.08,
+      "text": " so if you are using the raw time search data, those patterns cannot be this kind of clean"
+    },
+    {
+      "start": 1299.08,
+      "end": 1304.84,
+      "text": " yeah so that's about EBI2 and you can tell that our"
+    },
+    {
+      "start": 1305.56,
+      "end": 1314.22,
+      "text": " very large alignment indeed work here so if you look at the temperature"
+    },
+    {
+      "start": 1314.22,
+      "end": 1318.08,
+      "text": " you can see that they can be much more different"
+    },
+    {
+      "start": 1318.08,
+      "end": 1326.1999999999998,
+      "text": " like the the sample two definitely they have higher maximum temperatures which means"
+    },
+    {
+      "start": 1326.2,
+      "end": 1331.06,
+      "text": " this sample could come from a more warm region"
+    },
+    {
+      "start": 1331.06,
+      "end": 1334.6200000000001,
+      "text": " and the difference is even more larger"
+    },
+    {
+      "start": 1334.6200000000001,
+      "end": 1336.3,
+      "text": " in the presentation"
+    },
+    {
+      "start": 1336.3,
+      "end": 1343.3,
+      "text": " so this just shows you how the original data looks like"
+    },
+    {
+      "start": 1343.3,
+      "end": 1347.2,
+      "text": " and then we will do some"
+    },
+    {
+      "start": 1347.2,
+      "end": 1349.8600000000001,
+      "text": " pre-processing, mainly adjust"
+    },
+    {
+      "start": 1349.8600000000001,
+      "end": 1353.3600000000001,
+      "text": " normalize our data set"
+    },
+    {
+      "start": 1353.36,
+      "end": 1359.04,
+      "text": " because this can be quite important for the deep learning models"
+    },
+    {
+      "start": 1362.7199999999998,
+      "end": 1369.12,
+      "text": " to make sure like the the each variables they are within the same mirror range"
+    },
+    {
+      "start": 1373.1999999999998,
+      "end": 1380.8799999999999,
+      "text": " then we will start to build our deep learning models like i said we are trying to"
+    },
+    {
+      "start": 1380.88,
+      "end": 1392.0800000000002,
+      "text": " use two ways to address the challenges first is the free knowledge guided and that has been done"
+    },
+    {
+      "start": 1392.0800000000002,
+      "end": 1398.5600000000002,
+      "text": " by the free knowledge alignment here the second part would be the quantifying the"
+    },
+    {
+      "start": 1399.2800000000002,
+      "end": 1408.16,
+      "text": " the prediction of certainties so based on the original LSTM and the one-dimensional"
+    },
+    {
+      "start": 1408.16,
+      "end": 1420.3200000000002,
+      "text": " cm models we will add the probabilistic layers to make it capture the output uncertainty"
+    },
+    {
+      "start": 1424.3200000000002,
+      "end": 1429.6000000000001,
+      "text": " to first introduce how we do this in the lstm model"
+    },
+    {
+      "start": 1429.6,
+      "end": 1441.12,
+      "text": " so here you can see we have first we have a split training data function which here we just"
+    },
+    {
+      "start": 1441.12,
+      "end": 1450.06,
+      "text": " split the training the data to 80 percent for training and 20 percent for the validation"
+    },
+    {
+      "start": 1450.06,
+      "end": 1457.9199999999998,
+      "text": " during the training process because you will see like when the model continues to train"
+    },
+    {
+      "start": 1457.92,
+      "end": 1469.92,
+      "text": " at some point the accuracy would drop in the real validation data"
+    },
+    {
+      "start": 1469.92,
+      "end": 1475.92,
+      "text": " but because different learning models are easily overfitted"
+    },
+    {
+      "start": 1475.92,
+      "end": 1481.92,
+      "text": " their training accuracy will always improve"
+    },
+    {
+      "start": 1481.92,
+      "end": 1484.92,
+      "text": " so at those point we need to stop"
+    },
+    {
+      "start": 1484.92,
+      "end": 1490.92,
+      "text": " So here we're just using this 20% validation dataset for the early stopping here."
+    },
+    {
+      "start": 1492.92,
+      "end": 1495.92,
+      "text": " And then we have the probabilistic distribution setup."
+    },
+    {
+      "start": 1496.92,
+      "end": 1504.92,
+      "text": " First, we will create a normal SP function, which is just create a normal distribution for the neural network outputs."
+    },
+    {
+      "start": 1505.92,
+      "end": 1512.92,
+      "text": " So you can see that pretty much it's just you import two parameters."
+    },
+    {
+      "start": 1512.92,
+      "end": 1522.92,
+      "text": " and then use them as the mean value and the variance."
+    },
+    {
+      "start": 1522.92,
+      "end": 1531.92,
+      "text": " Here we just add a small number here to ensure that we always get positive values here"
+    },
+    {
+      "start": 1531.92,
+      "end": 1536.92,
+      "text": " because we know that variance cannot be negative or zero."
+    },
+    {
+      "start": 1536.92,
+      "end": 1547.64,
+      "text": " uh yeah so that's about the normal distribution and then we have a probabilistic layer here"
+    },
+    {
+      "start": 1547.64,
+      "end": 1555.78,
+      "text": " mainly just directly based on the normal distribution function and the third one would"
+    },
+    {
+      "start": 1555.78,
+      "end": 1565.46,
+      "text": " be what we have introduced which is a modified loss function nll here so here we just"
+    },
+    {
+      "start": 1565.46,
+      "end": 1578.82,
+      "text": " and this function is just to make sure the model not only make the mean make the yield"
+    },
+    {
+      "start": 1578.82,
+      "end": 1588.18,
+      "text": " predictions more but also to modeling property uncertainties so it can be very critical here"
+    },
+    {
+      "start": 1589.0600000000002,
+      "end": 1598.42,
+      "text": " and then we have those layers we will set the different runnances mainly just to"
+    },
+    {
+      "start": 1601.78,
+      "end": 1607.46,
+      "text": " to make you make sure you got the same training results all the time"
+    },
+    {
+      "start": 1610.26,
+      "end": 1616.98,
+      "text": " and then we will start to create the the probabilistic lstm model so here you can"
+    },
+    {
+      "start": 1616.98,
+      "end": 1625.6200000000001,
+      "text": " see that we we have an input layer here and then we will have a lstm layer because the default"
+    },
+    {
+      "start": 1625.6200000000001,
+      "end": 1634.18,
+      "text": " setting is just 100 units so the sales for this layers would be 100 and then we will have a dense"
+    },
+    {
+      "start": 1634.18,
+      "end": 1641.78,
+      "text": " layer the default setting is also 100 so it's uh pretty much it's about one else in lstm layer and"
+    },
+    {
+      "start": 1641.78,
+      "end": 1652.1,
+      "text": " and one dense layer and the last layer would be also a dense layer but it will be called by the"
+    },
+    {
+      "start": 1652.98,
+      "end": 1662.5,
+      "text": " probabilistic layer and we will compile this model using our modified NLL loss functions"
+    },
+    {
+      "start": 1662.5,
+      "end": 1670.5,
+      "text": " And you can see that this LST model is kind of quite simple and small."
+    },
+    {
+      "start": 1670.5,
+      "end": 1685.5,
+      "text": " And we designed this because, like I said, for this Jupyter notebook, we have a relatively smaller training set."
+    },
+    {
+      "start": 1685.5,
+      "end": 1698.5,
+      "text": " So we just try to use a smaller deep learning model, a simple LSTM model to avoid overfitting here."
+    },
+    {
+      "start": 1698.5,
+      "end": 1703.5,
+      "text": " And then we have the training and evaluation functions."
+    },
+    {
+      "start": 1703.5,
+      "end": 1711.5,
+      "text": " First, we set the seeds and then we create the probabilistic LSTM model."
+    },
+    {
+      "start": 1711.5,
+      "end": 1720.62,
+      "text": " model and define the callback here's like um help us to find the early stopping points like I said"
+    },
+    {
+      "start": 1720.62,
+      "end": 1731.78,
+      "text": " those models to certain points it will start to overfit and we try to find those points and stop"
+    },
+    {
+      "start": 1731.78,
+      "end": 1739.76,
+      "text": " the training at that point and here you can see that we start to train the model using our training"
+    },
+    {
+      "start": 1739.76,
+      "end": 1753.76,
+      "text": " and we set epochs to 1000 the batch size 64 and because we have the training and the early stopping here"
+    },
+    {
+      "start": 1753.76,
+      "end": 1765.76,
+      "text": " so usually it will not go to 1000 and then we will get a prediction and now i will click run"
+    },
+    {
+      "start": 1769.76,
+      "end": 1777.44,
+      "text": " so you can see like so the model training started but usually it will cost some time"
+    },
+    {
+      "start": 1778.8,
+      "end": 1788.24,
+      "text": " and you can work so in fact it can work so train this model on cpu but you can test that by"
+    },
+    {
+      "start": 1788.24,
+      "end": 1796.24,
+      "text": " yourself because you can change the runtime tab so here we just use t4 gpu and if you go to cpus"
+    },
+    {
+      "start": 1796.88,
+      "end": 1804.16,
+      "text": " you will see how fast is gpu even though you maybe think like the current training is not fast"
+    },
+    {
+      "start": 1805.1200000000001,
+      "end": 1814.24,
+      "text": " but compared to cpu it's already much faster and yeah if you have other better gpus the training"
+    },
+    {
+      "start": 1814.24,
+      "end": 1824.8,
+      "text": " process can be more faster but as the training is going i will just let it run and we can"
+    },
+    {
+      "start": 1827.1200000000001,
+      "end": 1835.84,
+      "text": " see the next part because i already run those models and have the result here so uh"
+    },
+    {
+      "start": 1837.92,
+      "end": 1842.16,
+      "text": " so assume we have already finished the training so we can start to"
+    },
+    {
+      "start": 1842.72,
+      "end": 1847.84,
+      "text": " plotting the training and validation loss so the left figure is just the"
+    },
+    {
+      "start": 1847.84,
+      "end": 1859.4199999999998,
+      "text": " the training loss so you can see that it's pretty much always decreased especially the right figures"
+    },
+    {
+      "start": 1859.4199999999998,
+      "end": 1869.74,
+      "text": " just it's just only show the 200 to 800 because you can see that before two before 100 those"
+    },
+    {
+      "start": 1869.74,
+      "end": 1877.98,
+      "text": " loss is too big you cannot tell the difference but you can clearly see that around 800"
+    },
+    {
+      "start": 1877.98,
+      "end": 1886.84,
+      "text": " the validation loss has been stabled but the training loss has continually"
+    },
+    {
+      "start": 1886.84,
+      "end": 1892.6200000000001,
+      "text": " decreased which means it's starting to overfit so we have to stop here"
+    },
+    {
+      "start": 1899.74,
+      "end": 1909.26,
+      "text": " and you can see that we have around 400 epochs so we still have a half to go"
+    },
+    {
+      "start": 1913.98,
+      "end": 1918.7,
+      "text": " yeah I mean I just let it run and we come back later"
+    },
+    {
+      "start": 1922.06,
+      "end": 1927.98,
+      "text": " and then assume you have already finished your training we will evaluate the model performance"
+    },
+    {
+      "start": 1927.98,
+      "end": 1934.98,
+      "text": " especially about the accuracy and uncertainty."
+    },
+    {
+      "start": 1936.98,
+      "end": 1941.98,
+      "text": " So here we have the true values and predictions."
+    },
+    {
+      "start": 1941.98,
+      "end": 1949.98,
+      "text": " And we work so because now we have the uncertainty quantification results."
+    },
+    {
+      "start": 1949.98,
+      "end": 1961.98,
+      "text": " results so we can plot the 95% of competence intervals and you can see that the first the"
+    },
+    {
+      "start": 1961.98,
+      "end": 1976.26,
+      "text": " r square is around 0.51 or 0.52 so which means we are doing okay but please consider like we"
+    },
+    {
+      "start": 1976.26,
+      "end": 1984.42,
+      "text": " using a quite small training data set here so if you add more training data the performance"
+    },
+    {
+      "start": 1984.42,
+      "end": 1995.78,
+      "text": " will continually to improve yeah so and we found like the coverage of 95 percentage of"
+    },
+    {
+      "start": 1995.78,
+      "end": 2005.48,
+      "text": " confidence intervals it's around 0 45 percentages which means like in the half of the case we"
+    },
+    {
+      "start": 2005.48,
+      "end": 2013.24,
+      "text": " can predict the distributions with the 95 percentage of confidence so that's a good sign"
+    },
+    {
+      "start": 2016.04,
+      "end": 2021.48,
+      "text": " yeah so you can see that's how we get the predictions because previously"
+    },
+    {
+      "start": 2023.24,
+      "end": 2029.72,
+      "text": " because previously if you use directly use the conventional lstm you cannot"
+    },
+    {
+      "start": 2030.68,
+      "end": 2039.8,
+      "text": " plot the confidence interval here yeah after we done this we tried to save the train model"
+    },
+    {
+      "start": 2039.8,
+      "end": 2047.88,
+      "text": " parameters for a features use so you can see that i have this we just give them the model names"
+    },
+    {
+      "start": 2049.32,
+      "end": 2058.52,
+      "text": " and the folder path here and then we can save the model weights for the later use because you just"
+    },
+    {
+      "start": 2058.52,
+      "end": 2066.36,
+      "text": " don't want to run it again and again so uh i think we are approaching to the early point"
+    },
+    {
+      "start": 2066.36,
+      "end": 2070.36,
+      "text": " uh so final of this training so i will let it finish first"
+    },
+    {
+      "start": 2070.36,
+      "end": 2085.88,
+      "text": " yeah so you can see that the r squares almost 0.51514"
+    },
+    {
+      "start": 2085.88,
+      "end": 2093.08,
+      "text": " so the last time when i use train the model you can see that the r square is 0.515"
+    },
+    {
+      "start": 2093.08,
+      "end": 2102.3199999999997,
+      "text": " five so it's slightly different so that may cause by the the version of different tensor flows or"
+    },
+    {
+      "start": 2102.3199999999997,
+      "end": 2115.4,
+      "text": " other parameters so but um obviously the uh the um if you run in your uh computers so the the"
+    },
+    {
+      "start": 2115.4,
+      "end": 2125.78,
+      "text": " results could be slightly different yeah so um that's quite common uh yeah so that's about AOS"
+    },
+    {
+      "start": 2125.78,
+      "end": 2135.38,
+      "text": " team so in fact like I've said OSM is very good at uh handling the the time source data but we can"
+    },
+    {
+      "start": 2135.38,
+      "end": 2148.34,
+      "text": " also use the CNN models to capture the time series patterns so here it's the same here we just try"
+    },
+    {
+      "start": 2148.34,
+      "end": 2160.28,
+      "text": " to create a probabilistic CNN and because here like our because usually the convolutional neural"
+    },
+    {
+      "start": 2160.28,
+      "end": 2167.32,
+      "text": " work will process the images but here we are just processing the time series so we use the"
+    },
+    {
+      "start": 2167.88,
+      "end": 2175.7200000000003,
+      "text": " one dimensional convolutional layer here and we need the pooling layer here that you can see that"
+    },
+    {
+      "start": 2175.7200000000003,
+      "end": 2183.6400000000003,
+      "text": " we pretty much just have a straight convolutional block and then we have the flattened layer and"
+    },
+    {
+      "start": 2183.64,
+      "end": 2195.24,
+      "text": " then have the dense layer so it's similar to LSTM our models here it's kind of a small and simple"
+    },
+    {
+      "start": 2195.24,
+      "end": 2202.8399999999997,
+      "text": " so this is just for the examples if so if you have more data in your study case you can definitely"
+    },
+    {
+      "start": 2202.8399999999997,
+      "end": 2211.56,
+      "text": " modify those parameter those model structures to get the more powerful and more complicated models"
+    },
+    {
+      "start": 2211.56,
+      "end": 2222.92,
+      "text": " here yeah so uh it's the same like we build a model and more importantly we need to have these"
+    },
+    {
+      "start": 2222.92,
+      "end": 2229.72,
+      "text": " probabilistic layers we have defined and use this modified nll loss function"
+    },
+    {
+      "start": 2231.0,
+      "end": 2237.7999999999997,
+      "text": " and so you can see that because those the last layer and the loss functions can be applied to"
+    },
+    {
+      "start": 2237.8,
+      "end": 2245.7200000000003,
+      "text": " different models so our methods here can be applied to many other different different"
+    },
+    {
+      "start": 2245.7200000000003,
+      "end": 2260.92,
+      "text": " models not only ostn and cm models so here we also will create another model and change"
+    },
+    {
+      "start": 2260.92,
+      "end": 2272.8,
+      "text": " that so I just make it run you can see that I have this showing the plot of the model structures"
+    },
+    {
+      "start": 2273.76,
+      "end": 2282.88,
+      "text": " and you can see that the training seems a little bit faster than LSTM but I will let it run and"
+    },
+    {
+      "start": 2282.88,
+      "end": 2289.9,
+      "text": " then yeah assume we have finished that we will save the training model here and then plot the"
+    },
+    {
+      "start": 2289.9,
+      "end": 2297.58,
+      "text": " validation loss so you can see that it's similar uh the similar pattern but you can see that"
+    },
+    {
+      "start": 2297.58,
+      "end": 2307.9,
+      "text": " for cn it seems like it is a 600 epochs it already reached the early stopping point and then we will"
+    },
+    {
+      "start": 2307.9,
+      "end": 2317.7400000000002,
+      "text": " start by that and then it's the same we just plot the the confidence intervals here and you can see"
+    },
+    {
+      "start": 2317.74,
+      "end": 2331.02,
+      "text": " is r squared 0.44 so it's slightly lower compared to lstm i'm not surprised because lstm usually is"
+    },
+    {
+      "start": 2331.58,
+      "end": 2342.62,
+      "text": " it's mainly designed for processing the uh the time source data so uh it performs better here"
+    },
+    {
+      "start": 2343.58,
+      "end": 2352.06,
+      "text": " and we have words of similar like 44 percentage of 95 percentage confidence intervals coverage"
+    },
+    {
+      "start": 2354.62,
+      "end": 2361.18,
+      "text": " and certainly like i said we have here we just have another baseline model which is the"
+    },
+    {
+      "start": 2361.74,
+      "end": 2368.8599999999997,
+      "text": " gaussian process regression gpr model here so this model is just a traditional"
+    },
+    {
+      "start": 2368.86,
+      "end": 2376.0,
+      "text": " machine learning model so it's not deep learning model and it's quite different and it naturally"
+    },
+    {
+      "start": 2376.0,
+      "end": 2388.1800000000003,
+      "text": " support the Bayesian authority quantification so here we just train this GPR model so if you are"
+    },
+    {
+      "start": 2388.1800000000003,
+      "end": 2395.1200000000003,
+      "text": " interesting about the settings so you can read this code to understand how we set it"
+    },
+    {
+      "start": 2395.12,
+      "end": 2408.7,
+      "text": " but you can see that after the training we can also do the predictions and with the 95 percentage"
+    },
+    {
+      "start": 2408.7,
+      "end": 2416.58,
+      "text": " of competence intervals so you can see the first r squared 0.4 history so in fact it's"
+    },
+    {
+      "start": 2416.58,
+      "end": 2428.9,
+      "text": " slightly lower than both LSTM and CM pretty much close to CM but you know because RFC and LSTM is"
+    },
+    {
+      "start": 2428.9,
+      "end": 2437.64,
+      "text": " quite simple so in fact you can add more training samples and more layers to make the performance"
+    },
+    {
+      "start": 2437.64,
+      "end": 2447.22,
+      "text": " better yeah but interestingly you can see that the 95% of CEI coverage here is like"
+    },
+    {
+      "start": 2447.22,
+      "end": 2459.16,
+      "text": " almost 85% so which means in this case GPR seems better much better for the"
+    },
+    {
+      "start": 2459.16,
+      "end": 2474.16,
+      "text": " for the coverage of the confidence, which means the modeling of the uncertainty can be better here."
+    },
+    {
+      "start": 2474.16,
+      "end": 2480.16,
+      "text": " So this can be caused by different issues."
+    },
+    {
+      "start": 2480.16,
+      "end": 2498.5,
+      "text": " So first, like for our previous methods, we are modeling mainly for the data uncertainties. But for deep learning models or other models, in fact, there are another big source of the uncertainty, which is a model uncertainty."
+    },
+    {
+      "start": 2498.5,
+      "end": 2514.1,
+      "text": " So in that case, we need to use the Bayesian deep learning models to address the model uncertainties, but that's beyond this scope."
+    },
+    {
+      "start": 2515.0,
+      "end": 2525.36,
+      "text": " So yeah, so if you are more interested about that, so I think you can learn more about the Bayesian deep learning models."
+    },
+    {
+      "start": 2525.36,
+      "end": 2535.6800000000003,
+      "text": " yeah so uh like i said um after we build these models we are trying to have a more advanced"
+    },
+    {
+      "start": 2535.6800000000003,
+      "end": 2542.8,
+      "text": " analyze of the model performance so first we want to do a multi-year model performance analyze"
+    },
+    {
+      "start": 2543.44,
+      "end": 2553.04,
+      "text": " as i said like we have the different years uh 2018 to 2021 so we can access the temporal"
+    },
+    {
+      "start": 2553.04,
+      "end": 2558.56,
+      "text": " robust list and identify the model weakness so which year work conditions are more challenges"
+    },
+    {
+      "start": 2558.56,
+      "end": 2569.84,
+      "text": " for each model so here just we plot the predictions scatters and we try to load the"
+    },
+    {
+      "start": 2569.84,
+      "end": 2578.08,
+      "text": " LSTM model again that's why we save that model first because we don't want to run it every time"
+    },
+    {
+      "start": 2578.08,
+      "end": 2588.08,
+      "text": " just for the predictions yeah so here here we have the model performance for different"
+    },
+    {
+      "start": 2588.08,
+      "end": 2600.16,
+      "text": " years so you can see that seems like 2019 2018 r squared is much higher compared to 2019"
+    },
+    {
+      "start": 2600.16,
+      "end": 2611.0,
+      "text": " and our models the LSTM is not performing very well in 2019 and 2020 and 2021"
+    },
+    {
+      "start": 2611.0,
+      "end": 2619.66,
+      "text": " so in fact they are performing quite good so if we don't look at 2019"
+    },
+    {
+      "start": 2619.66,
+      "end": 2625.72,
+      "text": " so I think the model performance could be even improved"
+    },
+    {
+      "start": 2625.72,
+      "end": 2637.98,
+      "text": " yeah and then we will do the same model it's the same we just load the saved model we have trained"
+    },
+    {
+      "start": 2637.98,
+      "end": 2648.54,
+      "text": " and then just predict the accuracy so you can see that it's the same for 2019 seems like it's"
+    },
+    {
+      "start": 2648.54,
+      "end": 2655.2599999999998,
+      "text": " quite difficult suppose LSTM and CNN are not performing good in this year"
+    },
+    {
+      "start": 2656.86,
+      "end": 2663.5,
+      "text": " but for 2020 definitely the model performance quite good for both LSTM and"
+    },
+    {
+      "start": 2666.94,
+      "end": 2677.2599999999998,
+      "text": " CNN yeah then we want to do some feature importance analysis so here the methods we use here we just"
+    },
+    {
+      "start": 2677.26,
+      "end": 2686.2200000000003,
+      "text": " use permutation importance so the big idea is just like we try to when we try to measure the"
+    },
+    {
+      "start": 2686.2200000000003,
+      "end": 2691.98,
+      "text": " importance of each variables we just want to know how much model performance degrees"
+    },
+    {
+      "start": 2692.86,
+      "end": 2700.6200000000003,
+      "text": " when we drop one feature but because we cannot directly drop those features as our models"
+    },
+    {
+      "start": 2700.62,
+      "end": 2712.22,
+      "text": " requires the same input so here we just randomly uh uh randomly swapped the the features breaking"
+    },
+    {
+      "start": 2712.22,
+      "end": 2720.8599999999997,
+      "text": " its relationship with the target uh variables while preserving its distributions so so in that"
+    },
+    {
+      "start": 2720.86,
+      "end": 2731.82,
+      "text": " case we can measure the so if one one feature is important and we have randomize the features"
+    },
+    {
+      "start": 2732.54,
+      "end": 2739.26,
+      "text": " usually the model performance will become much worse and if some variables is not important"
+    },
+    {
+      "start": 2739.82,
+      "end": 2749.7400000000002,
+      "text": " even though we randomly um we have randomized that variable the model performance may still be okay"
+    },
+    {
+      "start": 2749.74,
+      "end": 2759.66,
+      "text": " so that's a main idea here so we have this uh load the whole data set again calculate"
+    },
+    {
+      "start": 2759.66,
+      "end": 2766.3799999999997,
+      "text": " the mean and standard deviations normalize the data load the oscm model here again"
+    },
+    {
+      "start": 2767.8199999999997,
+      "end": 2775.3399999999997,
+      "text": " and then we try to plot and calculate the permutation importance here"
+    },
+    {
+      "start": 2775.34,
+      "end": 2785.4,
+      "text": " so here is the results so you can see that we have multiple important"
+    },
+    {
+      "start": 2785.4,
+      "end": 2796.9,
+      "text": " features the first is evi2 so that makes sense because satellite data the vegetation index"
+    },
+    {
+      "start": 2796.9,
+      "end": 2806.5,
+      "text": " usually directly captures the greenness and biomass of the vegetation the crops so it will"
+    },
+    {
+      "start": 2806.5,
+      "end": 2814.34,
+      "text": " have a pretty good relationship with crop yields so usually the vegetation index are the most"
+    },
+    {
+      "start": 2814.34,
+      "end": 2822.5,
+      "text": " important ones because they are the direct the main direct indicators for the crops for the crop yields"
+    },
+    {
+      "start": 2823.38,
+      "end": 2831.46,
+      "text": " and then we have the soil moisture so that makes sense too because soil moisture will affect the"
+    },
+    {
+      "start": 2832.18,
+      "end": 2840.9,
+      "text": " the the water stress you faced for the crops and then we have lst day which means that they"
+    },
+    {
+      "start": 2840.9,
+      "end": 2852.34,
+      "text": " daytime temperatures but you can see that many of like variables are correlated with each other"
+    },
+    {
+      "start": 2852.5,
+      "end": 2862.56,
+      "text": " so once one one variable become important the similar variables be may be less important"
+    },
+    {
+      "start": 2862.56,
+      "end": 2870.62,
+      "text": " because they can replace each other yeah so that's for the feature importance like as so"
+    },
+    {
+      "start": 2870.62,
+      "end": 2879.14,
+      "text": " that's only for the features but remember we also have the temporal stitches which is a phonological"
+    },
+    {
+      "start": 2879.14,
+      "end": 2889.2999999999997,
+      "text": " stages and so we can do the similar feature importance analyze for the different stages"
+    },
+    {
+      "start": 2889.2999999999997,
+      "end": 2902.54,
+      "text": " and we have those functions to try to plot the time step importance and you can see that"
+    },
+    {
+      "start": 2902.54,
+      "end": 2913.04,
+      "text": " according to our results are the stage four five six um they are much important compared to the one"
+    },
+    {
+      "start": 2913.04,
+      "end": 2922.7,
+      "text": " two three uh stages so that make a lot of sense because in the real situation in a real case"
+    },
+    {
+      "start": 2922.7,
+      "end": 2933.7,
+      "text": " The last three stages usually just represent the productive stages for the soybeans."
+    },
+    {
+      "start": 2933.7,
+      "end": 2944.7,
+      "text": " And usually if some extreme events happen in those stages, it will dramatically change the final crop yields."
+    },
+    {
+      "start": 2944.7,
+      "end": 2950.7,
+      "text": " so you can see that the phenology alignment"
+    },
+    {
+      "start": 2950.7,
+      "end": 2955.7,
+      "text": " different models learn some patterns which is very"
+    },
+    {
+      "start": 2955.7,
+      "end": 2960.7,
+      "text": " which is aligned with our domain knowledge"
+    },
+    {
+      "start": 2960.7,
+      "end": 2965.7,
+      "text": " yeah and after that we will have"
+    },
+    {
+      "start": 2965.7,
+      "end": 2969.7,
+      "text": " the spatial temporal virtualization and uncertainty mapping"
+    },
+    {
+      "start": 2969.7,
+      "end": 2973.7,
+      "text": " so here's just pretty much load the model again"
+    },
+    {
+      "start": 2973.7,
+      "end": 2985.8599999999997,
+      "text": " calculate the regional performance especially uncertainty patterns and validation so because"
+    },
+    {
+      "start": 2985.8599999999997,
+      "end": 2994.18,
+      "text": " our time is limited so i may let this may lead you to read the"
+    },
+    {
+      "start": 2996.74,
+      "end": 3003.14,
+      "text": " read the code later but you can see that after you run those codes like you have a particular"
+    },
+    {
+      "start": 3003.14,
+      "end": 3010.8199999999997,
+      "text": " crop yields across regions so for each county each county have the one value and we can also"
+    },
+    {
+      "start": 3010.8199999999997,
+      "end": 3019.2999999999997,
+      "text": " predict uncertainty like we said those information can be critical because if you want to make the"
+    },
+    {
+      "start": 3019.2999999999997,
+      "end": 3031.22,
+      "text": " decisions you want the uncertainty is smaller and that's for different years because previously"
+    },
+    {
+      "start": 3031.22,
+      "end": 3039.22,
+      "text": " that's for 2018 and now it's for 2019 yeah so for yeah for more years"
+    },
+    {
+      "start": 3045.8599999999997,
+      "end": 3052.66,
+      "text": " and finally we have this figure it's like average actual vs ls team predictor so you've been yield"
+    },
+    {
+      "start": 3052.66,
+      "end": 3060.1,
+      "text": " so error box is just shows uh the standard deviation so you can see that the the red ones"
+    },
+    {
+      "start": 3060.1,
+      "end": 3066.74,
+      "text": " that just the AOSM predicts the average yield so an average value you can see that"
+    },
+    {
+      "start": 3068.2599999999998,
+      "end": 3079.86,
+      "text": " even though the predicted mean value are different from the actual average yield you can see that"
+    },
+    {
+      "start": 3079.86,
+      "end": 3087.6200000000003,
+      "text": " they are always within our standard deviation range so which means like"
+    },
+    {
+      "start": 3090.6600000000003,
+      "end": 3101.7000000000003,
+      "text": " yeah so we can give them more so next time when your model give you a number of the yield"
+    },
+    {
+      "start": 3101.7,
+      "end": 3111.22,
+      "text": " predictions it's it's better to give a range of the yield prediction and you can be assured that"
+    },
+    {
+      "start": 3112.4199999999996,
+      "end": 3120.2599999999998,
+      "text": " the actual average range usually is just within this range yeah so that's why we need them"
+    },
+    {
+      "start": 3122.58,
+      "end": 3128.58,
+      "text": " uncertainty here so in conclusion this notebook just demonstrated the phenology guided"
+    },
+    {
+      "start": 3128.58,
+      "end": 3136.34,
+      "text": " probabilistic deep learning framework for the crop yield prediction using a satellite driven time"
+    },
+    {
+      "start": 3136.34,
+      "end": 3144.8199999999997,
+      "text": " series data so in fact this kind of models can be applied to different applications as long as you"
+    },
+    {
+      "start": 3144.8199999999997,
+      "end": 3156.06,
+      "text": " are using the satellite-driven time series data and for the future directions we are trying to"
+    },
+    {
+      "start": 3156.06,
+      "end": 3163.74,
+      "text": " exploring advanced time series architectures as you may all know the current lstm architecture"
+    },
+    {
+      "start": 3163.74,
+      "end": 3172.14,
+      "text": " is kind of simple so you in fact you can add more you can adjust the number of layers units"
+    },
+    {
+      "start": 3172.7,
+      "end": 3182.2999999999997,
+      "text": " regulations and additionally compared to the lstm there are other sequential models like the gated"
+    },
+    {
+      "start": 3182.3,
+      "end": 3191.42,
+      "text": " the GR use or more modern and sophisticated models like a transformer"
+    },
+    {
+      "start": 3193.1800000000003,
+      "end": 3200.54,
+      "text": " but they are all they can all be applied the same probably the features we have introduced today"
+    },
+    {
+      "start": 3200.54,
+      "end": 3208.7000000000003,
+      "text": " and the methods so you can modify their loss functions and output layers to make them also"
+    },
+    {
+      "start": 3208.7,
+      "end": 3218.9399999999996,
+      "text": " produce uncertainty here and we can also expand in the FinLarge applications and deepen the"
+    },
+    {
+      "start": 3218.9399999999996,
+      "end": 3226.7,
+      "text": " uncertainty quantifications like I said in our case in our this test the the seems like the"
+    },
+    {
+      "start": 3227.2599999999998,
+      "end": 3234.2999999999997,
+      "text": " uncertainty performance is not that good as GRU the baseline models so there are could be"
+    },
+    {
+      "start": 3234.3,
+      "end": 3243.7400000000002,
+      "text": " the main big reasons could be like we didn't consider the epistemic uncertainty which is"
+    },
+    {
+      "start": 3243.7400000000002,
+      "end": 3251.9,
+      "text": " uncertainty in the models so in fact you can also try implementing deep other models like"
+    },
+    {
+      "start": 3251.9,
+      "end": 3259.1800000000003,
+      "text": " the Bayesian neural networks so in fact it just can combine with our what we have introduced today"
+    },
+    {
+      "start": 3260.06,
+      "end": 3263.5,
+      "text": " to get a more accurate uncertainty quantification"
+    },
+    {
+      "start": 3264.7,
+      "end": 3279.3399999999997,
+      "text": " and i think that's pretty much all for today um i hope you enjoy that thank you"
+    }
+  ]
+}
