@@ -111,7 +111,7 @@ def test_error_isolation(tmp_path, monkeypatch):
     monkeypatch.setattr("scripts.transcribe._download_audio", fake_download)
     monkeypatch.setattr(
         "scripts.transcribe._transcribe_audio",
-        lambda audio_path, model_name: [{"start": 0.0, "end": 10.0, "text": "Hi."}],
+        lambda *args, **kwargs: [{"start": 0.0, "end": 10.0, "text": "Hi."}],
     )
     monkeypatch.setattr(sys, "argv", ["transcribe.py"])
 
