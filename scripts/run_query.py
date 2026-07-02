@@ -20,6 +20,7 @@ from earthrise_rag.config import get_settings  # noqa: E402
 
 
 def _parse_filters(raw: list[str] | None) -> dict[str, str] | None:
+    """Parse ``key=value`` filter arguments, rejecting dotted or empty keys."""
     if not raw:
         return None
     filters = {}
@@ -40,6 +41,7 @@ def _parse_filters(raw: list[str] | None) -> dict[str, str] | None:
 
 
 def main() -> int:
+    """Search the Qdrant index and print ranked results."""
     settings = get_settings()
 
     parser = argparse.ArgumentParser(description="Search the EarthRISE book index")
@@ -86,7 +88,10 @@ def main() -> int:
         section = chunk.metadata.get("section", "—")
         source = chunk.metadata.get("source_path", "—")
         snippet = chunk.content[:120].replace("\n", " ")
-        print(f"\n[{i}] score={scored.score:.4f}  source={source}  section={section}")
+        method = scored.ranking_method
+        print(
+            f"\n[{i}] score={scored.score:.4f}  method={method}  source={source}  section={section}"
+        )
         print(f"    {snippet}...")
 
     return 0

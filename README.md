@@ -32,6 +32,8 @@ uv sync --group dev --group indexer
 
 # Configure .env for local dev
 #   QDRANT_URL=http://localhost:6333
+#   HF_HOME=.cache/huggingface
+#   RETRIEVAL_STRATEGY=hybrid
 #   LLM_BASE_URL=http://localhost:11434/v1
 #   LLM_API_KEY=ollama
 #   LLM_MODEL=qwen3:8b
@@ -223,10 +225,10 @@ uv run pyright                                             # type check
 earthrise-book-assistant/
 ├── src/earthrise_rag/           # Python package (RAG logic)
 │   ├── config.py                # Pydantic BaseSettings, env-driven
-│   ├── interfaces.py            # Shared protocols
+│   ├── interfaces.py            # Shared protocols (Embedder, SparseEmbedder, VectorStore, ...)
 │   ├── models/                  # Chunk, ScoredChunk, Document, Answer, Citation, IndexResult
-│   ├── indexing/                # Parsers, chunkers, embedder, vector store, pipeline
-│   ├── retrieval/               # DenseStrategy, NoOpReranker
+│   ├── indexing/                # Parsers, chunkers, embedder, sparse embedder, vector store, pipeline
+│   ├── retrieval/               # DenseStrategy, HybridStrategy (RRF), NoOpReranker
 │   ├── generation/              # LLM client, context builder, system prompt
 │   ├── citations/               # Citation builder
 │   └── query/                   # QueryPipeline (search + ask)

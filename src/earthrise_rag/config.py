@@ -17,9 +17,11 @@ class Settings(BaseSettings):
     qdrant_url: str = "http://qdrant:6333"
     qdrant_collection: str = "earthrise_book"
 
-    retrieval_strategy: str = "dense"
+    retrieval_strategy: str = "hybrid"
     retrieval_top_k: int = Field(default=8, ge=1, le=50)
     reranker_provider: str = "noop"
+    sparse_model_name: str = "prithivida/Splade_PP_en_v1"
+    rrf_k: int = Field(default=60, ge=1, le=200)
 
     llm_provider: str = "openai_compatible"
     llm_base_url: str = "https://proxy.fast.luna.nasa.gov/v1"
@@ -36,4 +38,5 @@ class Settings(BaseSettings):
 
 @lru_cache
 def get_settings() -> Settings:
+    """Return cached Settings; reads .env once, reuses on subsequent calls."""
     return Settings()

@@ -26,6 +26,7 @@ class Pipelines:
 
 
 def _create_embedder(config: Settings):
+    """Build the dense embedder from config (provider pattern)."""
     from earthrise_rag.indexing.embedder import LocalEmbeddingModel
 
     if config.embedding_provider == "local":
@@ -33,7 +34,29 @@ def _create_embedder(config: Settings):
     raise ValueError(f"Unknown embedding_provider: {config.embedding_provider}")
 
 
-def _create_vector_store(config: Settings, dense_dim: int, create_if_missing: bool):
+def _create_sparse_embedder(config: Settings):
+    """Build the sparse embedder for hybrid search.
+
+    cache_dir is derived from hf_home so fastembed persists models alongside
+    sentence-transformers weights -- /models/fastembed in Docker, writable
+    local path during uv run.
+    """
+    from earthrise_rag.indexing.sparse_embedder import LocalSparseEmbeddingModel
+
+    return LocalSparseEmbeddingModel(
+        model_name=config.sparse_model_name,
+        cache_dir=str(Path(config.hf_home) / "fastembed"),
+    )
+
+
+def _create_vector_store(
+    config: Settings, dense_dim: int, create_if_missing: bool, sparse_embedder=None
+):
+    """Build the vector store from config (provider pattern).
+
+    sparse_embedder is passed through to QdrantStore so it can compute and
+    store sparse vectors during upsert and encode queries for sparse search.
+    """
     from earthrise_rag.indexing.qdrant_store import QdrantStore
 
     if config.vector_store_provider == "qdrant":
@@ -42,6 +65,7 @@ def _create_vector_store(config: Settings, dense_dim: int, create_if_missing: bo
             config.qdrant_collection,
             dense_dim,
             create_if_missing=create_if_missing,
+            sparse_embedder=sparse_embedder,
         )
     raise ValueError(f"Unknown vector_store_provider: {config.vector_store_provider}")
 
@@ -85,6 +109,7 @@ def _load_video_chapter_map() -> dict[str, dict]:
 
 
 def _create_parsers() -> dict:
+    """Build the file-extension-to-parser registry (registry pattern)."""
     from earthrise_rag.indexing.parsers import (
         BibParser,
         MarkdownParser,
@@ -104,6 +129,7 @@ def _create_parsers() -> dict:
 
 
 def _create_chunkers() -> dict:
+    """Build the file-extension-to-chunker registry (registry pattern)."""
     from earthrise_rag.indexing.chunkers import (
         BibChunker,
         NotebookChunker,
@@ -123,6 +149,7 @@ def _create_chunkers() -> dict:
 
 
 def _create_reranker(config: Settings):
+    """Build the reranker from config (provider pattern)."""
     from earthrise_rag.retrieval.rerankers import NoOpReranker
 
     if config.reranker_provider == "noop":
@@ -131,12 +158,17 @@ def _create_reranker(config: Settings):
 
 
 def _create_retrieval_strategy(config: Settings, embedder, store, reranker):
-    from earthrise_rag.retrieval.strategies import DenseStrategy
+    """Build the retrieval strategy from config (provider pattern).
+
+    Hybrid passes rrf_k from config so RRF fusion can be tuned without
+    code changes.
+    """
+    from earthrise_rag.retrieval.strategies import DenseStrategy, HybridStrategy
 
     if config.retrieval_strategy == "dense":
         return DenseStrategy(embedder, store, reranker)
     if config.retrieval_strategy == "hybrid":
-        raise NotImplementedError("Hybrid search hasn't been implemented yet.")
+        return HybridStrategy(embedder, store, reranker, rrf_k=config.rrf_k)
     raise ValueError(f"Unknown retrieval_strategy: {config.retrieval_strategy}")
 
 
@@ -169,11 +201,19 @@ def _create_citation_builder():
 
 
 def create_indexing_pipeline(config: Settings):
-    """Build the indexing pipeline for CLI use (create_if_missing=True)."""
+    """Build the indexing pipeline for CLI use (create_if_missing=True).
+
+    Always creates a sparse embedder regardless of RETRIEVAL_STRATEGY so the
+    index contains both dense and sparse vectors. Switching strategies later
+    is then a config-only change with no re-index.
+    """
     from earthrise_rag.indexing.pipeline import IndexingPipeline
 
     embedder = _create_embedder(config)
-    store = _create_vector_store(config, embedder.get_dimension(), create_if_missing=True)
+    sparse_embedder = _create_sparse_embedder(config)
+    store = _create_vector_store(
+        config, embedder.get_dimension(), create_if_missing=True, sparse_embedder=sparse_embedder
+    )
 
     return IndexingPipeline(
         parsers=_create_parsers(),
@@ -185,11 +225,21 @@ def create_indexing_pipeline(config: Settings):
 
 
 def create_pipelines(config: Settings) -> Pipelines:
-    """Build the query-side pipelines for FastAPI startup (create_if_missing=False)."""
+    """Build the query-side pipelines for FastAPI startup (create_if_missing=False).
+
+    Sparse embedder is only created when RETRIEVAL_STRATEGY=hybrid to avoid
+    loading the ~500 MB SPLADE model in dense-only mode. A sparse failure here
+    crashes startup (not degraded like LLM) because hybrid was explicitly requested.
+    """
     from earthrise_rag.query import QueryPipeline
 
     embedder = _create_embedder(config)
-    store = _create_vector_store(config, embedder.get_dimension(), create_if_missing=False)
+    sparse_embedder = (
+        _create_sparse_embedder(config) if config.retrieval_strategy == "hybrid" else None
+    )
+    store = _create_vector_store(
+        config, embedder.get_dimension(), create_if_missing=False, sparse_embedder=sparse_embedder
+    )
     reranker = _create_reranker(config)
     strategy = _create_retrieval_strategy(config, embedder, store, reranker)
 
