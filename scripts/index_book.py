@@ -31,6 +31,7 @@ LOG_DIR = Path("logs")
 
 
 def _setup_logging() -> None:
+    """Configure console + timestamped file logging under logs/."""
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
     LOG_DIR.mkdir(exist_ok=True)
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
@@ -40,6 +41,11 @@ def _setup_logging() -> None:
 
 
 def _extract_chapters(quarto_config: dict) -> list[str]:
+    """Extract chapter file paths from a parsed _quarto.yml config.
+
+    Handles both flat chapter lists and part-grouped chapters.
+    Also appends bibliography entries if present.
+    """
     chapters: list[str] = []
     book = quarto_config.get("book", {})
 
@@ -62,6 +68,7 @@ def _extract_chapters(quarto_config: dict) -> list[str]:
 
 
 def _normalize_source_path(relative_path: str, book_dir_name: str = "book") -> str:
+    """Ensure source_path always starts with ``book/`` for consistent metadata."""
     # Strip any leading absolute prefix (e.g. /book/) or existing book/ prefix
     clean = relative_path.lstrip("/")
     if clean.startswith(f"{book_dir_name}/"):
@@ -97,6 +104,7 @@ def _discover_transcripts(transcript_dir: Path) -> list[tuple[str, str]]:
 
 
 def main() -> int:
+    """Index book chapters, companion PDFs, and transcripts into Qdrant."""
     _setup_logging()
 
     parser = argparse.ArgumentParser(description="Index book content into Qdrant.")
@@ -129,9 +137,71 @@ def main() -> int:
     chapter_files = _extract_chapters(quarto_config)
 
     if args.recreate_collection:
+        from uuid import uuid4
+
         from qdrant_client import QdrantClient
+        from qdrant_client.models import (
+            Distance,
+            Modifier,
+            PointStruct,
+            SparseIndexParams,
+            SparseVector,
+            SparseVectorParams,
+            VectorParams,
+        )
 
         client = QdrantClient(url=settings.qdrant_url)
+
+        temp_collection = f"{settings.qdrant_collection}_preflight_{uuid4().hex[:8]}"
+        created_temp = False
+
+        # Prove the full sparse path works (model load, Qdrant schema, upsert)
+        # before deleting the real collection (destructive). If any step fails
+        # the old dense index stays intact.
+        try:
+            from api.dependencies import _create_sparse_embedder
+
+            sparse_embedder = _create_sparse_embedder(settings)
+            test_emb = sparse_embedder.embed(["preflight test"])[0]
+
+            sparse_params = SparseVectorParams(
+                index=SparseIndexParams(on_disk=False),
+                modifier=Modifier.IDF if sparse_embedder.requires_idf else None,
+            )
+            client.create_collection(
+                collection_name=temp_collection,
+                vectors_config={"dense": VectorParams(size=10, distance=Distance.COSINE)},
+                sparse_vectors_config={"sparse": sparse_params},
+            )
+            created_temp = True
+
+            client.upsert(
+                collection_name=temp_collection,
+                points=[
+                    PointStruct(
+                        id=str(uuid4()),
+                        vector={
+                            "dense": [0.0] * 10,
+                            "sparse": SparseVector(
+                                indices=list(test_emb.indices),
+                                values=list(test_emb.values),
+                            ),
+                        },
+                        payload={},
+                    )
+                ],
+            )
+            logger.info("Sparse preflight OK")
+        except Exception as e:
+            logger.error("Sparse preflight failed: %s. Collection NOT deleted.", e)
+            return 1
+        finally:
+            if created_temp:
+                try:
+                    client.delete_collection(temp_collection)
+                except Exception:
+                    logger.warning("Failed to clean up preflight collection '%s'", temp_collection)
+
         if settings.qdrant_collection in [c.name for c in client.get_collections().collections]:
             client.delete_collection(settings.qdrant_collection)
             logger.info("Deleted collection '%s'", settings.qdrant_collection)
