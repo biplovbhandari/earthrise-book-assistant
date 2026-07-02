@@ -39,6 +39,43 @@ class Embedder(Protocol):
 
 
 @runtime_checkable
+class SparseEmbedder(Protocol):
+    """Converts text into sparse vector embeddings."""
+
+    @property
+    def requires_idf(self) -> bool:
+        """Whether the model needs Qdrant's IDF modifier on the sparse vector config.
+
+        BM25 and BM42 produce raw term frequencies and need server-side IDF
+        weighting. SPLADE produces learned weights and does not.
+        """
+        ...
+
+    def embed(self, texts: list[str]) -> list[Any]:
+        """Embed a batch of document texts for indexing.
+
+        Args:
+            texts: List of text strings to embed.
+
+        Returns:
+            List of sparse embedding objects (one per input text),
+            each with .indices and .values attributes.
+        """
+        ...
+
+    def query_embed(self, text: str) -> list[Any]:
+        """Embed a single query string for search.
+
+        Args:
+            text: The query text.
+
+        Returns:
+            List containing a single sparse embedding object.
+        """
+        ...
+
+
+@runtime_checkable
 class VectorStore(Protocol):
     """Persistent store for chunk vectors and payloads."""
 
