@@ -12,4 +12,5 @@ class NoOpReranker:
         candidates: list[ScoredChunk],
         top_k: int,
     ) -> list[ScoredChunk]:
+        """Return the first top_k candidates unchanged."""
         return candidates[:top_k]
