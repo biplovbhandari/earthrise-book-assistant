@@ -34,6 +34,7 @@ uv sync --group dev --group indexer
 #   QDRANT_URL=http://localhost:6333
 #   HF_HOME=.cache/huggingface
 #   RETRIEVAL_STRATEGY=hybrid
+#   RERANKER_PROVIDER=noop            # or local_cross_encoder
 #   LLM_BASE_URL=http://localhost:11434/v1
 #   LLM_API_KEY=ollama
 #   LLM_MODEL=qwen3:8b
@@ -228,7 +229,7 @@ earthrise-book-assistant/
 │   ├── interfaces.py            # Shared protocols (Embedder, SparseEmbedder, VectorStore, ...)
 │   ├── models/                  # Chunk, ScoredChunk, Document, Answer, Citation, IndexResult
 │   ├── indexing/                # Parsers, chunkers, embedder, sparse embedder, vector store, pipeline
-│   ├── retrieval/               # DenseStrategy, HybridStrategy (RRF), NoOpReranker
+│   ├── retrieval/               # DenseStrategy, HybridStrategy (RRF), NoOpReranker, LocalCrossEncoderReranker
 │   ├── generation/              # LLM client, context builder, system prompt
 │   ├── citations/               # Citation builder
 │   └── query/                   # QueryPipeline (search + ask)
