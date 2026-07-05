@@ -33,19 +33,18 @@ class HybridStrategy:
         """Fetch from dense and sparse indexes, fuse via RRF, then rerank.
 
         When sparse returns empty (old collection, no terms produced),
-        skips RRF and returns dense results with original scores and
-        ranking_method unchanged -- no score rewriting into RRF fractions.
+        skips RRF and passes dense results directly to the reranker.
         """
-        fetch_k = min(top_k * self._OVERSAMPLING, 50)
+        rerank_pool = min(top_k * self._OVERSAMPLING, 50)
 
         vector = self._embedder.embed_query(question)
-        dense_results = self._store.search_dense(vector, fetch_k, filters)
-        sparse_results = self._store.search_sparse(question, fetch_k, filters)
+        dense_results = self._store.search_dense(vector, rerank_pool, filters)
+        sparse_results = self._store.search_sparse(question, rerank_pool, filters)
 
         if not sparse_results:
-            return self._reranker.rerank(question, dense_results[:top_k], top_k)
+            return self._reranker.rerank(question, dense_results[:rerank_pool], top_k)
 
-        fused = self._rrf_fuse([dense_results, sparse_results], top_k)
+        fused = self._rrf_fuse([dense_results, sparse_results], rerank_pool)
         return self._reranker.rerank(question, fused, top_k)
 
     def _rrf_fuse(self, results_lists: list[list[ScoredChunk]], top_k: int) -> list[ScoredChunk]:
@@ -95,6 +94,7 @@ class DenseStrategy:
         Returns:
             Ranked list of scored chunks.
         """
+        fetch_k = min(top_k * 3, 50)
         vector = self._embedder.embed_query(question)
-        candidates = self._store.search_dense(vector, top_k, filters)
+        candidates = self._store.search_dense(vector, fetch_k, filters)
         return self._reranker.rerank(question, candidates, top_k)
