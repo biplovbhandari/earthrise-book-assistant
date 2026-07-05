@@ -149,11 +149,24 @@ def _create_chunkers() -> dict:
 
 
 def _create_reranker(config: Settings):
-    """Build the reranker from config (provider pattern)."""
+    """Build the reranker from config (provider pattern).
+
+    Validates model name only when local_cross_encoder is selected,
+    so noop users are not affected by an empty RERANKER_MODEL_NAME.
+    """
     from earthrise_rag.retrieval.rerankers import NoOpReranker
 
     if config.reranker_provider == "noop":
         return NoOpReranker()
+    if config.reranker_provider == "local_cross_encoder":
+        from earthrise_rag.retrieval.rerankers import LocalCrossEncoderReranker
+
+        model_name = config.reranker_model_name.strip()
+        if not model_name:
+            raise ValueError(
+                "RERANKER_MODEL_NAME must not be empty when RERANKER_PROVIDER=local_cross_encoder"
+            )
+        return LocalCrossEncoderReranker(model_name, config.hf_home)
     raise ValueError(f"Unknown reranker_provider: {config.reranker_provider}")
 
 

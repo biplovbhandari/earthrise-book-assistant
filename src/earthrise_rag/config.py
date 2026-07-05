@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     retrieval_strategy: str = "hybrid"
     retrieval_top_k: int = Field(default=8, ge=1, le=50)
     reranker_provider: str = "noop"
+    reranker_model_name: str = "cross-encoder/ms-marco-MiniLM-L6-v2"
     sparse_model_name: str = "prithivida/Splade_PP_en_v1"
     rrf_k: int = Field(default=60, ge=1, le=200)
 

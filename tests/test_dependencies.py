@@ -30,7 +30,12 @@ class FakeSparseEmbedder:
     pass
 
 
-def _patch_adapters(monkeypatch):
+class FakeCrossEncoderReranker:
+    def rerank(self, query, candidates, top_k):
+        return candidates[:top_k]
+
+
+def _patch_adapters(monkeypatch, reranker_factory=None):
     monkeypatch.setattr(
         "api.dependencies._create_embedder",
         lambda config: FakeEmbedder(),
@@ -52,6 +57,12 @@ def _patch_adapters(monkeypatch):
     monkeypatch.setattr(
         "api.dependencies._create_sparse_embedder",
         lambda config: FakeSparseEmbedder(),
+    )
+    from earthrise_rag.retrieval.rerankers import NoOpReranker
+
+    monkeypatch.setattr(
+        "api.dependencies._create_reranker",
+        reranker_factory if reranker_factory is not None else lambda config: NoOpReranker(),
     )
 
 
@@ -160,3 +171,102 @@ def test_create_indexing_pipeline_registers_pdf_and_json(monkeypatch):
     assert ".json" in pipeline.parsers
     assert ".pdf" in pipeline.chunkers
     assert ".json" in pipeline.chunkers
+
+
+# --- Cross-encoder reranker tests ---
+def test_create_reranker_factory_wires_cross_encoder(monkeypatch):
+    """Test _create_reranker directly with mocked CrossEncoder constructor."""
+    from unittest.mock import MagicMock, patch
+
+    mock_ce_class = MagicMock()
+    mock_ce_instance = MagicMock()
+    mock_ce_instance.num_labels = 1
+    mock_ce_class.return_value = mock_ce_instance
+
+    with patch("sentence_transformers.CrossEncoder", mock_ce_class):
+        from api.dependencies import _create_reranker
+        from earthrise_rag.retrieval.rerankers import LocalCrossEncoderReranker
+
+        settings = Settings(
+            reranker_provider="local_cross_encoder",
+            reranker_model_name="cross-encoder/ms-marco-MiniLM-L6-v2",
+            qdrant_url="http://fake:6333",
+        )
+
+        reranker = _create_reranker(settings)
+
+        assert isinstance(reranker, LocalCrossEncoderReranker)
+        mock_ce_class.assert_called_once_with(
+            "cross-encoder/ms-marco-MiniLM-L6-v2",
+            cache_folder=settings.hf_home,
+        )
+
+
+def test_create_pipelines_wires_cross_encoder_reranker(monkeypatch):
+    _patch_adapters(monkeypatch, reranker_factory=lambda config: FakeCrossEncoderReranker())
+    settings = Settings(
+        retrieval_strategy="hybrid",
+        reranker_provider="local_cross_encoder",
+        qdrant_url="http://fake:6333",
+    )
+
+    from api.dependencies import create_pipelines
+    from earthrise_rag.retrieval import HybridStrategy
+
+    pipelines = create_pipelines(settings)
+
+    assert pipelines.query is not None
+    assert isinstance(pipelines.query._strategy, HybridStrategy)
+    assert isinstance(pipelines.query._strategy._reranker, FakeCrossEncoderReranker)
+
+
+def test_create_reranker_factory_rejects_empty_model_name():
+    import pytest
+
+    from api.dependencies import _create_reranker
+
+    settings = Settings(
+        reranker_provider="local_cross_encoder",
+        reranker_model_name="",
+        qdrant_url="http://fake:6333",
+    )
+
+    with pytest.raises(ValueError, match="RERANKER_MODEL_NAME must not be empty"):
+        _create_reranker(settings)
+
+
+def test_create_reranker_factory_tolerates_empty_model_when_noop():
+    from api.dependencies import _create_reranker
+    from earthrise_rag.retrieval import NoOpReranker
+
+    settings = Settings(
+        reranker_provider="noop",
+        reranker_model_name="",
+        qdrant_url="http://fake:6333",
+    )
+
+    reranker = _create_reranker(settings)
+    assert isinstance(reranker, NoOpReranker)
+
+
+def test_create_reranker_factory_rejects_multi_label_model():
+    """Multi-label model should fail at startup, not at first query."""
+    import pytest
+    from unittest.mock import MagicMock, patch
+
+    mock_ce_class = MagicMock()
+    mock_ce_instance = MagicMock()
+    mock_ce_instance.num_labels = 3
+    mock_ce_class.return_value = mock_ce_instance
+
+    with patch("sentence_transformers.CrossEncoder", mock_ce_class):
+        from api.dependencies import _create_reranker
+
+        settings = Settings(
+            reranker_provider="local_cross_encoder",
+            reranker_model_name="some-multi-label-model",
+            qdrant_url="http://fake:6333",
+        )
+
+        with pytest.raises(ValueError, match="expected 1"):
+            _create_reranker(settings)
