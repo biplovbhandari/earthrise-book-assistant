@@ -145,3 +145,157 @@ def test_hybrid_strategy_respects_top_k():
     results = strategy.retrieve("query", top_k=3)
 
     assert len(results) == 3
+
+
+# --- CrossEncoder reranker tests ---
+class FakeReranker:
+    """Records candidates received and reverses their order."""
+
+    def __init__(self):
+        self.last_candidates = []
+        self.last_top_k = 0
+
+    def rerank(self, query, candidates, top_k):
+        self.last_candidates = list(candidates)
+        self.last_top_k = top_k
+        return list(reversed(candidates))[:top_k]
+
+
+def test_cross_encoder_reranker_reorders():
+    from unittest.mock import MagicMock, patch
+
+    with patch("sentence_transformers.CrossEncoder") as MockCE:
+        mock_model = MagicMock()
+        mock_model.num_labels = 1
+        mock_model.predict.return_value = [0.2, 0.9, 0.5]
+        MockCE.return_value = mock_model
+
+        from earthrise_rag.retrieval.rerankers import LocalCrossEncoderReranker
+
+        reranker = LocalCrossEncoderReranker("fake-model", "/tmp")
+
+        candidates = [
+            _make_scored_chunk("Low", 0.1),
+            _make_scored_chunk("High", 0.1),
+            _make_scored_chunk("Mid", 0.1),
+        ]
+
+        results = reranker.rerank("query", candidates, top_k=3)
+
+        assert results[0].chunk.content == "High"
+        assert results[0].score == pytest.approx(0.9)
+        assert results[1].chunk.content == "Mid"
+        assert results[2].chunk.content == "Low"
+        assert all(r.ranking_method == "reranked" for r in results)
+
+
+def test_cross_encoder_reranker_empty_candidates():
+    from unittest.mock import MagicMock, patch
+
+    with patch("sentence_transformers.CrossEncoder") as MockCE:
+        mock_model = MagicMock()
+        mock_model.num_labels = 1
+        MockCE.return_value = mock_model
+
+        from earthrise_rag.retrieval.rerankers import LocalCrossEncoderReranker
+
+        reranker = LocalCrossEncoderReranker("fake-model", "/tmp")
+        results = reranker.rerank("query", [], top_k=5)
+        assert results == []
+
+
+def test_cross_encoder_reranker_replaces_nonfinite_scores():
+    import math
+
+    import numpy as np
+    from unittest.mock import MagicMock, patch
+
+    with patch("sentence_transformers.CrossEncoder") as MockCE:
+        mock_model = MagicMock()
+        mock_model.num_labels = 1
+        mock_model.predict.return_value = np.array([float("nan"), float("inf"), float("-inf"), 0.5])
+        MockCE.return_value = mock_model
+
+        from earthrise_rag.retrieval.rerankers import (
+            LocalCrossEncoderReranker,
+            _NON_FINITE_SENTINEL,
+        )
+
+        reranker = LocalCrossEncoderReranker("fake-model", "/tmp")
+
+        candidates = [
+            _make_scored_chunk("NaN", 0.1),
+            _make_scored_chunk("Inf", 0.1),
+            _make_scored_chunk("NegInf", 0.1),
+            _make_scored_chunk("Valid", 0.1),
+        ]
+
+        results = reranker.rerank("query", candidates, top_k=4)
+
+        assert results[0].chunk.content == "Valid"
+        assert results[0].score == pytest.approx(0.5)
+        assert all(r.score == _NON_FINITE_SENTINEL for r in results[1:])
+        assert all(math.isfinite(r.score) for r in results)
+
+
+# --- Over-fetch tests ---
+class TrackingStore(FakeStore):
+    """FakeStore that records the top_k passed to search methods."""
+
+    def __init__(self, results, sparse_results=None):
+        super().__init__(results, sparse_results)
+        self.dense_top_k = None
+        self.sparse_top_k = None
+
+    def search_dense(self, vector, top_k=10, filters=None):
+        self.dense_top_k = top_k
+        return self._results[:top_k]
+
+    def search_sparse(self, text, top_k=10, filters=None):
+        self.sparse_top_k = top_k
+        return self._sparse_results[:top_k]
+
+
+def test_dense_strategy_overfetches_for_reranker():
+    canned = [_make_scored_chunk(f"Result {i}", 0.9 - i * 0.05) for i in range(10)]
+    store = TrackingStore(canned)
+    fake_reranker = FakeReranker()
+    strategy = DenseStrategy(FakeEmbedder(), store, fake_reranker)
+
+    strategy.retrieve("query", top_k=3)
+
+    assert store.dense_top_k == 9
+    assert len(fake_reranker.last_candidates) == 9
+    assert fake_reranker.last_top_k == 3
+
+
+def test_hybrid_strategy_overfetches_for_reranker():
+    dense = [_make_scored_chunk(f"Dense {i}", 0.9 - i * 0.05) for i in range(10)]
+    sparse = [_make_scored_chunk(f"Sparse {i}", 0.8 - i * 0.05, method="sparse") for i in range(10)]
+    store = TrackingStore(dense, sparse)
+    fake_reranker = FakeReranker()
+    strategy = HybridStrategy(FakeEmbedder(), store, fake_reranker, rrf_k=60)
+
+    strategy.retrieve("query", top_k=3)
+
+    assert store.dense_top_k == 9
+    assert store.sparse_top_k == 9
+    assert len(fake_reranker.last_candidates) == 9
+    assert fake_reranker.last_top_k == 3
+    assert all(sc.ranking_method == "hybrid_rrf" for sc in fake_reranker.last_candidates)
+    contents = {sc.chunk.content for sc in fake_reranker.last_candidates}
+    assert any(c.startswith("Dense") for c in contents)
+    assert any(c.startswith("Sparse") for c in contents)
+
+
+def test_hybrid_sparse_empty_overfetches_for_reranker():
+    dense = [_make_scored_chunk(f"Dense {i}", 0.9 - i * 0.05) for i in range(10)]
+    store = TrackingStore(dense, sparse_results=[])
+    fake_reranker = FakeReranker()
+    strategy = HybridStrategy(FakeEmbedder(), store, fake_reranker, rrf_k=60)
+
+    strategy.retrieve("query", top_k=3)
+
+    assert store.dense_top_k == 9
+    assert len(fake_reranker.last_candidates) == 9
+    assert fake_reranker.last_top_k == 3
