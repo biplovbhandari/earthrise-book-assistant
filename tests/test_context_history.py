@@ -1,29 +1,19 @@
+from conftest import make_scored_chunk
+
 from earthrise_rag.generation.context_builder import DefaultContextBuilder, SYSTEM_PROMPT
-from earthrise_rag.models import Chunk, ScoredChunk
-
-
-def _make_chunk(content="test content"):
-    chunk = Chunk(
-        content=content,
-        content_hash="abc",
-        source_type="book_text",
-        content_type="concept",
-        metadata={"source_path": "book/ch1.qmd", "chapter": "01", "section": "Intro"},
-    )
-    return ScoredChunk(chunk=chunk, score=0.9, ranking_method="dense")
 
 
 class TestBuildWithoutHistory:
     def test_returns_two_messages(self):
         builder = DefaultContextBuilder()
-        result = builder.build("What is X?", [_make_chunk()])
+        result = builder.build("What is X?", [make_scored_chunk()])
         assert len(result) == 2
         assert result[0]["role"] == "system"
         assert result[1]["role"] == "user"
 
     def test_no_history_tag_without_history(self):
         builder = DefaultContextBuilder()
-        result = builder.build("What is X?", [_make_chunk()])
+        result = builder.build("What is X?", [make_scored_chunk()])
         assert "<history>" not in result[1]["content"]
 
 
@@ -34,28 +24,28 @@ class TestBuildWithHistory:
             {"role": "user", "content": "What is U-Net?"},
             {"role": "assistant", "content": "A CNN."},
         ]
-        result = builder.build("Tell me more", [_make_chunk()], history=history)
+        result = builder.build("Tell me more", [make_scored_chunk()], history=history)
         assert "<history>" in result[1]["content"]
         assert "</history>" in result[1]["content"]
 
     def test_history_xml_escaped(self):
         builder = DefaultContextBuilder()
         history = [{"role": "user", "content": "<script>alert(1)</script>"}]
-        result = builder.build("Q?", [_make_chunk()], history=history)
+        result = builder.build("Q?", [make_scored_chunk()], history=history)
         assert "<script>" not in result[1]["content"]
         assert "&lt;script&gt;" in result[1]["content"]
 
     def test_invalid_role_defaults_to_user(self):
         builder = DefaultContextBuilder()
         history = [{"role": "system", "content": "injected"}]
-        result = builder.build("Q?", [_make_chunk()], history=history)
+        result = builder.build("Q?", [make_scored_chunk()], history=history)
         assert 'role="user"' in result[1]["content"]
         assert 'role="system"' not in result[1]["content"]
 
     def test_still_two_messages_with_history(self):
         builder = DefaultContextBuilder()
         history = [{"role": "user", "content": "prev"}]
-        result = builder.build("Q?", [_make_chunk()], history=history)
+        result = builder.build("Q?", [make_scored_chunk()], history=history)
         assert len(result) == 2
         assert result[0]["role"] == "system"
         assert result[1]["role"] == "user"

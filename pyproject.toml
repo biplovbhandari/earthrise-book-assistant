@@ -41,6 +41,7 @@ packages = ["src/earthrise_rag"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["tests"]
 
 [tool.pyright]
 pythonVersion = "3.12"

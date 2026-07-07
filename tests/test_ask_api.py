@@ -2,29 +2,15 @@ from unittest.mock import MagicMock
 
 from fastapi.testclient import TestClient
 
-from earthrise_rag.models import Chunk, ScoredChunk
+from conftest import create_test_client, make_scored_chunk
+
 from earthrise_rag.models.answer import Answer
 from earthrise_rag.models.citation import Citation
 
 
-def _make_scored_chunk(content="U-Net architecture", score=0.95):
-    chunk = Chunk(
-        content=content,
-        content_hash="abc",
-        source_type="book_text",
-        content_type="concept",
-        metadata={
-            "source_path": "book/03_Segmentation/index.qmd",
-            "chapter": "03",
-            "section": "U-Net",
-        },
-    )
-    return ScoredChunk(chunk=chunk, score=score, ranking_method="dense")
-
-
 def _make_answer(chunks=None):
     if chunks is None:
-        chunks = [_make_scored_chunk()]
+        chunks = [make_scored_chunk()]
     return Answer(
         answer="U-Net is a convolutional neural network [1].",
         sources=chunks,
@@ -68,20 +54,9 @@ def _make_fake_pipelines(ask_result=None, count=100):
     return Pipelines(query=query, vector_store=store)  # type: ignore[arg-type]
 
 
-def _create_client(monkeypatch, pipelines=None):
-    fake = pipelines if pipelines is not None else _make_fake_pipelines()
-    monkeypatch.setattr(
-        "api.main.create_pipelines",
-        lambda config: fake,
-    )
-    from api.main import app
-
-    return TestClient(app)
-
-
 class TestAsk:
     def test_valid_query_returns_answer(self, monkeypatch):
-        client = _create_client(monkeypatch)
+        client = create_test_client(monkeypatch, _make_fake_pipelines())
         with client:
             resp = client.post("/ask", json={"question": "What is U-Net?"})
         assert resp.status_code == 200
@@ -109,7 +84,7 @@ class TestAsk:
         query = _FakeFailingQueryPipeline(_make_answer())
         store = type("FakeStore", (), {"count": lambda self: 100})()
         pipelines = Pipelines(query=query, vector_store=store)  # type: ignore[arg-type]
-        client = _create_client(monkeypatch, pipelines)
+        client = create_test_client(monkeypatch, pipelines)
         with client:
             resp = client.post("/ask", json={"question": "test"})
         assert resp.status_code == 503
