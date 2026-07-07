@@ -27,7 +27,7 @@ class FakeStrategy:
 
 
 class FakeContextBuilder:
-    def build(self, question, chunks):
+    def build(self, question, chunks, history=None):
         return [
             {"role": "system", "content": "system"},
             {"role": "user", "content": f"Context: ...\n\nQuestion: {question}"},
@@ -37,6 +37,9 @@ class FakeContextBuilder:
 class FakeLLMClient:
     def chat(self, messages, temperature=0.3, max_tokens=1024):
         return "U-Net is a convolutional neural network [1]."
+
+    def chat_stream(self, messages, temperature=0.3, max_tokens=1024):
+        yield self.chat(messages, temperature, max_tokens)
 
 
 class FakeCitationBuilder:

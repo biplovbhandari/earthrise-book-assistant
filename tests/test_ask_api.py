@@ -40,15 +40,30 @@ def _make_answer(chunks=None):
     )
 
 
+class _FakeQueryPipeline:
+    def __init__(self, ask_result):
+        self._context_builder = object()
+        self._llm_client = self
+        self._citation_builder = object()
+        self._ask_result = ask_result
+
+    def ask(self, question, filters=None, *, history=None):
+        return self._ask_result
+
+    def chat_stream(self, messages, temperature=0.3, max_tokens=1024):
+        yield "test"
+
+
+class _FakeFailingQueryPipeline(_FakeQueryPipeline):
+    def ask(self, question, filters=None, *, history=None):
+        raise Exception("LLM timeout")
+
+
 def _make_fake_pipelines(ask_result=None, count=100):
     from api.dependencies import Pipelines
 
-    query = MagicMock()
-    query.ask.return_value = ask_result or _make_answer()
-    query._llm_client = MagicMock()
-
-    store = MagicMock()
-    store.count.return_value = count
+    query = _FakeQueryPipeline(ask_result or _make_answer())
+    store = type("FakeStore", (), {"count": lambda self: count})()
 
     return Pipelines(query=query, vector_store=store)  # type: ignore[arg-type]
 
@@ -89,8 +104,11 @@ class TestAsk:
         assert resp.status_code == 503
 
     def test_llm_failure_returns_503(self, monkeypatch):
-        pipelines = _make_fake_pipelines()
-        pipelines.query.ask.side_effect = Exception("LLM timeout")  # type: ignore[union-attr]
+        from api.dependencies import Pipelines
+
+        query = _FakeFailingQueryPipeline(_make_answer())
+        store = type("FakeStore", (), {"count": lambda self: 100})()
+        pipelines = Pipelines(query=query, vector_store=store)  # type: ignore[arg-type]
         client = _create_client(monkeypatch, pipelines)
         with client:
             resp = client.post("/ask", json={"question": "test"})
