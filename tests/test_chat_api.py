@@ -1,23 +1,6 @@
 import json
 
-from fastapi.testclient import TestClient
-
-from earthrise_rag.models import Chunk, ScoredChunk
-
-
-def _make_scored_chunk(content="U-Net architecture", score=0.95):
-    chunk = Chunk(
-        content=content,
-        content_hash="abc",
-        source_type="book_text",
-        content_type="concept",
-        metadata={
-            "source_path": "book/03_Segmentation/index.qmd",
-            "chapter": "03",
-            "section": "U-Net",
-        },
-    )
-    return ScoredChunk(chunk=chunk, score=score, ranking_method="dense")
+from conftest import create_test_client
 
 
 class FakeStreamingQueryPipeline:
@@ -95,17 +78,9 @@ def _make_fake_pipelines(query=None, store=None):
     )
 
 
-def _create_client(monkeypatch, pipelines=None):
-    fake = pipelines if pipelines is not None else _make_fake_pipelines()
-    monkeypatch.setattr("api.main.create_pipelines", lambda config: fake)
-    from api.main import app
-
-    return TestClient(app)
-
-
 class TestChatEndpoint:
     def test_streams_sse_events(self, monkeypatch):
-        client = _create_client(monkeypatch)
+        client = create_test_client(monkeypatch, _make_fake_pipelines())
         with client:
             resp = client.post("/chat", json={"question": "What is U-Net?"})
         assert resp.status_code == 200
@@ -122,21 +97,21 @@ class TestChatEndpoint:
 
     def test_no_streaming_returns_503(self, monkeypatch):
         pipelines = _make_fake_pipelines(query=FakeNonStreamingQueryPipeline())
-        client = _create_client(monkeypatch, pipelines)
+        client = create_test_client(monkeypatch, pipelines)
         with client:
             resp = client.post("/chat", json={"question": "Q?"})
         assert resp.status_code == 503
 
     def test_incomplete_adapters_returns_503(self, monkeypatch):
         pipelines = _make_fake_pipelines(query=FakeIncompleteQueryPipeline())
-        client = _create_client(monkeypatch, pipelines)
+        client = create_test_client(monkeypatch, pipelines)
         with client:
             resp = client.post("/chat", json={"question": "Q?"})
         assert resp.status_code == 503
 
     def test_empty_vector_store_returns_503(self, monkeypatch):
         pipelines = _make_fake_pipelines(store=FakeVectorStore(count_val=0))
-        client = _create_client(monkeypatch, pipelines)
+        client = create_test_client(monkeypatch, pipelines)
         with client:
             resp = client.post("/chat", json={"question": "Q?"})
         assert resp.status_code == 503
@@ -144,7 +119,7 @@ class TestChatEndpoint:
     def test_history_truncation(self, monkeypatch):
         fake_query = FakeStreamingQueryPipeline()
         pipelines = _make_fake_pipelines(query=fake_query)
-        client = _create_client(monkeypatch, pipelines)
+        client = create_test_client(monkeypatch, pipelines)
         history = [
             {"role": "user" if i % 2 == 0 else "assistant", "content": f"msg {i}"}
             for i in range(15)
@@ -158,7 +133,7 @@ class TestChatEndpoint:
 
     def test_non_callable_chat_stream_returns_503(self, monkeypatch):
         pipelines = _make_fake_pipelines(query=FakeNonCallableStreamQueryPipeline())
-        client = _create_client(monkeypatch, pipelines)
+        client = create_test_client(monkeypatch, pipelines)
         with client:
             resp = client.post("/chat", json={"question": "Q?"})
         assert resp.status_code == 503
@@ -166,7 +141,7 @@ class TestChatEndpoint:
     def test_long_history_content_accepted(self, monkeypatch):
         fake_query = FakeStreamingQueryPipeline()
         pipelines = _make_fake_pipelines(query=fake_query)
-        client = _create_client(monkeypatch, pipelines)
+        client = create_test_client(monkeypatch, pipelines)
         history = [
             {"role": "user", "content": "short question"},
             {"role": "assistant", "content": "x" * 10000},
@@ -176,7 +151,7 @@ class TestChatEndpoint:
         assert resp.status_code == 200
 
     def test_empty_question_returns_422(self, monkeypatch):
-        client = _create_client(monkeypatch)
+        client = create_test_client(monkeypatch, _make_fake_pipelines())
         with client:
             resp = client.post("/chat", json={"question": ""})
         assert resp.status_code == 422

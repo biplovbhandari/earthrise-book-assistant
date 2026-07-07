@@ -1,76 +1,39 @@
-from earthrise_rag.models import Chunk, ScoredChunk
-from earthrise_rag.models.citation import Citation
+from conftest import FakeCitationBuilder, FakeContextBuilder, FakeStrategy, make_scored_chunk
+
 from earthrise_rag.query import QueryPipeline
 
 
-def _make_scored_chunk(content="U-Net architecture", score=0.95):
-    chunk = Chunk(
-        content=content,
-        content_hash="abc",
-        source_type="book_text",
-        content_type="concept",
-        metadata={
-            "source_path": "book/03_Segmentation/index.qmd",
-            "chapter": "03",
-            "section": "U-Net",
-        },
-    )
-    return ScoredChunk(chunk=chunk, score=score, ranking_method="dense")
-
-
-class FakeStrategy:
-    def __init__(self, results):
-        self._results = results
-
-    def retrieve(self, question, top_k, filters=None):
-        return self._results[:top_k]
-
-
 class FakeStreamingLLMClient:
+    """Fake LLM that yields multiple tokens."""
+
     def chat(self, messages, temperature=0.3, max_tokens=1024):
+        """Return a canned answer string."""
         return "U-Net is a CNN [1]."
 
     def chat_stream(self, messages, temperature=0.3, max_tokens=1024):
+        """Yield answer as three separate tokens."""
         yield "U-Net "
         yield "is "
         yield "a CNN [1]."
 
 
 class FakeEmptyStreamLLMClient:
+    """Fake LLM that yields only empty/whitespace tokens."""
+
     def chat(self, messages, temperature=0.3, max_tokens=1024):
+        """Return an empty answer."""
         return ""
 
     def chat_stream(self, messages, temperature=0.3, max_tokens=1024):
+        """Yield empty and whitespace-only tokens."""
         yield ""
         yield "  "
-
-
-class FakeContextBuilder:
-    def build(self, question, chunks, history=None):
-        return [
-            {"role": "system", "content": "system"},
-            {"role": "user", "content": f"Q: {question}"},
-        ]
-
-
-class FakeCitationBuilder:
-    def build(self, chunks):
-        return [
-            Citation(
-                chunk_id=sc.chunk.id,
-                source_path="book/ch1.qmd",
-                chapter="01",
-                section="Intro",
-                url="/ch1.html",
-            )
-            for sc in chunks
-        ]
 
 
 class TestAskStream:
     def test_yields_meta_then_tokens_then_done(self):
         pipeline = QueryPipeline(
-            strategy=FakeStrategy([_make_scored_chunk()]),
+            strategy=FakeStrategy([make_scored_chunk()]),
             context_builder=FakeContextBuilder(),
             llm_client=FakeStreamingLLMClient(),
             citation_builder=FakeCitationBuilder(),
@@ -84,7 +47,7 @@ class TestAskStream:
 
     def test_meta_has_citations(self):
         pipeline = QueryPipeline(
-            strategy=FakeStrategy([_make_scored_chunk()]),
+            strategy=FakeStrategy([make_scored_chunk()]),
             context_builder=FakeContextBuilder(),
             llm_client=FakeStreamingLLMClient(),
             citation_builder=FakeCitationBuilder(),
@@ -112,7 +75,7 @@ class TestAskStream:
 
     def test_empty_stream_yields_error(self):
         pipeline = QueryPipeline(
-            strategy=FakeStrategy([_make_scored_chunk()]),
+            strategy=FakeStrategy([make_scored_chunk()]),
             context_builder=FakeContextBuilder(),
             llm_client=FakeEmptyStreamLLMClient(),
             citation_builder=FakeCitationBuilder(),

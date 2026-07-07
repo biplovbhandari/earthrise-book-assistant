@@ -1,17 +1,8 @@
 import pytest
 
-from earthrise_rag.models import Chunk, ScoredChunk
+from conftest import make_scored_chunk
+
 from earthrise_rag.retrieval import DenseStrategy, HybridStrategy, NoOpReranker
-
-
-def _make_scored_chunk(content: str, score: float, method: str = "dense") -> ScoredChunk:
-    chunk = Chunk(
-        content=content,
-        content_hash="abc",
-        source_type="book_text",
-        content_type="concept",
-    )
-    return ScoredChunk(chunk=chunk, score=score, ranking_method=method)
 
 
 class FakeEmbedder:
@@ -54,8 +45,8 @@ class FakeStore:
 
 def test_dense_strategy_retrieves_and_reranks():
     canned = [
-        _make_scored_chunk("U-Net architecture", 0.95),
-        _make_scored_chunk("CNN basics", 0.80),
+        make_scored_chunk("U-Net architecture", 0.95),
+        make_scored_chunk("CNN basics", 0.80),
     ]
     store = FakeStore(canned)
     strategy = DenseStrategy(FakeEmbedder(), store, NoOpReranker())
@@ -72,10 +63,10 @@ def test_dense_strategy_retrieves_and_reranks():
 
 
 def test_hybrid_strategy_fuses_dense_and_sparse():
-    shared_chunk = _make_scored_chunk("U-Net architecture", 0.95)
-    dense_only = _make_scored_chunk("CNN basics", 0.80)
-    sparse_only = _make_scored_chunk("NDVI index", 0.70, method="sparse")
-    sparse_shared = _make_scored_chunk("U-Net architecture", 0.60, method="sparse")
+    shared_chunk = make_scored_chunk("U-Net architecture", 0.95)
+    dense_only = make_scored_chunk("CNN basics", 0.80)
+    sparse_only = make_scored_chunk("NDVI index", 0.70, method="sparse")
+    sparse_shared = make_scored_chunk("U-Net architecture", 0.60, method="sparse")
     sparse_shared.chunk = shared_chunk.chunk
 
     store = FakeStore(
@@ -97,8 +88,8 @@ def test_hybrid_strategy_fuses_dense_and_sparse():
 
 
 def test_hybrid_strategy_disjoint_results():
-    dense = [_make_scored_chunk("Dense result A", 0.9)]
-    sparse = [_make_scored_chunk("Sparse result B", 0.8, method="sparse")]
+    dense = [make_scored_chunk("Dense result A", 0.9)]
+    sparse = [make_scored_chunk("Sparse result B", 0.8, method="sparse")]
 
     store = FakeStore(results=dense, sparse_results=sparse)
     strategy = HybridStrategy(FakeEmbedder(), store, NoOpReranker(), rrf_k=60)
@@ -114,7 +105,7 @@ def test_hybrid_strategy_disjoint_results():
 
 def test_hybrid_strategy_empty_sparse_skips_rrf():
     dense = [
-        _make_scored_chunk("Dense result", 0.95),
+        make_scored_chunk("Dense result", 0.95),
     ]
     store = FakeStore(results=dense, sparse_results=[])
     strategy = HybridStrategy(FakeEmbedder(), store, NoOpReranker(), rrf_k=60)
@@ -136,8 +127,8 @@ def test_hybrid_strategy_both_empty():
 
 
 def test_hybrid_strategy_respects_top_k():
-    dense = [_make_scored_chunk(f"Dense {i}", 0.9 - i * 0.1) for i in range(5)]
-    sparse = [_make_scored_chunk(f"Sparse {i}", 0.8 - i * 0.1, method="sparse") for i in range(5)]
+    dense = [make_scored_chunk(f"Dense {i}", 0.9 - i * 0.1) for i in range(5)]
+    sparse = [make_scored_chunk(f"Sparse {i}", 0.8 - i * 0.1, method="sparse") for i in range(5)]
 
     store = FakeStore(results=dense, sparse_results=sparse)
     strategy = HybridStrategy(FakeEmbedder(), store, NoOpReranker(), rrf_k=60)
@@ -175,9 +166,9 @@ def test_cross_encoder_reranker_reorders():
         reranker = LocalCrossEncoderReranker("fake-model", "/tmp")
 
         candidates = [
-            _make_scored_chunk("Low", 0.1),
-            _make_scored_chunk("High", 0.1),
-            _make_scored_chunk("Mid", 0.1),
+            make_scored_chunk("Low", 0.1),
+            make_scored_chunk("High", 0.1),
+            make_scored_chunk("Mid", 0.1),
         ]
 
         results = reranker.rerank("query", candidates, top_k=3)
@@ -224,10 +215,10 @@ def test_cross_encoder_reranker_replaces_nonfinite_scores():
         reranker = LocalCrossEncoderReranker("fake-model", "/tmp")
 
         candidates = [
-            _make_scored_chunk("NaN", 0.1),
-            _make_scored_chunk("Inf", 0.1),
-            _make_scored_chunk("NegInf", 0.1),
-            _make_scored_chunk("Valid", 0.1),
+            make_scored_chunk("NaN", 0.1),
+            make_scored_chunk("Inf", 0.1),
+            make_scored_chunk("NegInf", 0.1),
+            make_scored_chunk("Valid", 0.1),
         ]
 
         results = reranker.rerank("query", candidates, top_k=4)
@@ -257,7 +248,7 @@ class TrackingStore(FakeStore):
 
 
 def test_dense_strategy_overfetches_for_reranker():
-    canned = [_make_scored_chunk(f"Result {i}", 0.9 - i * 0.05) for i in range(10)]
+    canned = [make_scored_chunk(f"Result {i}", 0.9 - i * 0.05) for i in range(10)]
     store = TrackingStore(canned)
     fake_reranker = FakeReranker()
     strategy = DenseStrategy(FakeEmbedder(), store, fake_reranker)
@@ -270,8 +261,8 @@ def test_dense_strategy_overfetches_for_reranker():
 
 
 def test_hybrid_strategy_overfetches_for_reranker():
-    dense = [_make_scored_chunk(f"Dense {i}", 0.9 - i * 0.05) for i in range(10)]
-    sparse = [_make_scored_chunk(f"Sparse {i}", 0.8 - i * 0.05, method="sparse") for i in range(10)]
+    dense = [make_scored_chunk(f"Dense {i}", 0.9 - i * 0.05) for i in range(10)]
+    sparse = [make_scored_chunk(f"Sparse {i}", 0.8 - i * 0.05, method="sparse") for i in range(10)]
     store = TrackingStore(dense, sparse)
     fake_reranker = FakeReranker()
     strategy = HybridStrategy(FakeEmbedder(), store, fake_reranker, rrf_k=60)
@@ -289,7 +280,7 @@ def test_hybrid_strategy_overfetches_for_reranker():
 
 
 def test_hybrid_sparse_empty_overfetches_for_reranker():
-    dense = [_make_scored_chunk(f"Dense {i}", 0.9 - i * 0.05) for i in range(10)]
+    dense = [make_scored_chunk(f"Dense {i}", 0.9 - i * 0.05) for i in range(10)]
     store = TrackingStore(dense, sparse_results=[])
     fake_reranker = FakeReranker()
     strategy = HybridStrategy(FakeEmbedder(), store, fake_reranker, rrf_k=60)

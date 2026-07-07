@@ -1,62 +1,22 @@
-from earthrise_rag.models import Chunk, ScoredChunk
-from earthrise_rag.models.citation import Citation
+from conftest import FakeCitationBuilder, FakeContextBuilder, FakeStrategy, make_scored_chunk
+
 from earthrise_rag.query import QueryPipeline
 
 
-def _make_scored_chunk(content: str = "U-Net architecture", score: float = 0.95) -> ScoredChunk:
-    chunk = Chunk(
-        content=content,
-        content_hash="abc",
-        source_type="book_text",
-        content_type="concept",
-        metadata={
-            "source_path": "book/03_Segmentation/index.qmd",
-            "chapter": "03",
-            "section": "U-Net",
-        },
-    )
-    return ScoredChunk(chunk=chunk, score=score, ranking_method="dense")
-
-
-class FakeStrategy:
-    def __init__(self, results):
-        self._results = results
-
-    def retrieve(self, question, top_k, filters=None):
-        return self._results[:top_k]
-
-
-class FakeContextBuilder:
-    def build(self, question, chunks, history=None):
-        return [
-            {"role": "system", "content": "system"},
-            {"role": "user", "content": f"Context: ...\n\nQuestion: {question}"},
-        ]
-
-
 class FakeLLMClient:
+    """Fake LLM that returns a canned answer."""
+
     def chat(self, messages, temperature=0.3, max_tokens=1024):
+        """Return a canned answer string."""
         return "U-Net is a convolutional neural network [1]."
 
     def chat_stream(self, messages, temperature=0.3, max_tokens=1024):
+        """Yield the canned answer as a single token."""
         yield self.chat(messages, temperature, max_tokens)
 
 
-class FakeCitationBuilder:
-    def build(self, chunks):
-        return [
-            Citation(
-                chunk_id=sc.chunk.id,
-                source_path=sc.chunk.metadata.get("source_path", ""),
-                chapter=sc.chunk.metadata.get("chapter", ""),
-                section=sc.chunk.metadata.get("section", ""),
-            )
-            for sc in chunks
-        ]
-
-
 def test_ask_compose_chain():
-    canned = [_make_scored_chunk()]
+    canned = [make_scored_chunk()]
     pipeline = QueryPipeline(
         strategy=FakeStrategy(canned),
         context_builder=FakeContextBuilder(),
