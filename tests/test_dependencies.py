@@ -25,6 +25,9 @@ class FakeLLMClient:
     def chat(self, messages, temperature=0.3, max_tokens=1024):
         return "fake"
 
+    def chat_stream(self, messages, temperature=0.3, max_tokens=1024):
+        yield self.chat(messages, temperature, max_tokens)
+
 
 class FakeSparseEmbedder:
     pass
@@ -135,21 +138,6 @@ def test_create_pipelines_wires_hybrid_strategy(monkeypatch):
     assert isinstance(pipelines.query._strategy._reranker, NoOpReranker)
     assert pipelines.query._strategy._rrf_k == 60
     assert getattr(pipelines.vector_store, "sparse_embedder", None) is not None
-
-
-def test_create_indexing_pipeline_no_strategy(monkeypatch):
-    _patch_adapters(monkeypatch)
-    settings = Settings(
-        retrieval_strategy="hybrid",
-        qdrant_url="http://fake:6333",
-    )
-
-    from api.dependencies import create_indexing_pipeline
-
-    pipeline = create_indexing_pipeline(settings)
-
-    assert pipeline is not None
-    assert hasattr(pipeline, "index_source")
 
 
 def test_create_indexing_pipeline_registers_pdf_and_json(monkeypatch):

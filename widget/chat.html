@@ -1,15 +1,23 @@
-<div id="earthrise-chat-widget"
-     style="position: fixed;
-            bottom: 24px;
-            right: 24px;
-            z-index: 1050;
-            background: #1a5276;
-            color: #ffffff;
-            padding: 12px 20px;
-            border-radius: 8px;
-            font-family: inherit;
-            font-size: 0.9rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-            cursor: default;">
-  Chat coming soon
+<div id="earthrise-chat-widget">
+
+<button id="earthrise-chat-toggle" aria-label="Open chat assistant">
+  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>
+  </svg>
+</button>
+
+<div id="earthrise-chat-panel" role="dialog" aria-label="Chat assistant" inert aria-hidden="true">
+  <header>
+    <h2>EarthRISE Assistant</h2>
+    <button id="earthrise-chat-close" aria-label="Close chat">&times;</button>
+  </header>
+  <div id="earthrise-chat-suggestions"></div>
+  <div id="earthrise-chat-messages" role="log"></div>
+  <div id="earthrise-chat-status" aria-live="polite"></div>
+  <form id="earthrise-chat-form">
+    <textarea placeholder="Ask about the book..." rows="1" aria-label="Your message"></textarea>
+    <button type="submit">Send</button>
+  </form>
+</div>
+
 </div>

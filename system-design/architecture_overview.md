@@ -22,7 +22,7 @@ graph TD
   User[User] --> App
 
   subgraph "Online Services"
-    App["FastAPI App<br/>Quarto HTML + /ask /search /health"]
+    App["FastAPI App<br/>Quarto HTML + /ask /search /chat /health"]
     DB[(Qdrant<br/>vector + keyword search)]
     EmbedQ[Embedder<br/>query-time]
   end
@@ -60,7 +60,7 @@ sequenceDiagram
   participant DB as Qdrant
   participant LLM as LLM (API)
 
-  User->>App: Chat widget POST /ask {question}
+  User->>App: Chat widget POST /chat {question, history}
   App->>App: Embed query
   App->>DB: Dense vector search
   App->>DB: Keyword / BM25 search
@@ -70,7 +70,7 @@ sequenceDiagram
   App->>LLM: Generate answer (API call)
   LLM-->>App: Answer
   App->>App: Add citations + video links
-  App-->>User: {answer, sources, citations}
+  App-->>User: SSE stream: meta → tokens → done
 ```
 
 ---
@@ -172,7 +172,7 @@ graph LR
   App -->|"serves"| User["Browser"]
 ```
 
-Chat widget calls `/ask` on the same origin — no CORS, no API key in browser.
+Chat widget calls `/chat` (SSE streaming) on the same origin — no CORS, no API key in browser.
 
 ---
 
@@ -183,6 +183,7 @@ Chat widget calls `/ask` on the same origin — no CORS, no API key in browser.
 | `/health` | GET | Service status |
 | `/search` | POST | Retrieval-only — ranked chunks with metadata |
 | `/ask` | POST | Full RAG — generated answer + citations |
+| `/chat` | POST | Streaming RAG — SSE token-by-token answer + citations |
 
 Additional endpoints:
 - `/feedback` — user rating on answer quality
@@ -196,7 +197,7 @@ GA4 custom events and Google Sheets integration for the Economic Impact Assessme
 
 | Event | Trigger | Purpose |
 |---|---|---|
-| `chat_query` | Message sent | Usage tracking |
+| `question_asked` | Question sent via chat widget | Usage tracking |
 | `chapter_complete` | Scroll > 90% | Engagement |
 | `colab_click` | Notebook link clicked | Active learning signal |
 | `video_deeplink_click` | Timestamp link clicked | Video engagement |

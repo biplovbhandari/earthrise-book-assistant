@@ -9,7 +9,7 @@ Detailed component interfaces, adapters, and data models. For the high-level ove
 | Module | When | Triggered by | Interface |
 |---|---|---|---|
 | **IndexingPipeline** | Offline (CPU default, GPU optional) | `scripts/index_book.py` | `index_source(actual_path, source_path) → IndexResult` |
-| **QueryPipeline** | Online (per-request) | FastAPI `/ask`, `/search` | `ask(question, filters) → Answer` / `search(question, top_k, filters) → list[ScoredChunk]` |
+| **QueryPipeline** | Online (per-request) | FastAPI `/ask`, `/search`, `/chat` | `ask(question, filters, *, history) → Answer` / `ask_stream(question, *, history, filters) → Iterator[dict]` / `search(question, top_k, filters) → list[ScoredChunk]` |
 
 Shared adapters (Embedder, VectorStore) injected into both.
 
@@ -34,7 +34,7 @@ graph TB
   end
 
   CLI[CLI scripts] --> IndexingPipeline
-  API[FastAPI /ask /search] --> QueryPipeline
+  API[FastAPI /ask /search /chat] --> QueryPipeline
 
   style IndexingPipeline fill:#d5f5e3
   style QueryPipeline fill:#d6eaf8
@@ -86,9 +86,8 @@ graph LR
 ```
 
 `RETRIEVAL_STRATEGY` env var controls which strategy is instantiated:
-- `dense` (default): `DenseStrategy(embedder, store, reranker)` — embed query → dense vector search → rerank
-- `hybrid`: `HybridStrategy(embedder, store, reranker)` — dense + sparse/BM25, merged via Reciprocal Rank Fusion
-- `parent_child`: `ParentChildStrategy(inner=<strategy>, store=store)` — expands child results to parents for richer LLM context
+- `dense`: `DenseStrategy(embedder, store, reranker)` — embed query → dense vector search → rerank
+- `hybrid` (default): `HybridStrategy(embedder, store, reranker)` — dense + sparse/BM25, merged via Reciprocal Rank Fusion
 
 `/search` calls `QueryPipeline.search()` which delegates to `RetrievalStrategy.retrieve()`. `/ask` calls `QueryPipeline.ask()` which pipes retrieval results through ContextBuilder → LLMClient → CitationBuilder.
 
@@ -105,7 +104,8 @@ classDiagram
   }
 
   class QueryPipeline {
-    +ask(question, filters) Answer
+    +ask(question, filters, *, history) Answer
+    +ask_stream(question, *, history, filters) Iterator~dict~
     +search(question, top_k, filters) list~ScoredChunk~
   }
 
@@ -183,10 +183,11 @@ classDiagram
 
   class LLMClient {
     +chat(messages, temperature, max_tokens) str
+    +chat_stream(messages, temperature, max_tokens) Iterator~str~
   }
 
   class ContextBuilder {
-    +build(question, chunks) list~dict~
+    +build(question, chunks, history) list~dict~
   }
 
   class CitationBuilder {
@@ -261,6 +262,7 @@ Citation:
   source_path: str
   chapter: str
   section: str
+  url: str                                   # book HTML URL (empty for non-renderable sources)
 ```
 
 ### IndexResult
@@ -295,8 +297,12 @@ Response: Answer
 Request:  { question: str, top_k?: int, filters?: { chapter?: str, source_type?: str, content_type?: str } }
 Response: { chunks: list[ScoredChunk] }
 
+# POST /chat (SSE streaming)
+Request:  { question: str, history?: list[{role: str, content: str}], filters?: {...} }
+Response: SSE stream of {type: "meta"|"token"|"error"|"done", ...}
+
 # GET /health
-Response: { status: str, version: str, generation: str }
+Response: { status: str, version: str, generation: str, chat: str }
 ```
 
 ---
@@ -359,7 +365,7 @@ Pydantic `BaseSettings`, reads from environment variables and `.env` files.
 | `VECTOR_STORE_PROVIDER` | VectorStore factory | `"qdrant"` |
 | `QDRANT_URL` | Qdrant endpoint | `"http://qdrant:6333"` |
 | `QDRANT_COLLECTION` | Collection name | `"earthrise_book"` |
-| `RETRIEVAL_STRATEGY` | Strategy factory | `"dense"` |
+| `RETRIEVAL_STRATEGY` | Strategy factory | `"hybrid"` |
 | `RETRIEVAL_TOP_K` | Default result count | `8` |
 | `RERANKER_PROVIDER` | Reranker factory | `"noop"` |
 | `LLM_PROVIDER` | LLMClient factory | `"openai_compatible"` |
@@ -417,9 +423,10 @@ FastAPI serves both the API and the book HTML. Route registration order matters:
 | `/health` | API | GET → status check | First |
 | `/search` | API | POST → QueryPipeline.search() | First |
 | `/ask` | API | POST → QueryPipeline.ask() | First |
+| `/chat` | API | POST → QueryPipeline.ask_stream() (SSE) | First |
 | `/*` | Static | Serve _book/ HTML files | Last (catch-all) |
 
-Chat widget calls `/ask` on the same origin. No CORS needed. No API key in browser.
+Chat widget calls `/chat` (SSE streaming) on the same origin. No CORS needed. No API key in browser.
 
 ---
 
@@ -428,7 +435,7 @@ Chat widget calls `/ask` on the same origin. No CORS needed. No API key in brows
 | File | Purpose |
 |---|---|
 | `widget/_quarto-chat.yml` | Quarto profile overlay — adds `include-after-body: [_includes/chat.html]` |
-| `widget/chat.html` | Chat UI — calls `/ask` on same origin, renders markdown, shows citations |
+| `widget/chat.html` | Chat UI — streams answers via `/chat` SSE, renders markdown, shows citations with book page links |
 
 ### Render flow
 

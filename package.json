@@ -1,0 +1,40 @@
+{
+  "name": "earthrise-book-assistant",
+  "version": "1.0.0",
+  "description": "Book viewer and retrieval-augmented generation (RAG) assistant for the [EarthRISE Applied AI and Deep Learning Book](https://nasa-earthrise.github.io/EarthRISE-Applied-Artificial-Intelligence-and-Deep-Learning-Book/). Serves Quarto-rendered chapters alongside a search and generation API.",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/biplovbhandari/earthrise-book-assistant.git"
+  },
+  "keywords": [
+    "earthrise",
+    "nasa",
+    "rag",
+    "retrieval-augmented-generation",
+    "book-assistant",
+    "chat-widget",
+    "quarto",
+    "deep-learning",
+    "earth-observation"
+  ],
+  "author": "Biplov Bhandari",
+  "license": "Apache-2.0",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/biplovbhandari/earthrise-book-assistant/issues"
+  },
+  "homepage": "https://github.com/biplovbhandari/earthrise-book-assistant#readme",
+  "devDependencies": {
+    "eslint": "^10.6.0",
+    "globals": "^17.7.0",
+    "stylelint": "^17.14.0",
+    "stylelint-config-standard": "^40.0.0"
+  }
+}

@@ -217,6 +217,9 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
+# Node.js (JS/CSS linting only)
+node_modules/
+
 # Project-specific
 _book/
 logs/

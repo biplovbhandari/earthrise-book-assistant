@@ -24,17 +24,25 @@ rm -rf "$WORK_DIR/.git"
 echo "--- Injecting chat profile overlay ---"
 cp "$WIDGET_DIR/_quarto-chat.yml" "$WORK_DIR/_quarto-chat.yml"
 
-# 4. Inject chat widget HTML
+# 4. Inject chat widget
 echo "--- Injecting chat widget ---"
 mkdir -p "$WORK_DIR/_includes"
 cp "$WIDGET_DIR/chat.html" "$WORK_DIR/_includes/chat.html"
+printf '<link rel="stylesheet" href="/_widget/chat.css">\n' > "$WORK_DIR/_includes/chat-head.html"
+printf '<script src="/_widget/chat.js"></script>\n' > "$WORK_DIR/_includes/chat-foot.html"
 
 # 5. Render
 echo "--- Rendering book ---"
 cd "$WORK_DIR"
 quarto render --profile chat
 
-# 6. Publish to output volume via staging
+# 6. Copy widget static assets into rendered output
+echo "--- Copying widget assets ---"
+mkdir -p "$WORK_DIR/_book/_widget"
+cp "$WIDGET_DIR/chat.css" "$WORK_DIR/_book/_widget/chat.css"
+cp "$WIDGET_DIR/chat.js" "$WORK_DIR/_book/_widget/chat.js"
+
+# 7. Publish to output volume via staging
 echo "--- Publishing output ---"
 STAGING=$(mktemp -d /tmp/book_html.XXXXXX)
 cp -a "$WORK_DIR/_book"/. "$STAGING"/

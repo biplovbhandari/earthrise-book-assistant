@@ -11,10 +11,10 @@ class Settings(BaseSettings):
 
     embedding_provider: str = "local"
     embedding_model_name: str = "BAAI/bge-large-en-v1.5"
-    hf_home: str = "/models"
+    hf_home: str = ".cache/models"
 
     vector_store_provider: str = "qdrant"
-    qdrant_url: str = "http://qdrant:6333"
+    qdrant_url: str = "http://localhost:6333"
     qdrant_collection: str = "earthrise_book"
 
     retrieval_strategy: str = "hybrid"

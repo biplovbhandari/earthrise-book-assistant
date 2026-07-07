@@ -1,4 +1,7 @@
 format:
   html:
+    include-in-header:
+      - _includes/chat-head.html
     include-after-body:
       - _includes/chat.html
+      - _includes/chat-foot.html

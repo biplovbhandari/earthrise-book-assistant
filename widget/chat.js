@@ -1,0 +1,350 @@
+(function() {
+    'use strict';
+    var state = { isOpen: false, messages: [], isLoading: false };
+    var currentCitations = null;
+    var hasOpenedChat = false;
+    var userHasScrolled = false;
+    var SUGGESTED_QUESTIONS = [
+        "What deep learning architectures are used for crop mapping?",
+        "How does semantic segmentation differ from object detection?",
+        "What is transfer learning and how is it applied to Earth observation?"
+    ];
+    var panel = document.getElementById('earthrise-chat-panel');
+    var toggle = document.getElementById('earthrise-chat-toggle');
+    var closeBtn = document.getElementById('earthrise-chat-close');
+    var suggestions = document.getElementById('earthrise-chat-suggestions');
+    var messagesEl = document.getElementById('earthrise-chat-messages');
+    var statusEl = document.getElementById('earthrise-chat-status');
+    var form = document.getElementById('earthrise-chat-form');
+    var textarea = form.querySelector('textarea');
+    var sendBtn = form.querySelector('button[type="submit"]');
+
+    SUGGESTED_QUESTIONS.forEach(function(q) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = q;
+        btn.addEventListener('click', function() { sendMessage(q); });
+        suggestions.appendChild(btn);
+    });
+
+    toggle.addEventListener('click', toggleChat);
+
+    closeBtn.addEventListener('click', toggleChat);
+
+    textarea.addEventListener('input', function() {
+        textarea.style.height = 'auto';
+        textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+    });
+
+    textarea.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            form.dispatchEvent(new Event('submit', { cancelable: true }));
+        }
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && state.isOpen) toggleChat();
+    });
+
+    panel.addEventListener('keydown', function(e) {
+        if (e.key !== 'Tab') return;
+        var focusable = Array.from(panel.querySelectorAll(
+            'button:not([disabled]), textarea:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])'
+        )).filter(function(el) { return el.offsetParent !== null; });
+        if (!focusable.length) return;
+        var first = focusable[0], last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    });
+
+    messagesEl.addEventListener('scroll', function() {
+        userHasScrolled = messagesEl.scrollHeight - messagesEl.scrollTop - messagesEl.clientHeight > 40;
+    });
+
+    function toggleChat() {
+        state.isOpen = !state.isOpen;
+        panel.classList.toggle('open', state.isOpen);
+        panel.inert = !state.isOpen;
+        panel.setAttribute('aria-hidden', String(!state.isOpen));
+        toggle.setAttribute('aria-label', state.isOpen ? 'Close chat assistant' : 'Open chat assistant');
+        toggle.setAttribute('aria-expanded', String(state.isOpen));
+        if (state.isOpen) {
+            textarea.focus();
+            if (!hasOpenedChat) {
+                hasOpenedChat = true;
+                if (typeof gtag === 'function') gtag('event', 'chat_open', { event_category: 'chat' });
+            }
+        }
+    }
+
+    function autoScroll() {
+        if (!userHasScrolled) messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    function escapeHtml(text) {
+        return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    function renderMarkdown(text) {
+        var html = escapeHtml(text);
+        var codeBlocks = [];
+        html = html.replace(/```([\s\S]*?)```/g, function(_, code) {
+            codeBlocks.push('<pre><code>' + code + '</code></pre>');
+            return '\x00CB' + (codeBlocks.length - 1) + '\x00';
+        });
+        html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+        html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+        html = html.replace(/(^|[^*])\*([^*]+)\*(?!\*)/g, '$1<em>$2</em>');
+        html = html.replace(/((?:^|\n)- .+(?:\n- .+)*)/g, function(m) {
+            var items = m.trim().split('\n').map(function(l) {
+                return '<li>' + l.replace(/^- /, '') + '</li>';
+            }).join('');
+            return '<ul>' + items + '</ul>';
+        });
+        html = html.replace(/((?:^|\n)\d+\. .+(?:\n\d+\. .+)*)/g, function(m) {
+            var items = m.trim().split('\n').map(function(l) {
+                return '<li>' + l.replace(/^\d+\. /, '') + '</li>';
+            }).join('');
+            return '<ol>' + items + '</ol>';
+        });
+        html = html.replace(/\n\n+/g, '</p><p>');
+        html = '<p>' + html + '</p>';
+        html = html.replace(/<p>\s*<\/p>/g, '');
+        html = html.replace(/<p>\s*(<(?:ul|ol|pre))/g, '$1');
+        html = html.replace(/(<\/(?:ul|ol|pre)>)\s*<\/p>/g, '$1');
+        html = html.replace(/\x00CB(\d+)\x00/g, function(_, i) {
+            return codeBlocks[parseInt(i, 10)];
+        });
+        return html;
+    }
+
+    function linkCitations(messageEl) {
+        if (!currentCitations || !currentCitations.length) return;
+        var walker = document.createTreeWalker(messageEl, NodeFilter.SHOW_TEXT, {
+            acceptNode: function(node) {
+                var parent = node.parentElement;
+                if (!parent) return NodeFilter.FILTER_REJECT;
+                if (parent.closest('code, pre, a, .sources')) return NodeFilter.FILTER_REJECT;
+                return /\[\d+\]/.test(node.nodeValue) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
+            }
+        });
+        var textNodes = [];
+        while (walker.nextNode()) textNodes.push(walker.currentNode);
+        textNodes.forEach(function(node) {
+            var pattern = /\[(\d+)\]/g, parts = [], lastIndex = 0, match;
+            while ((match = pattern.exec(node.nodeValue)) !== null) {
+                var num = parseInt(match[1], 10);
+                if (num < 1 || num > currentCitations.length) continue;
+                if (match.index > 0 && /[\w\]]/.test(node.nodeValue[match.index - 1])) continue;
+                if (match.index > lastIndex)
+                    parts.push(document.createTextNode(node.nodeValue.slice(lastIndex, match.index)));
+                var citation = currentCitations[num - 1];
+                if (citation.url) {
+                    var a = document.createElement('a');
+                    a.href = citation.url;
+                    a.textContent = '[' + num + ']';
+                    a.title = (citation.chapter || '') + (citation.section ? ' - ' + citation.section : '');
+                    a.target = '_blank'; a.rel = 'noopener'; a.className = 'citation-ref';
+                    a.addEventListener('click', (function(c) {
+                        return function() {
+                            if (typeof gtag === 'function') gtag('event', 'citation_clicked', {
+                                event_category: 'chat', citation_chapter: c.chapter || '', citation_section: c.section || ''
+                            });
+                        };
+                    })(citation));
+                    parts.push(a);
+                } else {
+                    var span = document.createElement('span');
+                    span.textContent = '[' + num + ']';
+                    span.className = 'citation-ref-plain';
+                    parts.push(span);
+                }
+                lastIndex = match.index + match[0].length;
+            }
+            if (!parts.length) return;
+            if (lastIndex < node.nodeValue.length)
+                parts.push(document.createTextNode(node.nodeValue.slice(lastIndex)));
+            var frag = document.createDocumentFragment();
+            parts.forEach(function(p) { frag.appendChild(p); });
+            node.parentNode.replaceChild(frag, node);
+        });
+    }
+
+    function renderSources(messageEl, citations) {
+        if (!citations || !citations.length) return;
+        var details = document.createElement('details');
+        details.className = 'sources';
+        var summary = document.createElement('summary');
+        summary.textContent = 'Sources';
+        details.appendChild(summary);
+        var ul = document.createElement('ul');
+        citations.forEach(function(c, i) {
+            var li = document.createElement('li');
+            var label = '[' + (i + 1) + '] ' + (c.chapter || '') + (c.section ? ' - ' + c.section : '');
+            if (c.url) {
+                var a = document.createElement('a');
+                a.href = c.url; a.textContent = label; a.target = '_blank'; a.rel = 'noopener';
+                li.appendChild(a);
+            } else { li.textContent = label; }
+            ul.appendChild(li);
+        });
+        details.appendChild(ul);
+        messageEl.appendChild(details);
+    }
+
+    function createBubble(type) {
+        var div = document.createElement('div');
+        div.className = 'msg msg-' + type;
+        messagesEl.appendChild(div);
+        autoScroll();
+        return div;
+    }
+
+    function showLoading() {
+        var bubble = createBubble('assistant');
+        bubble.innerHTML = '<div class="loading-dots"><span></span><span></span><span></span></div>';
+        bubble.dataset.loading = 'true';
+        return bubble;
+    }
+
+    function clearLoading(bubble) {
+        if (bubble && bubble.dataset.loading) { bubble.innerHTML = ''; delete bubble.dataset.loading; }
+    }
+
+    function setControls(disabled) { textarea.disabled = disabled; sendBtn.disabled = disabled; }
+
+    function restoreSuggestions() {
+        if (state.messages.length === 0) suggestions.classList.remove('hidden');
+    }
+
+    function findDataLine(eventText) {
+        var lines = eventText.split('\n');
+        for (var i = 0; i < lines.length; i++)
+            if (lines[i].indexOf('data:') === 0) return lines[i];
+        return null;
+    }
+
+    function commitDone(question, assistantText, bubble) {
+        state.messages.push({ role: 'user', content: question });
+        state.messages.push({ role: 'assistant', content: assistantText });
+        bubble.innerHTML = renderMarkdown(assistantText);
+        linkCitations(bubble);
+        renderSources(bubble, currentCitations);
+        statusEl.textContent = 'Assistant response complete.';
+        state.isLoading = false;
+        setControls(false);
+        autoScroll();
+    }
+
+    async function sendMessage(question) {
+        if (state.isLoading) return;
+        question = (question || '').trim();
+        if (!question) return;
+        state.isLoading = true;
+        setControls(true);
+        suggestions.classList.add('hidden');
+        currentCitations = null;
+        userHasScrolled = false;
+        var userBubble = createBubble('user');
+        userBubble.textContent = question;
+        textarea.value = '';
+        textarea.style.height = 'auto';
+        var history = state.messages.slice(-10);
+        var loadingBubble = showLoading();
+        if (typeof gtag === 'function')
+            gtag('event', 'question_asked', { event_category: 'chat', question_length: question.length });
+        var assistantText = '';
+        var receivedDone = false;
+        try {
+            var response = await fetch('/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ question: question, history: history })
+            });
+            if (!response.ok) {
+                clearLoading(loadingBubble);
+                loadingBubble.className = 'msg msg-error';
+                loadingBubble.textContent = 'The assistant is temporarily unavailable.';
+                state.isLoading = false; setControls(false); restoreSuggestions(); return;
+            }
+            var reader = response.body.getReader();
+            var decoder = new TextDecoder();
+            var buffer = '';
+            clearLoading(loadingBubble);
+            var assistantBubble = loadingBubble;
+            while (true) {
+                var result = await reader.read();
+                if (result.done) break;
+                buffer += decoder.decode(result.value, { stream: true });
+                var events = buffer.split('\n\n');
+                buffer = events.pop();
+                for (var ei = 0; ei < events.length; ei++) {
+                    var dataLine = findDataLine(events[ei]);
+                    if (!dataLine) continue;
+                    var parsed;
+                    try { parsed = JSON.parse(dataLine.slice(5).trim()); } catch (_e) { continue; }
+                    if (parsed.type === 'meta') {
+                        currentCitations = parsed.citations || [];
+                    } else if (parsed.type === 'token') {
+                        assistantText += parsed.content || '';
+                        assistantBubble.innerHTML = renderMarkdown(assistantText);
+                        autoScroll();
+                    } else if (parsed.type === 'error') {
+                        if (assistantText) {
+                            assistantBubble.innerHTML = renderMarkdown(assistantText);
+                            var errNote = document.createElement('p');
+                            errNote.style.cssText = 'color:#c0392b;font-size:0.8rem;margin-top:6px;';
+                            errNote.textContent = parsed.message || 'An error occurred.';
+                            assistantBubble.appendChild(errNote);
+                        } else {
+                            assistantBubble.className = 'msg msg-error';
+                            assistantBubble.textContent = parsed.message || 'An error occurred.';
+                        }
+                        state.isLoading = false; setControls(false); restoreSuggestions(); return;
+                    } else if (parsed.type === 'done') {
+                        receivedDone = true;
+                        commitDone(question, assistantText, assistantBubble);
+                    }
+                }
+            }
+            // Flush decoder and process any remaining buffered event
+            var remaining = decoder.decode();
+            if (remaining) buffer += remaining;
+            if (buffer.trim()) {
+                var tailData = findDataLine(buffer);
+                if (tailData) {
+                    try {
+                        var tp = JSON.parse(tailData.slice(5).trim());
+                        if (tp.type === 'token') {
+                            assistantText += tp.content || '';
+                            assistantBubble.innerHTML = renderMarkdown(assistantText);
+                        } else if (tp.type === 'done' && !receivedDone) {
+                            receivedDone = true;
+                            commitDone(question, assistantText, assistantBubble);
+                        }
+                    } catch (_e) { /* ignore unparseable tail */ }
+                }
+            }
+            // EOF without done: show warning, do not commit to history
+            if (!receivedDone) {
+                if (assistantText) {
+                    assistantBubble.innerHTML = renderMarkdown(assistantText)
+                        + '<p style="color:#e67e22;font-size:0.8rem;margin-top:6px;">Response may be incomplete.</p>';
+                } else {
+                    assistantBubble.className = 'msg msg-error';
+                    assistantBubble.textContent = 'The assistant is temporarily unavailable.';
+                }
+                state.isLoading = false; setControls(false); restoreSuggestions();
+            }
+        } catch (_err) {
+            clearLoading(loadingBubble);
+            loadingBubble.className = 'msg msg-error';
+            loadingBubble.textContent = 'Unable to connect. Please check your connection.';
+            state.isLoading = false; setControls(false); restoreSuggestions();
+        }
+    }
+
+    form.addEventListener('submit', function(e) { e.preventDefault(); sendMessage(textarea.value); });
+})();
