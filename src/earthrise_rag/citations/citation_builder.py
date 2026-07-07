@@ -62,13 +62,14 @@ class DefaultCitationBuilder:
         citations = []
         for scored in chunks:
             meta = scored.chunk.metadata
+            source_path = meta.get("source_path", "")
             citations.append(
                 Citation(
                     chunk_id=scored.chunk.id,
-                    source_path=meta.get("source_path", ""),
+                    source_path=source_path,
                     chapter=meta.get("chapter", ""),
                     section=meta.get("section", ""),
-                    url=self._source_path_to_url(meta.get("source_path", "")),
+                    url=self._source_path_to_url(source_path),
                 )
             )
         return citations
