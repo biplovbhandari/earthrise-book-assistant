@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from collections.abc import Iterator
+
 
 class OpenAICompatibleClient:
     """LLM client using the OpenAI-compatible chat completions API."""
@@ -49,3 +51,30 @@ class OpenAICompatibleClient:
         if not content or not content.strip():
             raise RuntimeError("LLM returned empty content")
         return content
+
+    def chat_stream(
+        self,
+        messages: list[dict[str, str]],
+        temperature: float = 0.3,
+        max_tokens: int = 1024,
+    ) -> Iterator[str]:
+        """Stream a chat completion response, yielding text chunks.
+
+        Args:
+            messages: List of message dicts with 'role' and 'content' keys.
+            temperature: Sampling temperature (0.0 = deterministic).
+            max_tokens: Maximum tokens in the generated response.
+
+        Yields:
+            Text chunks as they are produced by the model.
+        """
+        response = self._client.chat.completions.create(
+            model=self._model,
+            messages=messages,  # type: ignore[arg-type]
+            temperature=temperature,
+            max_tokens=max_tokens,
+            stream=True,
+        )
+        for chunk in response:
+            if chunk.choices and chunk.choices[0].delta.content:
+                yield chunk.choices[0].delta.content

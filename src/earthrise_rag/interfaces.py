@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Iterator
 from typing import Any, Protocol, runtime_checkable
 
 from earthrise_rag.models.citation import Citation
@@ -216,17 +217,41 @@ class LLMClient(Protocol):
         """
         ...
 
+    def chat_stream(
+        self,
+        messages: list[dict[str, str]],
+        temperature: float = 0.3,
+        max_tokens: int = 1024,
+    ) -> Iterator[str]:
+        """Yield text chunks as they are generated.
+
+        Args:
+            messages: List of message dicts with 'role' and 'content' keys.
+            temperature: Sampling temperature (0.0 = deterministic).
+            max_tokens: Maximum tokens in the generated response.
+
+        Yields:
+            Text chunks as they are produced by the model.
+        """
+        ...
+
 
 @runtime_checkable
 class ContextBuilder(Protocol):
     """Assembles retrieval chunks into an LLM message list."""
 
-    def build(self, question: str, chunks: list[ScoredChunk]) -> list[dict[str, str]]:
+    def build(
+        self,
+        question: str,
+        chunks: list[ScoredChunk],
+        history: list[dict[str, str]] | None = None,
+    ) -> list[dict[str, str]]:
         """Assemble retrieved chunks into a message list for the LLM.
 
         Args:
             question: The user's natural language question.
             chunks: Ranked chunks from retrieval.
+            history: Optional prior conversation turns for reference resolution.
 
         Returns:
             List of message dicts (system + user) ready for LLMClient.chat().
