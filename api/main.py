@@ -10,7 +10,7 @@ from earthrise_rag.config import get_settings
 
 from api.dependencies import create_pipelines
 from api.routes.ask import router as ask_router
-from api.routes.chat import check_chat_ready, check_generation_ready, check_retrieval_ready
+from api.routes.chat import check_generation_ready, check_retrieval_ready
 from api.routes.chat import router as chat_router
 from api.routes.search import router as search_router
 
@@ -41,9 +41,9 @@ def health():
     pipelines = getattr(app.state, "pipelines", None)
     ret_ready, _ = check_retrieval_ready(pipelines)
     gen_ready, _ = check_generation_ready(pipelines)
-    stream_ok = gen_ready and callable(
-        getattr(pipelines.query._llm_client, "chat_stream", None)
-    )
+    stream_ok = False
+    if gen_ready and pipelines is not None and pipelines.query is not None:
+        stream_ok = callable(getattr(pipelines.query._llm_client, "chat_stream", None))
     chat_ok = ret_ready and gen_ready and stream_ok
     return {
         "status": "ok",
