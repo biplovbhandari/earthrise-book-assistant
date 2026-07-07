@@ -6,9 +6,10 @@ Serves Quarto-rendered chapters alongside a search and generation API.
 ## Prerequisites
 
 - [Docker](https://docs.docker.com/get-docker/) (required for both paths -- runs Qdrant, or the full stack)
-- [Ollama](https://ollama.com/) (for `/ask` generation -- pull a model with `ollama pull qwen3:8b`)
+- [Ollama](https://ollama.com/) (for `/ask` and `/chat` generation -- pull a model with `ollama pull qwen3:8b`)
 - [Python 3.12+](https://www.python.org/downloads/) (local setup only -- not needed for Docker deployment)
 - [uv](https://docs.astral.sh/uv/) (local setup only)
+- [Node.js](https://nodejs.org/) (optional -- JS/CSS linting only)
 - [ffmpeg](https://ffmpeg.org/download.html) (local transcription only -- Docker image includes it)
 
 ## Getting Started
@@ -25,19 +26,17 @@ Edit `.env` -- see `.env.example` for all available settings.
 
 Runs the app on your machine with uv.
 Qdrant runs in Docker (or [build from source](https://qdrant.tech/documentation/installation/) with Rust).
+Config defaults are local-dev-friendly -- Docker Compose overrides them for containers.
 
 ```bash
 # Install dependencies
 uv sync --group dev --group indexer
 
-# Configure .env for local dev
-#   QDRANT_URL=http://localhost:6333
-#   HF_HOME=.cache/huggingface
-#   RETRIEVAL_STRATEGY=hybrid
+# Configure .env (defaults work for local dev)
+cp .env.example .env
+# Edit .env if needed -- key settings:
+#   LLM_MODEL=qwen3:8b               # must be set
 #   RERANKER_PROVIDER=noop            # or local_cross_encoder
-#   LLM_BASE_URL=http://localhost:11434/v1
-#   LLM_API_KEY=ollama
-#   LLM_MODEL=qwen3:8b
 
 # Start Qdrant
 docker compose up qdrant -d
@@ -46,20 +45,17 @@ docker compose up qdrant -d
 uv run --group indexer python scripts/transcribe.py
 
 # Index the book (chapters + companion PDFs + transcripts if available)
-QDRANT_URL=http://localhost:6333 HF_HOME=.cache/huggingface \
-  BOOK_COMMIT_SHA=$(git -C book rev-parse HEAD) \
+BOOK_COMMIT_SHA=$(git -C book rev-parse HEAD) \
   uv run python scripts/index_book.py
 
-# Start the app (requires Ollama running for /ask)
-QDRANT_URL=http://localhost:6333 HF_HOME=.cache/huggingface \
-  LLM_BASE_URL=http://localhost:11434/v1 LLM_API_KEY=ollama LLM_MODEL=qwen3:8b \
-  uv run uvicorn api.main:app --reload
+# Start the app (requires Ollama running for /ask and /chat)
+uv run uvicorn api.main:app --reload
 ```
 
 Try it:
 
 ```bash
-# Health check (shows generation readiness)
+# Health check (shows retrieval, generation, and chat readiness)
 curl -s localhost:8000/health | python3 -m json.tool
 
 # Search (retrieval only)
@@ -71,20 +67,63 @@ curl -s -X POST localhost:8000/search \
 curl -s -X POST localhost:8000/ask \
   -H 'content-type: application/json' \
   -d '{"question": "What is U-Net?"}' | python3 -m json.tool
+
+# Chat (streaming SSE -- requires Ollama)
+curl -N -X POST localhost:8000/chat \
+  -H 'content-type: application/json' \
+  -d '{"question": "What is semantic segmentation?"}'
+
+# Chat with follow-up history
+curl -N -X POST localhost:8000/chat \
+  -H 'content-type: application/json' \
+  -d '{"question": "Tell me more about that", "history": [{"role": "user", "content": "What is U-Net?"}, {"role": "assistant", "content": "A CNN architecture for segmentation."}]}'
 ```
 
-If the index is empty or Qdrant is unreachable, `/search` and `/ask` return `503`.
-If Ollama is not running, `/search` still works but `/ask` returns `503`.
+If the index is empty or Qdrant is unreachable, `/search`, `/ask`, and `/chat` return `503`.
+If Ollama is not running, `/search` still works but `/ask` and `/chat` return `503`.
+
+### Render the Book with Chat Widget
+
+The chat widget is injected into every book page during rendering.
+For local dev, you need the rendered book in `_book/`.
+
+**Option A: Docker render, copy to local** (recommended if you have a built quarto-builder image):
+
+```bash
+docker compose --profile build run --rm quarto-builder
+docker run --rm \
+  -v earthrise-book-assistant_book_html:/src \
+  -v "$(pwd)/_book":/dst \
+  alpine sh -c 'cp -a /src/. /dst/'
+```
+
+**Option B: Local Quarto render** (requires [Quarto CLI](https://quarto.org/docs/get-started/)):
+
+```bash
+rm -rf /tmp/book_render
+cp -r book /tmp/book_render && rm -rf /tmp/book_render/.git
+cp widget/_quarto-chat.yml /tmp/book_render/_quarto-chat.yml
+mkdir -p /tmp/book_render/_includes
+cp widget/chat.html /tmp/book_render/_includes/chat.html
+printf '<link rel="stylesheet" href="/_widget/chat.css">\n' > /tmp/book_render/_includes/chat-head.html
+printf '<script src="/_widget/chat.js"></script>\n' > /tmp/book_render/_includes/chat-foot.html
+cd /tmp/book_render && quarto render --profile chat
+rm -rf _book/* && cp -a /tmp/book_render/_book/. _book/
+mkdir -p _book/_widget
+cp widget/chat.css _book/_widget/ && cp widget/chat.js _book/_widget/
+```
+
+After rendering, open http://localhost:8000/ to see the book with the chat FAB in the bottom-right corner.
 
 ## Index Book Content
 
 Indexes book chapters, companion PDFs, and video transcripts.
 Transcripts are committed to the repo, so cloning gives you everything -- no need to run `transcribe.py` first.
+The Qdrant `qdrant_data` volume persists across restarts -- you only need to re-index if the volume is removed or content changes.
 
 ```bash
 # Local
-QDRANT_URL=http://localhost:6333 HF_HOME=.cache/huggingface \
-  BOOK_COMMIT_SHA=$(git -C book rev-parse HEAD) \
+BOOK_COMMIT_SHA=$(git -C book rev-parse HEAD) \
   uv run python scripts/index_book.py
 
 # Docker
@@ -93,8 +132,7 @@ BOOK_COMMIT_SHA=$(git -C book rev-parse HEAD) \
 
 # Fresh index (delete and recreate the Qdrant collection first)
 # Add --recreate-collection to either command above, e.g.:
-QDRANT_URL=http://localhost:6333 HF_HOME=.cache/huggingface \
-  BOOK_COMMIT_SHA=$(git -C book rev-parse HEAD) \
+BOOK_COMMIT_SHA=$(git -C book rev-parse HEAD) \
   uv run python scripts/index_book.py --recreate-collection
 ```
 
@@ -151,13 +189,12 @@ See [ffmpeg.org/download.html](https://ffmpeg.org/download.html) for installatio
 
 Complete Docker path -- no local Python required.
 Complete the [Getting Started](#getting-started) steps first (clone + .env).
+Docker Compose overrides `QDRANT_URL` and `LLM_BASE_URL` automatically.
 
 ```bash
 # Setup
 cp .env.example .env
-# Edit .env -- set LLM_API_KEY and LLM_MODEL for /ask generation.
-# QDRANT_URL and LLM_BASE_URL are overridden by docker-compose.yml
-# so their .env values don't matter for Docker.
+# Edit .env -- set LLM_MODEL for /ask and /chat generation.
 
 # Build and render
 docker compose build app quarto-builder indexer
@@ -191,9 +228,14 @@ curl -s -X POST localhost:8000/search \
 curl -s -X POST localhost:8000/ask \
   -H 'content-type: application/json' \
   -d '{"question": "What is U-Net?"}' | python3 -m json.tool
+
+# Chat (streaming SSE -- requires Ollama)
+curl -N -X POST localhost:8000/chat \
+  -H 'content-type: application/json' \
+  -d '{"question": "What is semantic segmentation?"}'
 ```
 
-- Book: http://localhost:8000/
+- Book with chat widget: http://localhost:8000/
 - Qdrant dashboard: http://localhost:6333/dashboard
 
 ### Re-render book
@@ -216,8 +258,13 @@ To stop: `docker compose down`
 ```bash
 uv sync --group dev
 uv run pytest -v                                           # tests
-uv run ruff check . && uv run ruff format --check .        # lint
+uv run ruff check . && uv run ruff format --check .        # Python lint
 uv run pyright                                             # type check
+
+# JS/CSS linting (optional -- requires Node.js)
+npm install                                                # first time only
+npx eslint widget/chat.js                                  # JS lint
+npx stylelint widget/chat.css                              # CSS lint
 ```
 
 ## Project Structure
@@ -234,9 +281,9 @@ earthrise-book-assistant/
 │   ├── citations/               # Citation builder
 │   └── query/                   # QueryPipeline (search + ask)
 ├── api/                         # FastAPI app
-│   ├── main.py                  # /health, /ask, /search, static book
+│   ├── main.py                  # /health, routers, static book mount
 │   ├── dependencies.py          # Adapter wiring (factories, lazy imports)
-│   └── routes/                  # /search and /ask endpoints
+│   └── routes/                  # /search, /ask, /chat endpoints + readiness helpers
 ├── scripts/
 │   ├── index_book.py            # CLI: index book + PDFs + transcripts into Qdrant
 │   ├── transcribe.py            # CLI: download + transcribe YouTube lectures
@@ -245,7 +292,11 @@ earthrise-book-assistant/
 │   ├── video_chapter_map.yml    # Maps video IDs to book chapters
 │   └── transcripts/             # Whisper-generated JSON transcripts (committed)
 ├── notebooks/                   # Colab notebooks (GPU transcription)
-├── widget/                      # Chat widget (injected into book pages)
+├── widget/                      # Chat widget (injected into book pages by Quarto)
+│   ├── chat.css                 # Widget styles (pure CSS, lintable)
+│   ├── chat.js                  # Widget logic (pure JS, lintable)
+│   ├── chat.html                # Widget HTML structure
+│   └── _quarto-chat.yml         # Quarto profile overlay
 ├── infra/docker/                # Dockerfiles
 ├── tests/
 ├── system-design/               # Architecture docs
