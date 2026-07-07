@@ -6,6 +6,7 @@ from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field, field_validator
 
 from earthrise_rag.models.answer import Answer
+from api.routes.chat import check_generation_ready, check_retrieval_ready
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +30,8 @@ class AskRequest(BaseModel):
     @classmethod
     def reject_dotted_keys(cls, v):
         if v is not None:
+            if not isinstance(v, dict):
+                raise ValueError("filters must be an object")
             for key in v:
                 if "." in key:
                     raise ValueError(
@@ -45,17 +48,13 @@ def ask(request: Request, body: AskRequest):
     Returns 503 if pipelines are not ready or if generation fails.
     """
     pipelines = getattr(request.app.state, "pipelines", None)
-    if pipelines is None or pipelines.query is None:
-        raise HTTPException(status_code=503, detail="generation not ready")
-
-    try:
-        if pipelines.vector_store is None or pipelines.vector_store.count() == 0:
-            raise HTTPException(status_code=503, detail="retrieval not ready")
-    except HTTPException:
-        raise
-    except Exception:
-        logger.exception("Readiness check failed")
-        raise HTTPException(status_code=503, detail="retrieval not ready")
+    ready, reason = check_retrieval_ready(pipelines)
+    if not ready:
+        raise HTTPException(status_code=503, detail=reason)
+    ready, reason = check_generation_ready(pipelines)
+    if not ready:
+        raise HTTPException(status_code=503, detail=reason)
+    assert pipelines is not None and pipelines.query is not None
 
     try:
         result = pipelines.query.ask(body.question, body.filters)
