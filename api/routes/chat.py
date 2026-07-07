@@ -8,6 +8,8 @@ from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field, field_validator
 
+from api.routes.validators import QuestionFiltersMixin
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
@@ -23,35 +25,12 @@ class ChatMessage(BaseModel):
     content: str = Field(..., min_length=1)
 
 
-class ChatRequest(BaseModel):
+class ChatRequest(QuestionFiltersMixin, BaseModel):
     """Incoming chat question with optional history and filters."""
 
     question: str = Field(..., min_length=1, max_length=2000)
     history: list[ChatMessage] = Field(default_factory=list)
     filters: dict[str, str | int | bool] | None = None
-
-    @field_validator("question", mode="before")
-    @classmethod
-    def strip_question(cls, v):
-        """Strip leading and trailing whitespace from the question."""
-        if isinstance(v, str):
-            v = v.strip()
-        return v
-
-    @field_validator("filters", mode="before")
-    @classmethod
-    def reject_dotted_keys(cls, v):
-        """Reject filter keys that contain dots to prevent metadata path confusion."""
-        if v is not None:
-            if not isinstance(v, dict):
-                raise ValueError("filters must be an object")
-            for key in v:
-                if "." in key:
-                    raise ValueError(
-                        f"Filter key '{key}' must not contain '.';"
-                        " use bare key names (e.g. 'chapter' not 'metadata.chapter')"
-                    )
-        return v
 
     @field_validator("history", mode="before")
     @classmethod
