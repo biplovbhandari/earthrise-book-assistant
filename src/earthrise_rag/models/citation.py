@@ -8,3 +8,4 @@ class Citation(BaseModel):
     source_path: str
     chapter: str
     section: str
+    url: str = ""
