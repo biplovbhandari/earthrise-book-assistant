@@ -90,33 +90,95 @@
     function renderMarkdown(text) {
         var html = escapeHtml(text);
         var codeBlocks = [];
+        // 1. Fenced code blocks -> placeholder
         html = html.replace(/```([\s\S]*?)```/g, function(_, code) {
             codeBlocks.push('<pre><code>' + code + '</code></pre>');
             return '\x00CB' + (codeBlocks.length - 1) + '\x00';
         });
-        html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+        // 2. Inline code -> placeholder (protects content from link/bold/italic)
+        html = html.replace(/`([^`]+)`/g, function(_, code) {
+            codeBlocks.push('<code>' + code + '</code>');
+            return '\x00CB' + (codeBlocks.length - 1) + '\x00';
+        });
+        // 3. Links -> placeholder (https only; protects href from bold/italic)
+        html = html.replace(/\[([^\]]+)\]\((https:\/\/[^\s)]+)\)/g, function(match, linkText, url) {
+            if (/&quot;|&#39;/.test(url)) return match;
+            var tag = '<a href="' + url + '" target="_blank" rel="noopener noreferrer" class="md-link">' + linkText + '</a>';
+            codeBlocks.push(tag);
+            return '\x00CB' + (codeBlocks.length - 1) + '\x00';
+        });
+        // 4. Heading normalization (ensure blank lines around headings)
+        html = html.replace(/([^\n])\n(#{2,4}\s)/gm, '$1\n\n$2');
+        html = html.replace(/(^#{2,4}\s.+$)\n([^\n])/gm, '$1\n\n$2');
+        // 5. Heading conversion (## -> h3, ### -> h4, #### -> h5)
+        html = html.replace(/^(#{2,4})\s+(.+)$/gm, function(_, hashes, headingText) {
+            var level = hashes.length + 1;
+            return '<h' + level + '>' + headingText.trim() + '</h' + level + '>';
+        });
+        // 6. Bold / italic
         html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
         html = html.replace(/(^|[^*])\*([^*]+)\*(?!\*)/g, '$1<em>$2</em>');
-        html = html.replace(/((?:^|\n)- .+(?:\n- .+)*)/g, function(m) {
-            var items = m.trim().split('\n').map(function(l) {
-                return '<li>' + l.replace(/^- /, '') + '</li>';
+        // 7. Lists (unified: supports nested - under \d+., tolerates indentation)
+        html = html.replace(/((?:^|\n)[ \t]*(?:\d+\. |- ).+(?:\n[ \t]*(?:\d+\. |- ).+)*)/g, function(block) {
+            var lines = block.trim().split('\n');
+            var hasNumbered = lines.some(function(l) { return /^\s*\d+\. /.test(l); });
+            var hasBullets = lines.some(function(l) { return /^\s*- /.test(l); });
+            if (hasNumbered && hasBullets) {
+                var result = '<ol>', inSub = false;
+                for (var i = 0; i < lines.length; i++) {
+                    var trimmed = lines[i].replace(/^\s+/, '');
+                    if (/^\d+\. /.test(trimmed)) {
+                        if (inSub) { result += '</ul>'; inSub = false; }
+                        if (i > 0) result += '</li>';
+                        result += '<li>' + trimmed.replace(/^\d+\. /, '');
+                    } else {
+                        if (!inSub) { result += '<ul>'; inSub = true; }
+                        result += '<li>' + trimmed.replace(/^- /, '') + '</li>';
+                    }
+                }
+                if (inSub) result += '</ul>';
+                return result + '</li></ol>';
+            }
+            if (hasNumbered) {
+                var items = lines.map(function(l) {
+                    return '<li>' + l.replace(/^\s*\d+\. /, '') + '</li>';
+                }).join('');
+                return '<ol>' + items + '</ol>';
+            }
+            var items = lines.map(function(l) {
+                return '<li>' + l.replace(/^\s*- /, '') + '</li>';
             }).join('');
             return '<ul>' + items + '</ul>';
         });
-        html = html.replace(/((?:^|\n)\d+\. .+(?:\n\d+\. .+)*)/g, function(m) {
-            var items = m.trim().split('\n').map(function(l) {
-                return '<li>' + l.replace(/^\d+\. /, '') + '</li>';
-            }).join('');
-            return '<ol>' + items + '</ol>';
+        // 8. Tables
+        html = html.replace(/^(\|.+\|)[ \t]*\n(\|[\s:|-]+\|)[ \t]*\n((?:\|.+\|[ \t]*(?:\n|$))+)/gm, function(_, headerLine, _sep, bodyBlock) {
+            var headers = headerLine.split('|').slice(1, -1);
+            var rows = bodyBlock.trim().split('\n');
+            var thead = '<thead><tr>' + headers.map(function(h) {
+                return '<th>' + h.trim() + '</th>';
+            }).join('') + '</tr></thead>';
+            var tbody = '<tbody>' + rows.map(function(row) {
+                var cells = row.split('|').slice(1, -1);
+                return '<tr>' + cells.map(function(c) {
+                    return '<td>' + c.trim() + '</td>';
+                }).join('') + '</tr>';
+            }).join('') + '</tbody>';
+            return '<div class="table-wrap"><table>' + thead + tbody + '</table></div>';
         });
+        // 9. Horizontal rules
+        html = html.replace(/^-{3,}$/gm, '<hr>');
+        // 10. Paragraphs
         html = html.replace(/\n\n+/g, '</p><p>');
         html = '<p>' + html + '</p>';
         html = html.replace(/<p>\s*<\/p>/g, '');
-        html = html.replace(/<p>\s*(<(?:ul|ol|pre))/g, '$1');
-        html = html.replace(/(<\/(?:ul|ol|pre)>)\s*<\/p>/g, '$1');
+        // 11. Restore placeholders (before block cleanup so <pre>/<h3> are real tags)
         html = html.replace(/\x00CB(\d+)\x00/g, function(_, i) {
             return codeBlocks[parseInt(i, 10)];
         });
+        // 12. Block element cleanup (unwrap from <p> nesting)
+        html = html.replace(/<p>\s*(<(?:ul|ol|pre|h[3-5]|hr|div))/g, '$1');
+        html = html.replace(/(<\/(?:ul|ol|pre|h[3-5]|div)>)\s*<\/p>/g, '$1');
+        html = html.replace(/(<hr>)\s*<\/p>/g, '$1');
         return html;
     }
 
