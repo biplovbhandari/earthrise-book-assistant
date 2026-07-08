@@ -290,3 +290,42 @@ def test_hybrid_sparse_empty_overfetches_for_reranker():
     assert store.dense_top_k == 9
     assert len(fake_reranker.last_candidates) == 9
     assert fake_reranker.last_top_k == 3
+
+
+def test_cross_encoder_reranker_rejects_bad_score_shape():
+    import numpy as np
+    from unittest.mock import MagicMock, patch
+
+    with patch("sentence_transformers.CrossEncoder") as MockCE:
+        mock_model = MagicMock()
+        mock_model.num_labels = 1
+        mock_model.predict.return_value = np.array([0.1, 0.2, 0.3])  # 3 scores, 2 candidates
+        MockCE.return_value = mock_model
+
+        from earthrise_rag.retrieval.rerankers import LocalCrossEncoderReranker
+
+        reranker = LocalCrossEncoderReranker("fake-model", "/tmp")
+        candidates = [make_scored_chunk("A", 0.1), make_scored_chunk("B", 0.1)]
+        with pytest.raises(ValueError, match="returned shape"):
+            reranker.rerank("query", candidates, top_k=2)
+
+
+def test_cross_encoder_reranker_truncates_to_top_k():
+    from unittest.mock import MagicMock, patch
+
+    with patch("sentence_transformers.CrossEncoder") as MockCE:
+        mock_model = MagicMock()
+        mock_model.num_labels = 1
+        mock_model.predict.return_value = [0.1, 0.9, 0.5, 0.7]
+        MockCE.return_value = mock_model
+
+        from earthrise_rag.retrieval.rerankers import LocalCrossEncoderReranker
+
+        reranker = LocalCrossEncoderReranker("fake-model", "/tmp")
+        candidates = [make_scored_chunk(c, 0.1) for c in ("A", "B", "C", "D")]
+
+        results = reranker.rerank("query", candidates, top_k=2)
+
+        assert len(results) == 2
+        assert results[0].chunk.content == "B"  # 0.9, highest
+        assert results[1].chunk.content == "D"  # 0.7, second

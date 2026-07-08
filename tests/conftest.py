@@ -66,16 +66,25 @@ class FakeCitationBuilder:
 
     def build(self, chunks):
         """Return one citation per chunk with a fixed URL."""
-        return [
-            Citation(
-                chunk_id=sc.chunk.id,
-                source_path=sc.chunk.metadata.get("source_path", ""),
-                chapter=sc.chunk.metadata.get("chapter", ""),
-                section=sc.chunk.metadata.get("section", ""),
-                url="/ch1.html",
+        citations = []
+        for sc in chunks:
+            chapter = sc.chunk.metadata.get("chapter", "")
+            section = sc.chunk.metadata.get("section", "")
+            if chapter and section:
+                display_label = f"{chapter} - {section}"
+            else:
+                display_label = chapter or section or "Source"
+            citations.append(
+                Citation(
+                    chunk_id=sc.chunk.id,
+                    source_path=sc.chunk.metadata.get("source_path", ""),
+                    chapter=chapter,
+                    section=section,
+                    url="/ch1.html",
+                    display_label=display_label,
+                )
             )
-            for sc in chunks
-        ]
+        return citations
 
 
 def create_test_client(monkeypatch, pipelines=None):

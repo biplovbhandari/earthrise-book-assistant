@@ -42,6 +42,7 @@ class TestSectionChunker:
         chunks = SectionChunker().chunk(doc)
 
         section_chunks = [c for c in chunks if c.metadata.get("section")]
+        assert len(section_chunks) == 1
         assert all(c.chunk_type == "standalone" for c in section_chunks)
         assert all(c.parent_id is None for c in section_chunks)
 
@@ -66,6 +67,50 @@ class TestNotebookChunker:
         sections = {c.metadata.get("section") for c in chunks if c.metadata.get("section")}
         assert "Data Loading" in sections
         assert "Model Training" in sections
+
+    def test_long_section_creates_parent_and_code_cell_children(self):
+        doc = Document(
+            title="Notebook",
+            source_path="book/03/notebook.ipynb",
+            content="",
+            metadata={
+                "cells": [
+                    {"cell_type": "markdown", "source": "## Big Section\n\n" + "word " * 700},
+                    {"cell_type": "code", "source": "import numpy as np"},
+                ],
+            },
+            source_type="book_text",
+        )
+        chunks = NotebookChunker().chunk(doc)
+
+        parents = [c for c in chunks if c.chunk_type == "parent"]
+        children = [c for c in chunks if c.chunk_type == "child"]
+        assert len(parents) == 1
+        assert parents[0].metadata.get("section") == "Big Section"
+        assert children and all(c.parent_id == parents[0].id for c in children)
+        code_children = [c for c in children if c.content_type == "code_cell"]
+        assert len(code_children) == 1
+        assert code_children[0].content == "```python\nimport numpy as np\n```"
+
+    def test_very_large_section_splits_into_multiple_parents(self):
+        doc = Document(
+            title="Notebook",
+            source_path="book/03/notebook.ipynb",
+            content="",
+            metadata={
+                "cells": [
+                    {"cell_type": "markdown", "source": "## Huge Section\n\nIntro."},
+                    {"cell_type": "markdown", "source": "word " * 2000},
+                    {"cell_type": "markdown", "source": "word " * 2000},
+                ],
+            },
+            source_type="book_text",
+        )
+        chunks = NotebookChunker().chunk(doc)
+
+        parents = [c for c in chunks if c.chunk_type == "parent"]
+        assert len(parents) >= 2
+        assert all(p.metadata.get("section") == "Huge Section" for p in parents)
 
 
 class TestPdfChunker:

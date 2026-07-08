@@ -63,13 +63,16 @@ class TestSystemPromptHardening:
 class TestFormatHistory:
     def test_per_turn_truncation(self):
         builder = DefaultContextBuilder()
-        long_content = "a" * 3000
-        history = [{"role": "user", "content": long_content}]
+        history = [{"role": "user", "content": "a" * 3000}]
         result = builder._format_history(history)
-        assert len(result) < 3000
+        # PRE cap 2000, then POST cap 800 + "..." -> exactly 803 chars of content.
+        assert result == '<turn role="user">' + "a" * 800 + "...</turn>"
 
     def test_total_budget_drops_oldest(self):
         builder = DefaultContextBuilder()
-        history = [{"role": "user", "content": "x" * 700} for _ in range(10)]
+        # Distinguishable 700-char turns so we can prove WHICH survive the budget.
+        history = [{"role": "user", "content": f"MARKER{i:02d}" + "x" * 692} for i in range(10)]
         result = builder._format_history(history)
         assert len(result) <= 4000
+        assert "MARKER09" in result  # newest survives
+        assert "MARKER00" not in result  # oldest dropped

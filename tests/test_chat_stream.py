@@ -58,6 +58,7 @@ class TestAskStream:
         assert meta["type"] == "meta"
         assert len(meta["citations"]) == 1
         assert meta["citations"][0]["url"] == "/ch1.html"
+        assert meta["citations"][0]["display_label"]
 
     def test_zero_chunks_emits_meta_then_canned(self):
         pipeline = QueryPipeline(

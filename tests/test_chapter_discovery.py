@@ -32,6 +32,9 @@ def test_discover_companion_pdfs(tmp_path):
     pdf_dir.mkdir(parents=True)
     paper = pdf_dir / "companion_paper.pdf"
     paper.write_bytes(b"%PDF-1.4")
+    # Decoy: a PDF NOT under a pdf/ dir must be excluded by the pdf/*.pdf glob.
+    decoy = chapter_dir / "stray.pdf"
+    decoy.write_bytes(b"%PDF-1.4")
 
     pairs = _discover_companion_pdfs(tmp_path)
 
@@ -40,6 +43,7 @@ def test_discover_companion_pdfs(tmp_path):
 
     assert len(pairs) == 1
     assert str(paper) in actual_paths
+    assert str(decoy) not in actual_paths
     assert "book/03_Semantic_Segmentation/pdf/companion_paper.pdf" in source_paths
 
 
@@ -57,3 +61,15 @@ def test_discover_transcripts(tmp_path):
     assert len(pairs) == 1
     assert str(t1) in actual_paths
     assert "data/transcripts/vid1.json" in source_paths
+
+
+def test_discover_transcripts_missing_dir_returns_empty(tmp_path):
+    # The indexer must run cleanly before any transcripts have been generated.
+    assert _discover_transcripts(tmp_path / "does_not_exist") == []
+
+
+def test_extract_chapters_bibliography_as_list():
+    config = {"book": {"chapters": ["index.md"]}, "bibliography": ["a.bib", "b.bib"]}
+    chapters = _extract_chapters(config)
+    assert "a.bib" in chapters
+    assert "b.bib" in chapters
