@@ -214,6 +214,54 @@
   padding-left: 20px;
 }
 
+#earthrise-chat-widget .msg-assistant h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 10px 0 4px;
+  line-height: 1.3;
+}
+
+#earthrise-chat-widget .msg-assistant h3:first-child {
+  margin-top: 0;
+}
+
+#earthrise-chat-widget .msg-assistant h4 {
+  font-size: 0.925rem;
+  font-weight: 600;
+  margin: 8px 0 4px;
+  line-height: 1.3;
+}
+
+#earthrise-chat-widget .msg-assistant h4:first-child {
+  margin-top: 0;
+}
+
+#earthrise-chat-widget .msg-assistant h5 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin: 6px 0 2px;
+  line-height: 1.3;
+}
+
+#earthrise-chat-widget .msg-assistant h5:first-child {
+  margin-top: 0;
+}
+
+#earthrise-chat-widget .msg-assistant hr {
+  border: none;
+  border-top: 1px solid var(--er-border);
+  margin: 8px 0;
+}
+
+#earthrise-chat-widget .msg-assistant .md-link {
+  color: var(--er-primary);
+  text-decoration: underline;
+}
+
+#earthrise-chat-widget .msg-assistant .md-link:hover {
+  text-decoration: none;
+}
+
 #earthrise-chat-widget .citation-ref {
   font-size: 0.75rem;
   vertical-align: super;
