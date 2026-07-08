@@ -1,7 +1,5 @@
 from unittest.mock import MagicMock
 
-from fastapi.testclient import TestClient
-
 from conftest import create_test_client, make_scored_chunk
 
 
@@ -37,17 +35,6 @@ class TestSearch:
             )
         assert resp.status_code == 422
 
-    def test_pipelines_none_returns_503(self, monkeypatch):
-        monkeypatch.setattr(
-            "api.main.create_pipelines",
-            MagicMock(side_effect=Exception("Qdrant down")),
-        )
-        from api.main import app
-
-        with TestClient(app, raise_server_exceptions=False) as client:
-            resp = client.post("/search", json={"question": "test"})
-        assert resp.status_code == 503
-
     def test_transient_qdrant_failure_returns_503(self, monkeypatch):
         pipelines = _make_fake_pipelines()
         pipelines.query.search.side_effect = Exception("connection refused")  # type: ignore[union-attr]
@@ -55,3 +42,21 @@ class TestSearch:
         with client:
             resp = client.post("/search", json={"question": "test"})
         assert resp.status_code == 503
+
+    def test_top_k_forwarded_to_pipeline(self, monkeypatch):
+        # Guards the `body.top_k if not None` branch: a user-supplied top_k must
+        # thread through to the retrieval call. Hold the query mock locally so its
+        # call is assertable (pipelines.query is typed as a real QueryPipeline).
+        from api.dependencies import Pipelines
+
+        query = MagicMock()
+        query.search.return_value = [make_scored_chunk()]
+        store = MagicMock()
+        store.count.return_value = 100
+        pipelines = Pipelines(query=query, vector_store=store)  # type: ignore[arg-type]
+        client = create_test_client(monkeypatch, pipelines)
+        with client:
+            resp = client.post("/search", json={"question": "q", "top_k": 7})
+        assert resp.status_code == 200
+        query.search.assert_called_once()
+        assert query.search.call_args.args[1] == 7

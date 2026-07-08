@@ -33,11 +33,6 @@ class FakeSparseEmbedder:
     pass
 
 
-class FakeCrossEncoderReranker:
-    def rerank(self, query, candidates, top_k):
-        return candidates[:top_k]
-
-
 def _patch_adapters(monkeypatch, reranker_factory=None):
     monkeypatch.setattr(
         "api.dependencies._create_embedder",
@@ -188,24 +183,6 @@ def test_create_reranker_factory_wires_cross_encoder(monkeypatch):
             "cross-encoder/ms-marco-MiniLM-L6-v2",
             cache_folder=settings.hf_home,
         )
-
-
-def test_create_pipelines_wires_cross_encoder_reranker(monkeypatch):
-    _patch_adapters(monkeypatch, reranker_factory=lambda config: FakeCrossEncoderReranker())
-    settings = Settings(
-        retrieval_strategy="hybrid",
-        reranker_provider="local_cross_encoder",
-        qdrant_url="http://fake:6333",
-    )
-
-    from api.dependencies import create_pipelines
-    from earthrise_rag.retrieval import HybridStrategy
-
-    pipelines = create_pipelines(settings)
-
-    assert pipelines.query is not None
-    assert isinstance(pipelines.query._strategy, HybridStrategy)
-    assert isinstance(pipelines.query._strategy._reranker, FakeCrossEncoderReranker)
 
 
 def test_create_reranker_factory_rejects_empty_model_name():

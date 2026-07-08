@@ -2,6 +2,8 @@ import json
 
 from conftest import create_test_client
 
+from api.routes.chat import MAX_HISTORY_CONTENT
+
 
 class FakeStreamingQueryPipeline:
     """Explicit fake with all required adapters for readiness checks."""
@@ -101,6 +103,7 @@ class TestChatEndpoint:
         with client:
             resp = client.post("/chat", json={"question": "Q?"})
         assert resp.status_code == 503
+        assert resp.json()["detail"] == "streaming not supported"
 
     def test_incomplete_adapters_returns_503(self, monkeypatch):
         pipelines = _make_fake_pipelines(query=FakeIncompleteQueryPipeline())
@@ -108,6 +111,7 @@ class TestChatEndpoint:
         with client:
             resp = client.post("/chat", json={"question": "Q?"})
         assert resp.status_code == 503
+        assert resp.json()["detail"] == "generation adapters incomplete"
 
     def test_empty_vector_store_returns_503(self, monkeypatch):
         pipelines = _make_fake_pipelines(store=FakeVectorStore(count_val=0))
@@ -115,6 +119,7 @@ class TestChatEndpoint:
         with client:
             resp = client.post("/chat", json={"question": "Q?"})
         assert resp.status_code == 503
+        assert resp.json()["detail"] == "retrieval not ready"
 
     def test_history_truncation(self, monkeypatch):
         fake_query = FakeStreamingQueryPipeline()
@@ -137,8 +142,9 @@ class TestChatEndpoint:
         with client:
             resp = client.post("/chat", json={"question": "Q?"})
         assert resp.status_code == 503
+        assert resp.json()["detail"] == "streaming not supported"
 
-    def test_long_history_content_accepted(self, monkeypatch):
+    def test_long_history_content_truncated_to_cap(self, monkeypatch):
         fake_query = FakeStreamingQueryPipeline()
         pipelines = _make_fake_pipelines(query=fake_query)
         client = create_test_client(monkeypatch, pipelines)
@@ -149,9 +155,45 @@ class TestChatEndpoint:
         with client:
             resp = client.post("/chat", json={"question": "Follow up?", "history": history})
         assert resp.status_code == 200
+        # ChatMessage.content has no max_length, so a 200 alone is a tautology;
+        # assert the 8000-char truncation actually reached the pipeline.
+        assert fake_query.last_history is not None
+        assert len(fake_query.last_history[1]["content"]) == MAX_HISTORY_CONTENT
 
-    def test_empty_question_returns_422(self, monkeypatch):
+    def test_whitespace_question_returns_422(self, monkeypatch):
+        # "   " passes raw min_length=1 but our strip_question collapses it to "" -> 422,
+        # so this exercises strip_question rather than Pydantic's min_length alone.
         client = create_test_client(monkeypatch, _make_fake_pipelines())
         with client:
-            resp = client.post("/chat", json={"question": ""})
+            resp = client.post("/chat", json={"question": "   "})
         assert resp.status_code == 422
+
+    def test_stream_exception_yields_error_event(self, monkeypatch):
+        """A mid-stream pipeline exception is surfaced as an SSE error event, not a 500."""
+
+        class _RaisingPipeline:
+            def __init__(self):
+                self._context_builder = object()
+                self._llm_client = self
+                self._citation_builder = object()
+
+            def ask_stream(self, question, *, history=None, filters=None):
+                yield {"type": "meta", "citations": []}
+                raise RuntimeError("boom")
+
+            def chat_stream(self, messages, temperature=0.3, max_tokens=1024):
+                yield "x"
+
+        pipelines = _make_fake_pipelines(query=_RaisingPipeline())
+        client = create_test_client(monkeypatch, pipelines)
+        with client:
+            resp = client.post("/chat", json={"question": "Q?"})
+        assert resp.status_code == 200
+        events = [
+            json.loads(line.removeprefix("data: "))
+            for line in resp.text.strip().split("\n\n")
+            if line.startswith("data:")
+        ]
+        error_events = [e for e in events if e["type"] == "error"]
+        assert len(error_events) == 1
+        assert error_events[0]["message"] == "Generation failed. Please try again."

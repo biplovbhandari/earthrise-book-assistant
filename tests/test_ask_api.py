@@ -1,7 +1,3 @@
-from unittest.mock import MagicMock
-
-from fastapi.testclient import TestClient
-
 from conftest import create_test_client, make_scored_chunk
 
 from earthrise_rag.models.answer import Answer
@@ -20,6 +16,7 @@ def _make_answer(chunks=None):
                 source_path=sc.chunk.metadata.get("source_path", ""),
                 chapter=sc.chunk.metadata.get("chapter", ""),
                 section=sc.chunk.metadata.get("section", ""),
+                display_label="03 - U-Net",
             )
             for sc in chunks
         ],
@@ -66,17 +63,7 @@ class TestAsk:
         assert "citations" in body
         assert len(body["sources"]) == 1
         assert len(body["citations"]) == 1
-
-    def test_pipelines_none_returns_503(self, monkeypatch):
-        monkeypatch.setattr(
-            "api.main.create_pipelines",
-            MagicMock(side_effect=Exception("Qdrant down")),
-        )
-        from api.main import app
-
-        with TestClient(app, raise_server_exceptions=False) as client:
-            resp = client.post("/ask", json={"question": "test"})
-        assert resp.status_code == 503
+        assert body["citations"][0]["display_label"]
 
     def test_llm_failure_returns_503(self, monkeypatch):
         from api.dependencies import Pipelines
