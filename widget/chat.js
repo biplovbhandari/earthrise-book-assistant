@@ -150,19 +150,34 @@
             }).join('');
             return '<ul>' + items + '</ul>';
         });
-        // 8. Horizontal rules
+        // 8. Tables
+        html = html.replace(/^(\|.+\|)[ \t]*\n(\|[\s:|-]+\|)[ \t]*\n((?:\|.+\|[ \t]*(?:\n|$))+)/gm, function(_, headerLine, _sep, bodyBlock) {
+            var headers = headerLine.split('|').slice(1, -1);
+            var rows = bodyBlock.trim().split('\n');
+            var thead = '<thead><tr>' + headers.map(function(h) {
+                return '<th>' + h.trim() + '</th>';
+            }).join('') + '</tr></thead>';
+            var tbody = '<tbody>' + rows.map(function(row) {
+                var cells = row.split('|').slice(1, -1);
+                return '<tr>' + cells.map(function(c) {
+                    return '<td>' + c.trim() + '</td>';
+                }).join('') + '</tr>';
+            }).join('') + '</tbody>';
+            return '<div class="table-wrap"><table>' + thead + tbody + '</table></div>';
+        });
+        // 9. Horizontal rules
         html = html.replace(/^-{3,}$/gm, '<hr>');
-        // 9. Paragraphs
+        // 10. Paragraphs
         html = html.replace(/\n\n+/g, '</p><p>');
         html = '<p>' + html + '</p>';
         html = html.replace(/<p>\s*<\/p>/g, '');
-        // 10. Restore placeholders (before block cleanup so <pre>/<h3> are real tags)
+        // 11. Restore placeholders (before block cleanup so <pre>/<h3> are real tags)
         html = html.replace(/\x00CB(\d+)\x00/g, function(_, i) {
             return codeBlocks[parseInt(i, 10)];
         });
-        // 11. Block element cleanup (unwrap from <p> nesting)
-        html = html.replace(/<p>\s*(<(?:ul|ol|pre|h[3-5]|hr))/g, '$1');
-        html = html.replace(/(<\/(?:ul|ol|pre|h[3-5])>)\s*<\/p>/g, '$1');
+        // 12. Block element cleanup (unwrap from <p> nesting)
+        html = html.replace(/<p>\s*(<(?:ul|ol|pre|h[3-5]|hr|div))/g, '$1');
+        html = html.replace(/(<\/(?:ul|ol|pre|h[3-5]|div)>)\s*<\/p>/g, '$1');
         html = html.replace(/(<hr>)\s*<\/p>/g, '$1');
         return html;
     }
