@@ -137,16 +137,17 @@
             while ((match = pattern.exec(node.nodeValue)) !== null) {
                 var num = parseInt(match[1], 10);
                 if (num < 1 || num > currentCitations.length) continue;
-                if (match.index > 0 && /[\w\]]/.test(node.nodeValue[match.index - 1])) continue;
+                var citation = currentCitations[num - 1];
+                if (!citation || typeof citation !== 'object') continue;
+                if (match.index > 0 && /\w/.test(node.nodeValue[match.index - 1])) continue;
                 if (match.index > lastIndex)
                     parts.push(document.createTextNode(node.nodeValue.slice(lastIndex, match.index)));
-                var citation = currentCitations[num - 1];
                 if (citation.url) {
                     var a = document.createElement('a');
                     a.href = citation.url;
                     a.textContent = '[' + num + ']';
-                    a.title = (citation.chapter || '') + (citation.section ? ' - ' + citation.section : '');
-                    a.target = '_blank'; a.rel = 'noopener'; a.className = 'citation-ref';
+                    a.title = citation.display_label || (citation.chapter ? citation.chapter + (citation.section ? ' - ' + citation.section : '') : citation.section || '');
+                    a.target = '_blank'; a.rel = 'noopener noreferrer'; a.className = 'citation-ref';
                     a.addEventListener('click', (function(c) {
                         return function() {
                             if (typeof gtag === 'function') gtag('event', 'citation_clicked', {
@@ -174,20 +175,47 @@
 
     function renderSources(messageEl, citations) {
         if (!citations || !citations.length) return;
+        var groups = Object.create(null);
+        var groupOrder = [];
+        citations.forEach(function(c, i) {
+            if (!c || typeof c !== 'object') return;
+            var key = (c.source_path || c.url || 'idx-' + i) + '\x00' + (c.display_label || '');
+            if (!groups[key]) {
+                groups[key] = { entries: [], citation: c };
+                groupOrder.push(key);
+            }
+            groups[key].entries.push({ index: i + 1, url: c.url });
+        });
+        if (!groupOrder.length) return;
         var details = document.createElement('details');
         details.className = 'sources';
         var summary = document.createElement('summary');
         summary.textContent = 'Sources';
         details.appendChild(summary);
         var ul = document.createElement('ul');
-        citations.forEach(function(c, i) {
+        groupOrder.forEach(function(key) {
+            var group = groups[key];
+            var c = group.citation;
             var li = document.createElement('li');
-            var label = '[' + (i + 1) + '] ' + (c.chapter || '') + (c.section ? ' - ' + c.section : '');
-            if (c.url) {
-                var a = document.createElement('a');
-                a.href = c.url; a.textContent = label; a.target = '_blank'; a.rel = 'noopener';
-                li.appendChild(a);
-            } else { li.textContent = label; }
+            group.entries.forEach(function(entry) {
+                var ref = '[' + entry.index + ']';
+                if (entry.url) {
+                    var a = document.createElement('a');
+                    a.href = entry.url; a.textContent = ref;
+                    a.target = '_blank'; a.rel = 'noopener noreferrer';
+                    a.className = 'source-ref';
+                    li.appendChild(a);
+                } else {
+                    var span = document.createElement('span');
+                    span.textContent = ref;
+                    span.className = 'source-ref-plain';
+                    li.appendChild(span);
+                }
+            });
+            var text = c.display_label
+                || (c.chapter ? c.chapter + (c.section ? ' - ' + c.section : '') : c.section || 'Source');
+            var label = document.createTextNode(' ' + text);
+            li.appendChild(label);
             ul.appendChild(li);
         });
         details.appendChild(ul);
@@ -286,7 +314,7 @@
                     var parsed;
                     try { parsed = JSON.parse(dataLine.slice(5).trim()); } catch (_e) { continue; }
                     if (parsed.type === 'meta') {
-                        currentCitations = parsed.citations || [];
+                        currentCitations = Array.isArray(parsed.citations) ? parsed.citations : [];
                     } else if (parsed.type === 'token') {
                         assistantText += parsed.content || '';
                         assistantBubble.innerHTML = renderMarkdown(assistantText);

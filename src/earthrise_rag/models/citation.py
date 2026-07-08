@@ -9,3 +9,4 @@ class Citation(BaseModel):
     chapter: str
     section: str
     url: str = ""
+    display_label: str = ""

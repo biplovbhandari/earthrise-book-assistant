@@ -262,6 +262,21 @@
   text-decoration: underline;
 }
 
+#earthrise-chat-widget details.sources .source-ref {
+  color: var(--er-primary);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+#earthrise-chat-widget details.sources .source-ref:hover {
+  text-decoration: underline;
+}
+
+#earthrise-chat-widget details.sources .source-ref-plain {
+  color: var(--er-primary);
+  font-weight: 600;
+}
+
 #earthrise-chat-widget .loading-dots {
   display: flex;
   gap: 4px;
