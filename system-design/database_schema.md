@@ -1,6 +1,6 @@
 # Database Schema
 
-PostgreSQL 17 + pgvector.
+PostgreSQL and pgvector.
 Schema managed by Alembic migrations; SQLAlchemy models are the code-level source of truth.
 This document captures architectural decisions and rationale - not exact column definitions.
 
@@ -48,9 +48,10 @@ erDiagram
 Visit patterns (inactivity gaps) are derivable from interaction timestamps.
 The conversation is the meaningful domain concept - a chat thread that persists until the user explicitly clears it or opens a fresh browser visit.
 
-**Client-generated conversation IDs, server-generated interaction IDs.**
-Conversations need the ID before the first request (stored in localStorage, sent with every /chat call).
-Interactions need the ID after the response (server pre-allocates UUID, returns in SSE meta event so the widget can immediately wire up feedback and sharing).
+**All resource IDs are server-generated.**
+`visitor_id`, `conversation_id`, and `interaction_id` are all created by the server and returned in the SSE `meta` event.
+The widget stores `visitor_id` and `conversation_id` in `localStorage` and sends them on subsequent requests.
+No client-side UUID generation.
 
 **Immutable deployments.**
 A deployment is a complete pipeline configuration snapshot: prompt + index + model + temperature + strategy.
@@ -73,17 +74,18 @@ For debugging - queried rarely, when the admin inspects one specific interaction
 Citations (structured table): final cited sources with scores and ranking method.
 For analytics - queried frequently, powering heatmaps and gap analysis.
 
-**query_embedding coupled to embedding model.**
-The VECTOR dimension is fixed to the current model.
-Model changes are rare, require full re-indexing, and include an ALTER on the column dimension.
-The deployment chain (interaction -> deployment -> index_run -> config) records which model was used.
+**`query_embedding` coupled to embedding model.**
+The `VECTOR` dimension is fixed to the current model.
+Model changes are rare, require full re-indexing, and include an `ALTER` on the column dimension.
+The deployment chain (`interaction` -> `deployment` -> `index_run` -> `config`) records which model was used.
 
 **Evaluation results are self-contained.**
-Eval results store response, citations, trace, and scores inline (JSONB) rather than referencing the interaction/citation/trace tables.
-Eval runs are not real user interactions and should not appear in the interactions table.
+Eval results store response, citations, trace, and scores inline (JSONB) rather than referencing the `interaction_citations`/`interaction_traces` tables.
+Eval runs are not real user interactions and should not appear in the `interactions` table.
 At eval scale, the inline JSONB approach is simpler without performance cost.
+Eval runs track async progress via a `status` column (`pending`, `running`, `completed`, `failed`) since evaluation is long-running (202 Accepted pattern).
 
 **Rate limiting: DB tracks counts, app owns thresholds.**
-The feedback_rate_limits table counts submissions per IP per time window.
+The `feedback_rate_limits` table counts submissions per IP per time window.
 The threshold (e.g., 30/minute) is application config, not stored in the database.
 Tunable without migrations.
