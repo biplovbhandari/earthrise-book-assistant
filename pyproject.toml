@@ -60,7 +60,6 @@ target-version = "py312"
 line-length = 100
 exclude = ["book/"]
 
-# come back to this later
-[tool.ruff.lint]
-extend-select = ["E402"]
-ignore = ["BLE001", "SIM102", "SIM115", "TRY002", "RUF012"]
+[tool.ruff.lint.per-file-ignores]
+"scripts/*" = ["BLE001", "E402"]
+"notebooks/*" = ["BLE001", "SIM115"]

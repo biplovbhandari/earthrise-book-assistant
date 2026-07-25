@@ -35,7 +35,7 @@ class MarkdownParser:
                 if isinstance(fm, dict):
                     title = fm.get("title", "")
                     metadata["frontmatter"] = fm
-            except Exception as e:
+            except (ValueError, ImportError) as e:
                 logger.warning("Failed to parse YAML frontmatter in %s: %s", actual_path, e)
             text = text[match.end() :]
 
@@ -79,7 +79,7 @@ class NotebookParser:
                     fm = yaml.safe_load(raw_text)
                     if isinstance(fm, dict):
                         metadata.update(fm)
-                except Exception as e:
+                except (ValueError, ImportError) as e:
                     logger.warning("Failed to parse raw cell YAML in %s: %s", actual_path, e)
                 continue
 

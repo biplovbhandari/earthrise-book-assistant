@@ -59,7 +59,7 @@ async def check_db_schema_status(engine: AsyncEngine) -> str:
             db_version = row[0]
             head = _get_alembic_head()
             return "ready" if db_version == head else "stale_schema"
-    except Exception:
+    except (OSError, ConnectionError, RuntimeError):
         return "unavailable"
 
 
@@ -72,5 +72,5 @@ def _get_alembic_head() -> str | None:
         cfg = Config("alembic.ini")
         script = ScriptDirectory.from_config(cfg)
         return script.get_current_head()
-    except Exception:
+    except (FileNotFoundError, ImportError, RuntimeError):
         return None

@@ -39,7 +39,7 @@ class _FakeQueryPipeline:
 
 class _FakeFailingQueryPipeline(_FakeQueryPipeline):
     def ask(self, question, filters=None, *, history=None):
-        raise Exception("LLM timeout")
+        raise RuntimeError("LLM timeout")
 
 
 def _make_fake_pipelines(ask_result=None, count=100):
