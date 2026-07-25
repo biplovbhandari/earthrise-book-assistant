@@ -2,19 +2,10 @@
 
 from __future__ import annotations
 
-import pytest
 from fastapi.testclient import TestClient
 
 from earthrise_rag.models import Chunk, ScoredChunk
 from earthrise_rag.models.citation import Citation
-
-
-@pytest.fixture
-def client():
-    """Create a bare TestClient for the FastAPI app."""
-    from api.main import app
-
-    return TestClient(app)
 
 
 def make_scored_chunk(
@@ -88,7 +79,13 @@ class FakeCitationBuilder:
 
 
 def create_test_client(monkeypatch, pipelines=None):
-    """Create a TestClient with mocked pipelines."""
+    """Create a TestClient with mocked pipelines and DB disabled."""
+    monkeypatch.setenv("DATABASE_URL", "")
+
+    from earthrise_rag.config import get_settings
+
+    get_settings.cache_clear()
+
     from api.main import app
 
     if pipelines is not None:

@@ -25,8 +25,9 @@ Edit `.env` -- see `.env.example` for all available settings.
 ## Local Setup (uv)
 
 Runs the app on your machine with uv.
-Qdrant runs in Docker (or [build from source](https://qdrant.tech/documentation/installation/) with Rust).
-Config defaults are local-dev-friendly -- Docker Compose overrides them for containers.
+Qdrant runs in Docker (required).
+PostgreSQL is optional -- only needed for interaction recording and analytics.
+You can use Docker Compose for PostgreSQL or a locally installed PostgreSQL with the pgvector extension.
 
 ```bash
 # Install dependencies
@@ -37,9 +38,18 @@ cp .env.example .env
 # Edit .env if needed -- key settings:
 #   LLM_MODEL=qwen3:8b               # must be set
 #   RERANKER_PROVIDER=noop            # or local_cross_encoder
+#   DATABASE_URL=                     # empty = DB disabled; set for interaction recording
 
-# Start Qdrant
+# Start Qdrant (required)
 docker compose up qdrant -d
+
+# PostgreSQL (optional -- choose one):
+docker compose up postgres -d          # option A: Docker (recommended)
+# option B: use your own PostgreSQL with pgvector installed
+
+# Apply database migrations (only if PostgreSQL is running)
+DATABASE_URL=postgresql+asyncpg://earthrise:earthrise@localhost:5432/earthrise \
+  uv run alembic upgrade head
 
 # Transcribe YouTube lectures (optional -- skip if transcripts are already committed)
 uv run --group indexer python scripts/transcribe.py
@@ -55,7 +65,7 @@ uv run uvicorn api.main:app --reload
 Try it:
 
 ```bash
-# Health check (shows retrieval, generation, and chat readiness)
+# Health check (shows retrieval, generation, chat, and database readiness)
 curl -s localhost:8000/health | python3 -m json.tool
 
 # Search (retrieval only)
@@ -189,7 +199,8 @@ See [ffmpeg.org/download.html](https://ffmpeg.org/download.html) for installatio
 
 Complete Docker path -- no local Python required.
 Complete the [Getting Started](#getting-started) steps first (clone + .env).
-Docker Compose overrides `QDRANT_URL` and `LLM_BASE_URL` automatically.
+Docker Compose overrides `QDRANT_URL`, `LLM_BASE_URL`, and `DATABASE_URL` automatically.
+Database migrations run automatically on app startup via the entrypoint script.
 
 ```bash
 # Setup
@@ -253,18 +264,55 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up
 
 To stop: `docker compose down`
 
+## Database Migrations
+
+Schema is managed by Alembic.
+SQLAlchemy ORM models are the source of truth; Alembic generates migration scripts from model changes.
+
+```bash
+# Apply pending migrations
+DATABASE_URL=postgresql+asyncpg://earthrise:earthrise@localhost:5432/earthrise \
+  uv run alembic upgrade head
+
+# Generate a new migration after changing ORM models
+DATABASE_URL=postgresql+asyncpg://earthrise:earthrise@localhost:5432/earthrise \
+  uv run alembic revision --autogenerate -m "describe the change"
+
+# Generate standalone SQL (for review or manual execution)
+uv run alembic -x sqlalchemy.url=postgresql+asyncpg://x:x@localhost/x \
+  upgrade head --sql > dev/artifacts/db/001_initial_schema.sql
+```
+
+Docker Compose applies migrations automatically on app startup via the entrypoint script.
+
 ## Testing and Linting
 
 ```bash
-uv sync --group dev
-uv run pytest -v                                           # tests
+uv sync --group dev --group indexer
+uv run pytest -v -m "not integration"                      # unit tests (no DB needed)
 uv run ruff check . && uv run ruff format --check .        # Python lint
 uv run pyright                                             # type check
+
+# Integration tests (requires PostgreSQL running -- tests against real DB)
+docker compose up postgres -d
+TEST_DATABASE_URL=postgresql+asyncpg://earthrise:earthrise@localhost:5432/earthrise \
+  uv run pytest -m integration -v                          # migration tests
 
 # JS/CSS linting (optional -- requires Node.js)
 npm install                                                # first time only
 npx eslint widget/chat.js                                  # JS lint
 npx stylelint widget/chat.css                              # CSS lint
+```
+
+## Dependency Management
+
+Dependencies are managed with [uv](https://docs.astral.sh/uv/).
+`uv.lock` is committed to the repo for reproducible installs.
+
+```bash
+uv sync --group dev --group indexer    # install all dependencies
+uv lock                                # regenerate uv.lock after editing pyproject.toml
+uv sync                                # install after regenerating lock
 ```
 
 ## Project Structure
@@ -275,14 +323,15 @@ earthrise-book-assistant/
 │   ├── config.py                # Pydantic BaseSettings, env-driven
 │   ├── interfaces.py            # Shared protocols (Embedder, SparseEmbedder, VectorStore, ...)
 │   ├── models/                  # Chunk, ScoredChunk, Document, Answer, Citation, IndexResult
+│   ├── db/                      # SQLAlchemy ORM models, engine factory, session management
 │   ├── indexing/                # Parsers, chunkers, embedder, sparse embedder, vector store, pipeline
 │   ├── retrieval/               # DenseStrategy, HybridStrategy (RRF), NoOpReranker, LocalCrossEncoderReranker
 │   ├── generation/              # LLM client, context builder, system prompt
 │   ├── citations/               # Citation builder
 │   └── query/                   # QueryPipeline (search + ask)
 ├── api/                         # FastAPI app
-│   ├── main.py                  # /health, routers, static book mount
-│   ├── dependencies.py          # Adapter wiring (factories, lazy imports)
+│   ├── main.py                  # /health, lifespan (DB engine), routers, static book mount
+│   ├── dependencies.py          # Adapter wiring (factories, DB session providers)
 │   └── routes/                  # /search, /ask, /chat endpoints + readiness helpers
 ├── scripts/
 │   ├── index_book.py            # CLI: index book + PDFs + transcripts into Qdrant
@@ -297,7 +346,8 @@ earthrise-book-assistant/
 │   ├── chat.js                  # Widget logic (pure JS, lintable)
 │   ├── chat.html                # Widget HTML structure
 │   └── _quarto-chat.yml         # Quarto profile overlay
-├── infra/docker/                # Dockerfiles
+├── alembic/                     # Database migrations (Alembic)
+├── infra/docker/                # Dockerfiles + entrypoint script
 ├── tests/
 ├── system-design/               # Architecture docs
 ├── book/                        # Git submodule (book source)

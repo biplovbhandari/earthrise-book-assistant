@@ -139,7 +139,7 @@ def test_create_indexing_pipeline_registers_pdf_and_json(monkeypatch):
     _patch_adapters(monkeypatch)
     monkeypatch.setattr(
         "api.dependencies._load_video_chapter_map",
-        lambda: {},
+        dict,
     )
     settings = Settings(
         retrieval_strategy="hybrid",
@@ -216,8 +216,9 @@ def test_create_reranker_factory_tolerates_empty_model_when_noop():
 
 def test_create_reranker_factory_rejects_multi_label_model():
     """Multi-label model should fail at startup, not at first query."""
-    import pytest
     from unittest.mock import MagicMock, patch
+
+    import pytest
 
     mock_ce_class = MagicMock()
     mock_ce_instance = MagicMock()

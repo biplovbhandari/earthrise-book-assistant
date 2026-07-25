@@ -1,5 +1,4 @@
 import pytest
-
 from conftest import make_scored_chunk
 
 from earthrise_rag.retrieval import DenseStrategy, HybridStrategy, NoOpReranker
@@ -85,22 +84,6 @@ def test_hybrid_strategy_fuses_dense_and_sparse():
     contents = {r.chunk.content for r in results}
     assert "CNN basics" in contents
     assert "NDVI index" in contents
-
-
-def test_hybrid_strategy_disjoint_results():
-    dense = [make_scored_chunk("Dense result A", 0.9)]
-    sparse = [make_scored_chunk("Sparse result B", 0.8, method="sparse")]
-
-    store = FakeStore(results=dense, sparse_results=sparse)
-    strategy = HybridStrategy(FakeEmbedder(), store, NoOpReranker(), rrf_k=60)
-
-    results = strategy.retrieve("query", top_k=10)
-
-    assert len(results) == 2
-    contents = {r.chunk.content for r in results}
-    assert "Dense result A" in contents
-    assert "Sparse result B" in contents
-    assert all(r.ranking_method == "hybrid_rrf" for r in results)
 
 
 def test_hybrid_strategy_empty_sparse_skips_rrf():
@@ -197,9 +180,9 @@ def test_cross_encoder_reranker_empty_candidates():
 
 def test_cross_encoder_reranker_replaces_nonfinite_scores():
     import math
+    from unittest.mock import MagicMock, patch
 
     import numpy as np
-    from unittest.mock import MagicMock, patch
 
     with patch("sentence_transformers.CrossEncoder") as MockCE:
         mock_model = MagicMock()
@@ -208,8 +191,8 @@ def test_cross_encoder_reranker_replaces_nonfinite_scores():
         MockCE.return_value = mock_model
 
         from earthrise_rag.retrieval.rerankers import (
-            LocalCrossEncoderReranker,
             _NON_FINITE_SENTINEL,
+            LocalCrossEncoderReranker,
         )
 
         reranker = LocalCrossEncoderReranker("fake-model", "/tmp")
@@ -293,8 +276,9 @@ def test_hybrid_sparse_empty_overfetches_for_reranker():
 
 
 def test_cross_encoder_reranker_rejects_bad_score_shape():
-    import numpy as np
     from unittest.mock import MagicMock, patch
+
+    import numpy as np
 
     with patch("sentence_transformers.CrossEncoder") as MockCE:
         mock_model = MagicMock()

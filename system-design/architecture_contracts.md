@@ -323,6 +323,7 @@ Two entry points:
 def create_indexing_pipeline(config: Settings) -> IndexingPipeline:
     """CLI (scripts/index_book.py). No retrieval wiring, create_if_missing=True."""
 
+
 def create_pipelines(config: Settings) -> Pipelines:
     """FastAPI startup. Query side only, create_if_missing=False."""
 ```

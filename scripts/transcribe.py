@@ -14,7 +14,7 @@ import json
 import logging
 import os
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 # Ensure repo root is on sys.path so the repo is importable
@@ -36,7 +36,7 @@ _YOUTUBE_WATCH_URL = "https://www.youtube.com/watch?v="
 def _setup_logging() -> None:
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
     LOG_DIR.mkdir(exist_ok=True)
-    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
     file_handler = logging.FileHandler(LOG_DIR / f"transcription_{timestamp}.log")
     file_handler.setFormatter(logging.Formatter("%(asctime)s %(name)s %(levelname)s: %(message)s"))
     logging.getLogger().addHandler(file_handler)
@@ -47,7 +47,7 @@ def _get_playlist_videos(playlist_url: str) -> list[dict]:
 
     Returns list of dicts with keys: id, title, duration, url.
     """
-    import yt_dlp  # type: ignore[import-not-found]  # noqa: PLC0415
+    import yt_dlp  # type: ignore[import-not-found]
 
     ydl_opts = {
         "extract_flat": False,
@@ -80,7 +80,7 @@ def _get_video_info(video_id: str) -> dict:
 
     Returns dict with keys: id, title, duration, url.
     """
-    import yt_dlp  # type: ignore[import-not-found]  # noqa: PLC0415
+    import yt_dlp  # type: ignore[import-not-found]
 
     url = f"{_YOUTUBE_WATCH_URL}{video_id}"
     ydl_opts = {
@@ -106,7 +106,7 @@ def _download_audio(video_id: str, output_dir: Path) -> Path:
 
     Raises RuntimeError if the download fails or the output file cannot be found.
     """
-    import yt_dlp  # type: ignore[import-not-found]  # noqa: PLC0415
+    import yt_dlp  # type: ignore[import-not-found]
 
     url = f"{_YOUTUBE_WATCH_URL}{video_id}"
     outtmpl = str(output_dir / f"{video_id}.%(ext)s")
@@ -155,7 +155,7 @@ def _transcribe_audio(
 
     Returns list of segment dicts: [{"start": float, "end": float, "text": str}, ...].
     """
-    import whisper  # type: ignore[import-not-found]  # noqa: PLC0415
+    import whisper  # type: ignore[import-not-found]
 
     load_opts: dict = {}
     whisper_cache = os.environ.get("WHISPER_CACHE_DIR")
@@ -208,7 +208,7 @@ def _apply_corrections(transcript_dir: Path, corrections_file: Path) -> int:
         logger.info("No corrections file at %s, skipping", corrections_file)
         return 0
 
-    import yaml  # noqa: PLC0415
+    import yaml
 
     with open(corrections_file, encoding="utf-8") as f:
         corrections = yaml.safe_load(f)

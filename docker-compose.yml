@@ -12,6 +12,7 @@ services:
     environment:
       - QDRANT_URL=http://qdrant:6333
       - LLM_BASE_URL=http://host.docker.internal:11434/v1
+      - DATABASE_URL=postgresql+asyncpg://earthrise:earthrise@postgres:5432/earthrise
     volumes:
       - models_cache:/models
       - book_html:/app/_book:ro
@@ -24,9 +25,27 @@ services:
       - 6333:6333
       - 6334:6334
     volumes:
-      - qdrant_data:/qdrant/storage
+      - ./.data/qdrant:/qdrant/storage
     healthcheck:
       test: ["CMD-SHELL", "bash -c ':> /dev/tcp/localhost/6333'"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  postgres:
+    image: pgvector/pgvector:0.8.5-pg17
+    container_name: earthrise-db
+    ports:
+      - "127.0.0.1:5432:5432"
+    environment:
+      POSTGRES_USER: earthrise
+      POSTGRES_PASSWORD: earthrise
+      POSTGRES_DB: earthrise
+    volumes:
+      - ./.data/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U earthrise -d earthrise"]
       interval: 5s
       timeout: 3s
       retries: 5
@@ -63,5 +82,4 @@ services:
 
 volumes:
   models_cache:
-  qdrant_data:
   book_html:

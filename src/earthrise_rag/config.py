@@ -34,6 +34,8 @@ class Settings(BaseSettings):
     book_source_dir: str = "book"
     book_commit_sha: str = ""
 
+    database_url: SecretStr = SecretStr("")
+
     app_env: str = "development"
 
 
