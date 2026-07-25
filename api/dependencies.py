@@ -1,9 +1,13 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import AsyncGenerator
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING
+
+from fastapi import HTTPException, Request
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from earthrise_rag.config import Settings
 
@@ -279,3 +283,27 @@ def create_pipelines(config: Settings) -> Pipelines:
         ),
         vector_store=store,
     )
+
+
+async def get_db_session(request: Request) -> AsyncGenerator[AsyncSession | None, None]:
+    """Yield a DB session or None. For routes that optionally record."""
+    factory = getattr(request.app.state, "db_session_factory", None)
+    if factory is None:
+        yield None
+        return
+    async with factory() as session:
+        yield session
+
+
+async def require_db_session(request: Request) -> AsyncGenerator[AsyncSession, None]:
+    """Yield a DB session or raise 503. For admin routes that require DB."""
+    from sqlalchemy.exc import InterfaceError, OperationalError, TimeoutError
+
+    factory = getattr(request.app.state, "db_session_factory", None)
+    if factory is None:
+        raise HTTPException(status_code=503, detail="Database unavailable")
+    try:
+        async with factory() as session:
+            yield session
+    except (OperationalError, InterfaceError, TimeoutError, OSError):
+        raise HTTPException(status_code=503, detail="Database unavailable")

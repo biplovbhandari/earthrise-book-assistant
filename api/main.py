@@ -5,14 +5,14 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
-from earthrise_rag import __version__
-from earthrise_rag.config import get_settings
-
 from api.dependencies import create_pipelines
 from api.routes.ask import router as ask_router
 from api.routes.chat import check_generation_ready, check_retrieval_ready
 from api.routes.chat import router as chat_router
 from api.routes.search import router as search_router
+from earthrise_rag import __version__
+from earthrise_rag.config import get_settings
+from earthrise_rag.db.engine import check_db_schema_status, create_db_engine, create_session_factory
 
 logger = logging.getLogger(__name__)
 
@@ -20,12 +20,40 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     app.state.settings = get_settings()
+
     try:
         app.state.pipelines = create_pipelines(app.state.settings)
     except Exception:
         logger.exception("Failed to build pipelines; /search, /ask, and /chat will return 503")
         app.state.pipelines = None
-    yield
+
+    app.state.db_engine = None
+    app.state.db_session_factory = None
+    app.state.db_configured = False
+
+    url = app.state.settings.database_url.get_secret_value()
+    if url:
+        app.state.db_configured = True
+        try:
+            engine = create_db_engine(url)
+            app.state.db_engine = engine
+            app.state.db_session_factory = create_session_factory(engine)
+            status = await check_db_schema_status(engine)
+            if status == "ready":
+                logger.info("Database connected and schema is current")
+            else:
+                logger.warning("Database status at startup: %s", status)
+        except Exception:
+            logger.warning(
+                "Database configuration error; recording and admin features disabled",
+                exc_info=True,
+            )
+
+    try:
+        yield
+    finally:
+        if app.state.db_engine is not None:
+            await app.state.db_engine.dispose()
 
 
 app = FastAPI(
@@ -36,8 +64,8 @@ app = FastAPI(
 
 
 @app.get("/health")
-def health():
-    """Return application readiness for retrieval, generation, and streaming chat."""
+async def health():
+    """Return application readiness for retrieval, generation, streaming chat, and database."""
     pipelines = getattr(app.state, "pipelines", None)
     ret_ready, _ = check_retrieval_ready(pipelines)
     gen_ready, _ = check_generation_ready(pipelines)
@@ -45,12 +73,22 @@ def health():
     if gen_ready and pipelines is not None and pipelines.query is not None:
         stream_ok = callable(getattr(pipelines.query._llm_client, "chat_stream", None))
     chat_ok = ret_ready and gen_ready and stream_ok
+
+    db_engine = getattr(app.state, "db_engine", None)
+    if db_engine is not None:
+        db_status = await check_db_schema_status(db_engine)
+    elif getattr(app.state, "db_configured", False):
+        db_status = "misconfigured"
+    else:
+        db_status = "disabled"
+
     return {
         "status": "ok",
         "version": __version__,
         "retrieval": "ready" if ret_ready else "unavailable",
         "generation": "ready" if gen_ready else "unavailable",
         "chat": "ready" if chat_ok else "unavailable",
+        "database": db_status,
     }
 
 
