@@ -96,8 +96,7 @@ def generate_mermaid() -> str:
 
     lines.append("")
     lines.append("    %% --- Relationships ---")
-    for rel in fk_relationships:
-        lines.append(rel)
+    lines.extend(fk_relationships)
 
     return "\n".join(lines)
 
