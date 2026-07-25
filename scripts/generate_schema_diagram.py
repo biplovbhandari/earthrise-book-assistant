@@ -12,17 +12,27 @@ from earthrise_rag.db import Base
 
 DOMAIN_GROUPS = {
     "User Interaction": [
-        "conversations", "interactions", "interaction_citations",
-        "interaction_traces", "feedback",
+        "conversations",
+        "interactions",
+        "interaction_citations",
+        "interaction_traces",
+        "feedback",
     ],
     "Infrastructure": [
-        "prompt_versions", "index_runs", "deployments", "chunks",
+        "prompt_versions",
+        "index_runs",
+        "deployments",
+        "chunks",
     ],
     "Evaluation": [
-        "eval_sets", "eval_questions", "eval_runs", "eval_results",
+        "eval_sets",
+        "eval_questions",
+        "eval_runs",
+        "eval_results",
     ],
     "Sharing and Limits": [
-        "shared_responses", "feedback_rate_limits",
+        "shared_responses",
+        "feedback_rate_limits",
     ],
 }
 
@@ -89,9 +99,7 @@ def generate_mermaid() -> str:
                     ondelete = fk.ondelete or "NO ACTION"
                     cardinality = "||--o{" if col.nullable else "||--|{"
                     label = _ondelete_label(ondelete)
-                    fk_relationships.append(
-                        f'    {ref_table} {cardinality} {name} : "{label}"'
-                    )
+                    fk_relationships.append(f'    {ref_table} {cardinality} {name} : "{label}"')
             lines.append("    }")
 
     lines.append("")
@@ -104,7 +112,8 @@ def generate_mermaid() -> str:
 def main():
     parser = argparse.ArgumentParser(description="Generate Mermaid ER diagram from ORM models.")
     parser.add_argument(
-        "-o", "--output",
+        "-o",
+        "--output",
         default="system-design/db-schema.md",
         help="Output file path (default: system-design/db-schema.md)",
     )
