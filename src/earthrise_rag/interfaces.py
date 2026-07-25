@@ -3,8 +3,8 @@ from __future__ import annotations
 from collections.abc import Iterator
 from typing import Any, Protocol, runtime_checkable
 
-from earthrise_rag.models.citation import Citation
 from earthrise_rag.models.chunk import Chunk
+from earthrise_rag.models.citation import Citation
 from earthrise_rag.models.scored_chunk import ScoredChunk
 
 

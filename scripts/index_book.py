@@ -10,7 +10,7 @@ from __future__ import annotations
 import argparse
 import logging
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 # Ensure repo root is on sys.path so `api.dependencies` is importable
@@ -34,7 +34,7 @@ def _setup_logging() -> None:
     """Configure console + timestamped file logging under logs/."""
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
     LOG_DIR.mkdir(exist_ok=True)
-    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
     file_handler = logging.FileHandler(LOG_DIR / f"indexing_{timestamp}.log")
     file_handler.setFormatter(logging.Formatter("%(asctime)s %(name)s %(levelname)s: %(message)s"))
     logging.getLogger().addHandler(file_handler)

@@ -1,8 +1,8 @@
 import json
+from unittest.mock import MagicMock, patch
 
 import nbformat
 import pytest
-from unittest.mock import MagicMock, patch
 
 from earthrise_rag.indexing.parsers import (
     MarkdownParser,

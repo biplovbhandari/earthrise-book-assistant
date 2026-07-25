@@ -1,6 +1,6 @@
 from conftest import make_scored_chunk
 
-from earthrise_rag.generation.context_builder import DefaultContextBuilder, SYSTEM_PROMPT
+from earthrise_rag.generation.context_builder import SYSTEM_PROMPT, DefaultContextBuilder
 
 
 class TestBuildWithoutHistory:

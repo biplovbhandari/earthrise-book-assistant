@@ -74,10 +74,8 @@ class NotebookParser:
                     import yaml
 
                     raw_text = source.strip()
-                    if raw_text.startswith("---"):
-                        raw_text = raw_text[3:]
-                    if raw_text.endswith("---"):
-                        raw_text = raw_text[:-3]
+                    raw_text = raw_text.removeprefix("---")
+                    raw_text = raw_text.removesuffix("---")
                     fm = yaml.safe_load(raw_text)
                     if isinstance(fm, dict):
                         metadata.update(fm)
