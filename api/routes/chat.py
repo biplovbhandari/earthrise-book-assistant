@@ -41,9 +41,12 @@ class ChatRequest(QuestionFiltersMixin, BaseModel):
         if len(v) > MAX_HISTORY_MESSAGES:
             v = v[-MAX_HISTORY_MESSAGES:]
         for entry in v:
-            if isinstance(entry, dict) and isinstance(entry.get("content"), str):
-                if len(entry["content"]) > MAX_HISTORY_CONTENT:
-                    entry["content"] = entry["content"][:MAX_HISTORY_CONTENT]
+            if (
+                isinstance(entry, dict)
+                and isinstance(entry.get("content"), str)
+                and len(entry["content"]) > MAX_HISTORY_CONTENT
+            ):
+                entry["content"] = entry["content"][:MAX_HISTORY_CONTENT]
         while v and isinstance(v[0], dict) and v[0].get("role") == "assistant":
             v = v[1:]
         return v
@@ -59,7 +62,7 @@ def check_retrieval_ready(pipelines) -> tuple[bool, str]:
     try:
         if pipelines.vector_store.count() == 0:
             return False, "retrieval not ready"
-    except Exception:
+    except (ConnectionError, OSError, RuntimeError):
         return False, "retrieval not ready"
     return True, ""
 

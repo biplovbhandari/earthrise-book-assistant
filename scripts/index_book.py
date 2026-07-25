@@ -18,10 +18,10 @@ _repo_root = str(Path(__file__).resolve().parent.parent)
 if _repo_root not in sys.path:
     sys.path.insert(0, _repo_root)
 
-import yaml  # noqa: E402
+import yaml
 
-from earthrise_rag.config import get_settings  # noqa: E402
-from earthrise_rag.models.index_result import IndexResult  # noqa: E402
+from earthrise_rag.config import get_settings
+from earthrise_rag.models.index_result import IndexResult
 
 logger = logging.getLogger(__name__)
 
@@ -52,11 +52,10 @@ def _extract_chapters(quarto_config: dict) -> list[str]:
     for item in book.get("chapters", []):
         if isinstance(item, str):
             chapters.append(item)
-        elif isinstance(item, dict):
-            if "part" in item:
-                for chapter in item.get("chapters", []):
-                    if isinstance(chapter, str):
-                        chapters.append(chapter)
+        elif isinstance(item, dict) and "part" in item:
+            for chapter in item.get("chapters", []):
+                if isinstance(chapter, str):
+                    chapters.append(chapter)
 
     bib = quarto_config.get("bibliography")
     if isinstance(bib, str):

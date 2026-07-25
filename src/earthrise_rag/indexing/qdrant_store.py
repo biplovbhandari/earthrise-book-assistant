@@ -285,7 +285,7 @@ class QdrantStore:
         try:
             result = self._client.count(collection_name=self._collection, exact=False)
             return result.count
-        except Exception:
+        except (ConnectionError, OSError, RuntimeError):
             return 0
 
     def delete_by_source(self, source_path: str) -> None:

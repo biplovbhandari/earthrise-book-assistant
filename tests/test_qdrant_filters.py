@@ -1,3 +1,4 @@
+from typing import ClassVar
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -36,8 +37,8 @@ def _mock_collection_dense_only(name="test_collection", dense_dim=10):
 
 
 class FakeSparseEmbedding:
-    indices = [1, 2, 3]
-    values = [0.1, 0.2, 0.3]
+    indices: ClassVar[list[int]] = [1, 2, 3]
+    values: ClassVar[list[float]] = [0.1, 0.2, 0.3]
 
 
 class FakeSparseEmbedder:
