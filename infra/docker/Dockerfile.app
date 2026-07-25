@@ -9,11 +9,16 @@ RUN uv sync --frozen --no-dev --no-install-project
 
 COPY src/ src/
 COPY api/ api/
+COPY alembic.ini ./
+COPY alembic/ alembic/
 RUN uv sync --frozen --no-dev
+
+COPY infra/docker/entrypoint.sh /entrypoint.sh
 
 ENV HF_HOME=/models
 ENV PYTHONUNBUFFERED=1
 
 EXPOSE 8000
 
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["uv", "run", "uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]
