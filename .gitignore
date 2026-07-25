@@ -229,3 +229,4 @@ data/audio/
 
 # Local dev
 dev/
+.data/
