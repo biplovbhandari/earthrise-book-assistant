@@ -12,6 +12,10 @@ dependencies = [
     "sentence-transformers>=5.6",
     "qdrant-client[fastembed]>=1.18.0",
     "openai>=2.44",
+    "sqlalchemy[asyncio]>=2.0",
+    "asyncpg>=0.30",
+    "pgvector>=0.5",
+    "alembic>=1.18",
 ]
 
 [dependency-groups]
@@ -25,11 +29,12 @@ indexer = [
 dev = [
     "pytest>=9.1",
     "httpx>=0.28",
-    "ruff>=0.15",
+    "ruff>=0.16",
     "nbformat>=5.10",
     "pyyaml>=6.0",
     "pdfplumber>=0.11",
     "pyright>=1.1.411",
+    "pytest-asyncio>=1.4",
 ]
 
 [build-system]
@@ -54,3 +59,8 @@ exclude = ["dev/", "book/", "**/node_modules", "**/__pycache__", "**/.*", ".venv
 target-version = "py312"
 line-length = 100
 exclude = ["book/"]
+
+# come back to this later
+[tool.ruff.lint]
+extend-select = ["E402"]
+ignore = ["BLE001", "SIM102", "SIM115", "TRY002", "RUF012"]
