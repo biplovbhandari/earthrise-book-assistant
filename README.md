@@ -5,12 +5,18 @@ Serves Quarto-rendered chapters alongside a search and generation API.
 
 ## Prerequisites
 
-- [Docker](https://docs.docker.com/get-docker/) (required for both paths -- runs Qdrant, or the full stack)
-- [Ollama](https://ollama.com/) (for `/ask` and `/chat` generation -- pull a model with `ollama pull qwen3:8b`)
-- [Python 3.12+](https://www.python.org/downloads/) (local setup only -- not needed for Docker deployment)
-- [uv](https://docs.astral.sh/uv/) (local setup only)
-- [Node.js](https://nodejs.org/) (optional -- JS/CSS linting only)
-- [ffmpeg](https://ffmpeg.org/download.html) (local transcription only -- Docker image includes it)
+- [Docker](https://docs.docker.com/get-docker/) - runs Qdrant and PostgreSQL, and can run the full application stack.
+- [Ollama](https://ollama.com/) - powers `/ask` and `/chat` generation.
+  Pull a model with `ollama pull qwen3:8b`.
+- [Python 3.12+](https://www.python.org/downloads/) - runs the app and CLI scripts directly on your machine.
+  Not required for the Docker-only deployment path.
+- [uv](https://docs.astral.sh/uv/) - manages the Python environment and dependencies.
+  Not required for the Docker-only deployment path.
+- [just](https://just.systems/) - task runner used for every command in this README.
+  Works on macOS, Linux, and Windows.
+- [Node.js](https://nodejs.org/) (optional) - only needed to lint the chat widget's JS and CSS.
+- [ffmpeg](https://ffmpeg.org/download.html) (optional) - only needed for local transcription.
+  The Docker image already includes it.
 
 ## Getting Started
 
@@ -20,49 +26,32 @@ cd earthrise-book-assistant
 cp .env.example .env
 ```
 
-Edit `.env` -- see `.env.example` for all available settings.
+Edit `.env` to configure your setup.
+See `.env.example` for all available settings.
 
-## Local Setup (uv)
-
-Runs the app on your machine with uv.
-Qdrant runs in Docker (required).
-PostgreSQL is optional -- only needed for interaction recording and analytics.
-You can use Docker Compose for PostgreSQL or a locally installed PostgreSQL with the pgvector extension.
+For local development (not needed for the Docker-only deployment path):
 
 ```bash
-# Install dependencies
 uv sync --group dev --group indexer
-
-# Configure .env (defaults work for local dev)
-cp .env.example .env
-# Edit .env if needed -- key settings:
-#   LLM_MODEL=qwen3:8b               # must be set
-#   RERANKER_PROVIDER=noop            # or local_cross_encoder
-#   DATABASE_URL=                     # empty = DB disabled; set for interaction recording
-
-# Start Qdrant (required)
-docker compose up qdrant -d
-
-# PostgreSQL (optional -- choose one):
-docker compose up postgres -d          # option A: Docker (recommended)
-# option B: use your own PostgreSQL with pgvector installed
-
-# Apply database migrations (only if PostgreSQL is running)
-DATABASE_URL=postgresql+asyncpg://earthrise:earthrise@localhost:5432/earthrise \
-  uv run alembic upgrade head
-
-# Transcribe YouTube lectures (optional -- skip if transcripts are already committed)
-uv run --group indexer python scripts/transcribe.py
-
-# Index the book (chapters + companion PDFs + transcripts if available)
-BOOK_COMMIT_SHA=$(git -C book rev-parse HEAD) \
-  uv run python scripts/index_book.py
-
-# Start the app (requires Ollama running for /ask and /chat)
-uv run uvicorn api.main:app --reload
 ```
 
-Try it:
+Once installed, the common workflows are:
+
+```bash
+just dev      # start Qdrant + PostgreSQL, then the dev server with hot-reload
+just index    # index book content into Qdrant
+just check    # lint, type check, and run tests
+```
+
+Run `just --list` to see every available recipe.
+The justfile contains the underlying shell commands for each recipe.
+
+## Development
+
+`just dev` starts Qdrant and PostgreSQL in Docker, then runs the API locally with `uvicorn --reload`.
+Python code changes restart the server automatically, so this is the fastest loop for local development.
+
+Try the API:
 
 ```bash
 # Health check (shows retrieval, generation, chat, and database readiness)
@@ -73,113 +62,50 @@ curl -s -X POST localhost:8000/search \
   -H 'content-type: application/json' \
   -d '{"question": "What is U-Net?"}' | python3 -m json.tool
 
-# Ask (generates an answer with citations -- requires Ollama)
+# Ask (generates an answer with citations - requires Ollama)
 curl -s -X POST localhost:8000/ask \
   -H 'content-type: application/json' \
   -d '{"question": "What is U-Net?"}' | python3 -m json.tool
 
-# Chat (streaming SSE -- requires Ollama)
+# Chat (streaming SSE - requires Ollama)
 curl -N -X POST localhost:8000/chat \
   -H 'content-type: application/json' \
   -d '{"question": "What is semantic segmentation?"}'
-
-# Chat with follow-up history
-curl -N -X POST localhost:8000/chat \
-  -H 'content-type: application/json' \
-  -d '{"question": "Tell me more about that", "history": [{"role": "user", "content": "What is U-Net?"}, {"role": "assistant", "content": "A CNN architecture for segmentation."}]}'
 ```
 
 If the index is empty or Qdrant is unreachable, `/search`, `/ask`, and `/chat` return `503`.
 If Ollama is not running, `/search` still works but `/ask` and `/chat` return `503`.
 
-### Render the Book with Chat Widget
+### Render the Book
 
-The chat widget is injected into every book page during rendering.
-For local dev, you need the rendered book in `_book/`.
+The chat widget is injected into every book page during rendering, so you need a rendered copy in `_book/` to see it locally.
+Run `just render-book` to render via Docker and copy the output into `_book/`.
+Open http://localhost:8000/ to see the book with the chat FAB in the bottom-right corner.
 
-**Option A: Docker render, copy to local** (recommended if you have a built quarto-builder image):
+## Content Management
 
-```bash
-docker compose --profile build run --rm quarto-builder
-docker run --rm \
-  -v earthrise-book-assistant_book_html:/src \
-  -v "$(pwd)/_book":/dst \
-  alpine sh -c 'cp -a /src/. /dst/'
-```
+### Indexing
 
-**Option B: Local Quarto render** (requires [Quarto CLI](https://quarto.org/docs/get-started/)):
+`just index` indexes book chapters, companion PDFs, and video transcripts into Qdrant.
+Transcripts are committed to the repo, so a fresh clone already has everything needed.
+You do not need to run the transcriber first.
+The Qdrant `qdrant_data` volume persists across restarts, so you only need to re-index when the volume is removed or the content changes.
+Use `just index --recreate-collection` to delete and rebuild the collection from scratch.
 
-```bash
-rm -rf /tmp/book_render
-cp -r book /tmp/book_render && rm -rf /tmp/book_render/.git
-cp widget/_quarto-chat.yml /tmp/book_render/_quarto-chat.yml
-mkdir -p /tmp/book_render/_includes
-cp widget/chat.html /tmp/book_render/_includes/chat.html
-printf '<link rel="stylesheet" href="/_widget/chat.css">\n' > /tmp/book_render/_includes/chat-head.html
-printf '<script src="/_widget/chat.js"></script>\n' > /tmp/book_render/_includes/chat-foot.html
-cd /tmp/book_render && quarto render --profile chat
-rm -rf _book/* && cp -a /tmp/book_render/_book/. _book/
-mkdir -p _book/_widget
-cp widget/chat.css _book/_widget/ && cp widget/chat.js _book/_widget/
-```
+Check the [Qdrant dashboard - http://localhost:6333/dashboard](http://localhost:6333/dashboard) to see indexed chunks.
+Logs are written to `logs/`.
 
-After rendering, open http://localhost:8000/ to see the book with the chat FAB in the bottom-right corner.
+### Transcription
 
-## Index Book Content
-
-Indexes book chapters, companion PDFs, and video transcripts.
-Transcripts are committed to the repo, so cloning gives you everything -- no need to run `transcribe.py` first.
-The Qdrant `qdrant_data` volume persists across restarts -- you only need to re-index if the volume is removed or content changes.
-
-```bash
-# Local
-BOOK_COMMIT_SHA=$(git -C book rev-parse HEAD) \
-  uv run python scripts/index_book.py
-
-# Docker
-BOOK_COMMIT_SHA=$(git -C book rev-parse HEAD) \
-  docker compose --profile build run --rm indexer
-
-# Fresh index (delete and recreate the Qdrant collection first)
-# Add --recreate-collection to either command above, e.g.:
-BOOK_COMMIT_SHA=$(git -C book rev-parse HEAD) \
-  uv run python scripts/index_book.py --recreate-collection
-```
-
-Check the [Qdrant dashboard](http://localhost:6333/dashboard) for indexed chunks.
-Logs written to `logs/`.
-
-## Transcribe YouTube Lectures (Optional)
-
-Downloads audio from the book's YouTube playlist and transcribes with Whisper.
+`just transcribe` downloads audio from the book's YouTube playlist and transcribes it with Whisper.
 Transcripts are saved to `data/transcripts/` and committed to the repo.
-Transcription is optional -- if you want video content searchable, transcribe before indexing.
+Transcription is optional and only needed if you want video content to be searchable.
+It requires `ffmpeg`.
+See the [ffmpeg download page - https://ffmpeg.org/download.html](https://ffmpeg.org/download.html) for installation instructions.
+Pass flags to target a specific video or force re-transcription.
+Run `just transcribe --help` for the full list.
 
-```bash
-# Docker
-docker compose --profile build run --rm indexer \
-  uv run python scripts/transcribe.py
-
-# Docker -- single video
-docker compose --profile build run --rm indexer \
-  uv run python scripts/transcribe.py --video-id <VIDEO_ID>
-
-# Local
-uv run --group indexer python scripts/transcribe.py
-
-# Local -- single video
-uv run --group indexer python scripts/transcribe.py --video-id <VIDEO_ID>
-
-# Re-transcribe all (add --force to either Docker or local command)
-
-# Download audio only (for GPU transcription on Colab)
-uv run --group indexer python scripts/transcribe.py --download-only
-# Then zip data/audio/, upload to Colab, and run notebooks/transcribe_gpu.ipynb
-```
-
-For GPU-accelerated transcription, use `notebooks/transcribe_gpu.ipynb` in Google Colab.
-
-After transcribing, update `data/video_chapter_map.yml` to map video IDs to chapters:
+After transcribing, map each video to its book chapter in `data/video_chapter_map.yml`:
 
 ```yaml
 videos:
@@ -188,132 +114,74 @@ videos:
     lesson: "01__Crop_Mapping"
 ```
 
-Video IDs are the JSON filenames in `data/transcripts/` (e.g. `dQw4w9WgXcQ.json`).
+Video IDs are the JSON filenames in `data/transcripts/` (for example, `dQw4w9WgXcQ.json`).
 Chapter and lesson values match directory names under `book/`.
-Then re-run the indexer to include transcripts.
+Re-run `just index` afterward to include the new transcripts.
 
-Requires `ffmpeg` installed.
-See [ffmpeg.org/download.html](https://ffmpeg.org/download.html) for installation instructions.
+## Database
 
-## Docker Deployment
+Schema is managed by Alembic.
+SQLAlchemy ORM models are the source of truth, and Alembic generates migration scripts from model changes.
+PostgreSQL itself is optional.
+The RAG endpoints work without it, and it is only used for interaction recording and analytics.
 
-Complete Docker path -- no local Python required.
-Complete the [Getting Started](#getting-started) steps first (clone + .env).
-Docker Compose overrides `QDRANT_URL`, `LLM_BASE_URL`, and `DATABASE_URL` automatically.
-Database migrations run automatically on app startup via the entrypoint script.
+`just db-migrate` applies pending migrations.
+`just db-revision "describe the change"` generates a new migration after you edit the ORM models.
 
-```bash
-# Setup
-cp .env.example .env
-# Edit .env -- set LLM_MODEL for /ask and /chat generation.
+Docker Compose applies migrations automatically on app startup, through the entrypoint script.
+`just up` and `just dev-docker` do not need a manual migration step as a result.
+Run `just db-migrate` yourself for the local `just dev` workflow.
 
-# Build and render
-docker compose build app quarto-builder indexer
-docker compose --profile build run --rm quarto-builder     # render the book
+## Testing
 
-# Transcribe YouTube lectures (optional -- skip if transcripts are already committed)
-docker compose --profile build run --rm indexer \
-  uv run python scripts/transcribe.py
+`just check` runs everything: lint, type check, and tests.
+Run the pieces individually with `just lint`, `just format`, `just typecheck`, and `just test`.
+`just test` accepts arguments, for example `just test -k "test_chat"` to run a single test.
 
-# Index content (chapters + PDFs + transcripts)
-BOOK_COMMIT_SHA=$(git -C book rev-parse HEAD) \
-  docker compose --profile build run --rm indexer \
-  uv run python scripts/index_book.py --recreate-collection
-
-# Start the app
-docker compose up -d
-```
-
-Try it:
+Integration tests exercise a real PostgreSQL database, so they are not part of `just check`:
 
 ```bash
-# Health check
-curl -s localhost:8000/health | python3 -m json.tool
-
-# Search
-curl -s -X POST localhost:8000/search \
-  -H 'content-type: application/json' \
-  -d '{"question": "What is U-Net?"}' | python3 -m json.tool
-
-# Ask (requires Ollama on the host or a remote LLM)
-curl -s -X POST localhost:8000/ask \
-  -H 'content-type: application/json' \
-  -d '{"question": "What is U-Net?"}' | python3 -m json.tool
-
-# Chat (streaming SSE -- requires Ollama)
-curl -N -X POST localhost:8000/chat \
-  -H 'content-type: application/json' \
-  -d '{"question": "What is semantic segmentation?"}'
+docker compose up postgres -d
+TEST_DATABASE_URL=postgresql+asyncpg://earthrise:earthrise@localhost:5432/earthrise \
+  uv run pytest -m integration -v
 ```
+
+The chat widget's JS and CSS sit outside the Python toolchain, so they are linted separately:
+
+```bash
+npm install
+npx eslint widget/chat.js
+npx stylelint widget/chat.css
+```
+
+## Deployment
+
+This path runs the full stack in Docker: the app, Qdrant, and PostgreSQL.
+It does not require Python or uv on your machine.
+Complete [Getting Started](#getting-started) first for the repository clone and `.env` file.
+
+```bash
+just build
+just render-book
+just up
+```
+
+`just build` builds the app, Quarto builder, and indexer images.
+`just render-book` renders the book with the chat widget injected.
+`just up` starts the full stack in the background.
+Docker Compose overrides `QDRANT_URL`, `LLM_BASE_URL`, and `DATABASE_URL` automatically so the containers can reach each other.
+Database migrations run automatically on startup, through the entrypoint script.
+
+Index content the same way as local development, with `just index` (see Content Management).
+The app and API are reachable the same way as local development:
 
 - Book with chat widget: http://localhost:8000/
 - Qdrant dashboard: http://localhost:6333/dashboard
 
-### Re-render book
+For hot-reload against the Docker stack during development, use `just dev-docker` instead of `just up`.
+Use `just down` to stop all services.
 
-```bash
-docker compose --profile build run --rm quarto-builder
-```
-
-Code changes require `docker compose build app`.
-For hot reload:
-
-```bash
-docker compose -f docker-compose.yml -f docker-compose.dev.yml up
-```
-
-To stop: `docker compose down`
-
-## Database Migrations
-
-Schema is managed by Alembic.
-SQLAlchemy ORM models are the source of truth; Alembic generates migration scripts from model changes.
-
-```bash
-# Apply pending migrations
-DATABASE_URL=postgresql+asyncpg://earthrise:earthrise@localhost:5432/earthrise \
-  uv run alembic upgrade head
-
-# Generate a new migration after changing ORM models
-DATABASE_URL=postgresql+asyncpg://earthrise:earthrise@localhost:5432/earthrise \
-  uv run alembic revision --autogenerate -m "describe the change"
-
-# Generate standalone SQL (for review or manual execution)
-uv run alembic -x sqlalchemy.url=postgresql+asyncpg://x:x@localhost/x \
-  upgrade head --sql > dev/artifacts/db/001_initial_schema.sql
-```
-
-Docker Compose applies migrations automatically on app startup via the entrypoint script.
-
-## Testing and Linting
-
-```bash
-uv sync --group dev --group indexer
-uv run pytest -v -m "not integration"                      # unit tests (no DB needed)
-uv run ruff check . && uv run ruff format --check .        # Python lint
-uv run pyright                                             # type check
-
-# Integration tests (requires PostgreSQL running -- tests against real DB)
-docker compose up postgres -d
-TEST_DATABASE_URL=postgresql+asyncpg://earthrise:earthrise@localhost:5432/earthrise \
-  uv run pytest -m integration -v                          # migration tests
-
-# JS/CSS linting (optional -- requires Node.js)
-npm install                                                # first time only
-npx eslint widget/chat.js                                  # JS lint
-npx stylelint widget/chat.css                              # CSS lint
-```
-
-## Dependency Management
-
-Dependencies are managed with [uv](https://docs.astral.sh/uv/).
-`uv.lock` is committed to the repo for reproducible installs.
-
-```bash
-uv sync --group dev --group indexer    # install all dependencies
-uv lock                                # regenerate uv.lock after editing pyproject.toml
-uv sync                                # install after regenerating lock
-```
+See [system-design/deployment-models.md](system-design/deployment-models.md) for model recommendations across different memory configurations.
 
 ## Project Structure
 
@@ -348,14 +216,16 @@ earthrise-book-assistant/
 │   └── _quarto-chat.yml         # Quarto profile overlay
 ├── alembic/                     # Database migrations (Alembic)
 ├── infra/docker/                # Dockerfiles + entrypoint script
+├── system-design/               # Architecture and deployment docs
 ├── tests/
-├── system-design/               # Architecture docs
 ├── book/                        # Git submodule (book source)
-├── docker-compose.yml
+├── justfile                     # Task runner (run `just --list`)
+├── docker-compose.yml           # Full stack (app, qdrant, postgres, build profiles)
+├── docker-compose.dev.yml       # Dev override (source mount + hot-reload)
 ├── .env.example                 # Config template (all available settings)
 └── pyproject.toml
 ```
 
 ## License
 
-Apache License 2.0 -- see [LICENSE](LICENSE).
+Apache License 2.0 - see [LICENSE](LICENSE).
