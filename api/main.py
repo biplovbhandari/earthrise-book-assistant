@@ -12,6 +12,7 @@ from api.routes.chat import router as chat_router
 from api.routes.search import router as search_router
 from earthrise_rag import __version__
 from earthrise_rag.config import get_settings
+from earthrise_rag.db.bootstrap import ensure_active_deployment
 from earthrise_rag.db.engine import check_db_schema_status, create_db_engine, create_session_factory
 
 logger = logging.getLogger(__name__)
@@ -31,6 +32,7 @@ async def lifespan(app: FastAPI):
     app.state.db_session_factory = None
     app.state.db_configured = False
 
+    status = None
     url = app.state.settings.database_url.get_secret_value()
     if url:
         app.state.db_configured = True
@@ -48,6 +50,22 @@ async def lifespan(app: FastAPI):
                 "Database configuration error; recording and admin features disabled",
                 exc_info=True,
             )
+
+    app.state.active_deployment_id = None
+    app.state.active_index_run_id = None
+    if app.state.db_session_factory is not None and status == "ready":
+        embedder = getattr(app.state.pipelines, "embedder", None) if app.state.pipelines else None
+        if embedder is None or embedder.get_dimension() != 1024:
+            if embedder is not None:
+                logger.warning(
+                    "Embedding dimension %d != 1024; recording disabled",
+                    embedder.get_dimension(),
+                )
+        else:
+            async with app.state.db_session_factory() as session:
+                result = await ensure_active_deployment(session, app.state.settings)
+                if result is not None:
+                    app.state.active_deployment_id, app.state.active_index_run_id = result
 
     try:
         yield

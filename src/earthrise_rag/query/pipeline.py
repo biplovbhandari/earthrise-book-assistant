@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import time
 from collections.abc import Iterator
 from typing import Any
 
@@ -137,6 +138,7 @@ class QueryPipeline:
         *,
         history: list[dict[str, str]] | None = None,
         filters: dict[str, Any] | None = None,
+        _recording_ctx: dict | None = None,
     ) -> Iterator[dict[str, Any]]:
         """Stream a RAG answer as SSE-compatible events.
 
@@ -151,6 +153,10 @@ class QueryPipeline:
             question: The user's natural language question.
             history: Optional conversation history as a list of role/content dicts.
             filters: Optional metadata filters for retrieval.
+            _recording_ctx: Optional mutable dict populated with retrieval data
+                and timing for database recording. Keys set: scored_chunks,
+                retrieval_query, retrieval_ms, generation_wall_ms. Does not
+                affect the yielded event stream.
 
         Yields:
             Event dicts with a ``type`` key and type-specific fields.
@@ -169,9 +175,16 @@ class QueryPipeline:
             )
 
         retrieval_query = self._build_retrieval_query(question, history)
+        t0 = time.monotonic()
         chunks = self._strategy.retrieve(retrieval_query, self._top_k, filters)
+        retrieval_ms = int((time.monotonic() - t0) * 1000)
 
         if not chunks:
+            if _recording_ctx is not None:
+                _recording_ctx["scored_chunks"] = []
+                _recording_ctx["retrieval_query"] = retrieval_query
+                _recording_ctx["retrieval_ms"] = retrieval_ms
+                _recording_ctx["generation_wall_ms"] = 0
             yield {"type": "meta", "citations": []}
             yield {
                 "type": "token",
@@ -180,16 +193,36 @@ class QueryPipeline:
             yield {"type": "done"}
             return
 
+        if _recording_ctx is not None:
+            _recording_ctx["scored_chunks"] = [
+                {
+                    "chunk_id": sc.chunk.id,
+                    "content": sc.chunk.content,
+                    "source_type": sc.chunk.source_type,
+                    "metadata": sc.chunk.metadata,
+                    "score": sc.score,
+                    "ranking_method": sc.ranking_method,
+                }
+                for sc in chunks
+            ]
+            _recording_ctx["retrieval_query"] = retrieval_query
+            _recording_ctx["retrieval_ms"] = retrieval_ms
+
         citations = self._citation_builder.build(chunks)
         yield {"type": "meta", "citations": [c.model_dump() for c in citations]}
 
         messages = self._context_builder.build(question, chunks, history=history)
 
         has_content = False
+        t1 = time.monotonic()
         for token in self._llm_client.chat_stream(messages):
             yield {"type": "token", "content": token}
             if token.strip():
                 has_content = True
+        generation_wall_ms = int((time.monotonic() - t1) * 1000)
+
+        if _recording_ctx is not None:
+            _recording_ctx["generation_wall_ms"] = generation_wall_ms
 
         if not has_content:
             yield {"type": "error", "message": "The model returned an empty response."}

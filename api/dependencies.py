@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from earthrise_rag.config import Settings
 
 if TYPE_CHECKING:
-    from earthrise_rag.interfaces import VectorStore
+    from earthrise_rag.interfaces import Embedder, VectorStore
     from earthrise_rag.query import QueryPipeline
 
 logger = logging.getLogger(__name__)
@@ -27,6 +27,7 @@ class Pipelines:
     indexing: object | None = field(default=None)
     query: QueryPipeline | None = field(default=None)
     vector_store: VectorStore | None = field(default=None)
+    embedder: Embedder | None = field(default=None)
 
 
 def _create_embedder(config: Settings):
@@ -282,6 +283,7 @@ def create_pipelines(config: Settings) -> Pipelines:
             top_k=config.retrieval_top_k,
         ),
         vector_store=store,
+        embedder=embedder,
     )
 
 
