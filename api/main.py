@@ -6,6 +6,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
 from api.dependencies import create_pipelines
+from api.middleware import RateLimitMiddleware
 from api.routes.ask import router as ask_router
 from api.routes.chat import check_generation_ready, check_retrieval_ready
 from api.routes.chat import router as chat_router
@@ -111,6 +112,11 @@ async def health():
         "database": db_status,
     }
 
+
+app.add_middleware(
+    RateLimitMiddleware,
+    max_requests=get_settings().rate_limit_per_minute,
+)
 
 app.include_router(ask_router)
 app.include_router(chat_router)
