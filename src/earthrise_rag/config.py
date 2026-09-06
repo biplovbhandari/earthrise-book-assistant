@@ -11,6 +11,7 @@ class Settings(BaseSettings):
 
     embedding_provider: str = "local"
     embedding_model_name: str = "BAAI/bge-large-en-v1.5"
+    embedding_dimension: int = Field(default=1024, ge=1, le=4096)
     hf_home: str = ".cache/models"
 
     vector_store_provider: str = "qdrant"

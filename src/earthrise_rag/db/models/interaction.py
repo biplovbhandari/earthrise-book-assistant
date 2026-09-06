@@ -7,7 +7,10 @@ from sqlalchemy import CheckConstraint, DateTime, ForeignKey, Text, UniqueConstr
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from earthrise_rag.config import get_settings
 from earthrise_rag.db.base import Base, TimestampMixin
+
+_EMBEDDING_DIM = get_settings().embedding_dimension
 
 if TYPE_CHECKING:
     from earthrise_rag.db.models.infrastructure import ChunkRecord, Deployment
@@ -51,7 +54,7 @@ class Interaction(TimestampMixin, Base):
     response_text: Mapped[str] = mapped_column(Text)
     token_count: Mapped[int]
     latency_ms: Mapped[int]
-    query_embedding: Mapped[list[float]] = mapped_column(Vector(1024), nullable=False)
+    query_embedding: Mapped[list[float]] = mapped_column(Vector(_EMBEDDING_DIM), nullable=False)
     deployment_id: Mapped[int] = mapped_column(
         ForeignKey("deployments.id", ondelete="RESTRICT"), index=True
     )

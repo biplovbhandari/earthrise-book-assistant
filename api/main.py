@@ -55,11 +55,13 @@ async def lifespan(app: FastAPI):
     app.state.active_index_run_id = None
     if app.state.db_session_factory is not None and status == "ready":
         embedder = getattr(app.state.pipelines, "embedder", None) if app.state.pipelines else None
-        if embedder is None or embedder.get_dimension() != 1024:
+        expected_dim = app.state.settings.embedding_dimension
+        if embedder is None or embedder.get_dimension() != expected_dim:
             if embedder is not None:
                 logger.warning(
-                    "Embedding dimension %d != 1024; recording disabled",
+                    "Embedding dimension %d != %d; recording disabled",
                     embedder.get_dimension(),
+                    expected_dim,
                 )
         else:
             async with app.state.db_session_factory() as session:
