@@ -152,11 +152,16 @@ def chat(request: Request, body: ChatRequest):
     def event_stream():
         """Yield SSE-formatted events from the streaming pipeline.
 
+        Acquires the LLM semaphore for the duration of the stream so
+        concurrent requests queue instead of overloading Ollama.
         Accumulates response text, token count, and completion state onto
         ``ctx`` as events pass through, so the background recording task has
         everything it needs once the stream is exhausted.
         """
+        llm_semaphore = getattr(request.app.state, "llm_semaphore", None)
         start_time = time.monotonic()
+        if llm_semaphore is not None:
+            llm_semaphore.acquire()
         try:
             for event in pipelines.query.ask_stream(
                 body.question,
@@ -181,6 +186,9 @@ def chat(request: Request, body: ChatRequest):
             logger.exception("Streaming generation failed")
             error = {"type": "error", "message": "Generation failed. Please try again."}
             yield f"data: {json.dumps(error)}\n\n"
+        finally:
+            if llm_semaphore is not None:
+                llm_semaphore.release()
 
         ctx.latency_ms = int((time.monotonic() - start_time) * 1000)
         ctx.scored_chunks = pipeline_ctx.get("scored_chunks", [])

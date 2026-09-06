@@ -1,4 +1,5 @@
 import logging
+import threading
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -51,6 +52,8 @@ async def lifespan(app: FastAPI):
                 "Database configuration error; recording and admin features disabled",
                 exc_info=True,
             )
+
+    app.state.llm_semaphore = threading.Semaphore(app.state.settings.max_concurrent_llm)
 
     app.state.active_deployment_id = None
     app.state.active_index_run_id = None
