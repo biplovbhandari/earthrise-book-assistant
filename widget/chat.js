@@ -4,6 +4,12 @@
     var currentCitations = null;
     var hasOpenedChat = false;
     var userHasScrolled = false;
+    var STORAGE_KEY_VISITOR = 'earthrise-visitor-id';
+    var STORAGE_KEY_CONVERSATION = 'earthrise-conversation-id';
+    var visitorId = null;
+    var conversationId = null;
+    try { visitorId = localStorage.getItem(STORAGE_KEY_VISITOR); } catch (_e) {}
+    try { conversationId = localStorage.getItem(STORAGE_KEY_CONVERSATION); } catch (_e) {}
     var SUGGESTED_QUESTIONS = [
         "What deep learning architectures are used for crop mapping?",
         "How does semantic segmentation differ from object detection?",
@@ -12,6 +18,7 @@
     var panel = document.getElementById('earthrise-chat-panel');
     var toggle = document.getElementById('earthrise-chat-toggle');
     var closeBtn = document.getElementById('earthrise-chat-close');
+    var newChatBtn = document.getElementById('earthrise-chat-new');
     var suggestions = document.getElementById('earthrise-chat-suggestions');
     var messagesEl = document.getElementById('earthrise-chat-messages');
     var statusEl = document.getElementById('earthrise-chat-status');
@@ -30,6 +37,18 @@
     toggle.addEventListener('click', toggleChat);
 
     closeBtn.addEventListener('click', toggleChat);
+
+    newChatBtn.addEventListener('click', function() {
+        if (state.isLoading) return;
+        conversationId = null;
+        try { localStorage.removeItem(STORAGE_KEY_CONVERSATION); } catch (_e) {}
+        state.messages = [];
+        currentCitations = null;
+        messagesEl.innerHTML = '';
+        suggestions.classList.remove('hidden');
+        statusEl.textContent = '';
+        textarea.focus();
+    });
 
     textarea.addEventListener('input', function() {
         textarea.style.height = 'auto';
@@ -316,6 +335,13 @@
         return null;
     }
 
+    function getGa4ClientId() {
+        try {
+            var match = document.cookie.match(/(?:^|;\s*)_ga=GA\d+\.\d+\.(.+?)(?:;|$)/);
+            return match ? match[1] : null;
+        } catch (_e) { return null; }
+    }
+
     function commitDone(question, assistantText, bubble) {
         state.messages.push({ role: 'user', content: question });
         state.messages.push({ role: 'assistant', content: assistantText });
@@ -348,10 +374,15 @@
         var assistantText = '';
         var receivedDone = false;
         try {
+            var requestBody = { question: question, history: history };
+            if (visitorId) requestBody.visitor_id = visitorId;
+            if (conversationId) requestBody.conversation_id = conversationId;
+            var ga4ClientId = getGa4ClientId();
+            if (ga4ClientId) requestBody.ga4_client_id = ga4ClientId;
             var response = await fetch('/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ question: question, history: history })
+                body: JSON.stringify(requestBody)
             });
             if (!response.ok) {
                 clearLoading(loadingBubble);
@@ -377,6 +408,14 @@
                     try { parsed = JSON.parse(dataLine.slice(5).trim()); } catch (_e) { continue; }
                     if (parsed.type === 'meta') {
                         currentCitations = Array.isArray(parsed.citations) ? parsed.citations : [];
+                        if (parsed.visitor_id) {
+                            visitorId = parsed.visitor_id;
+                            try { localStorage.setItem(STORAGE_KEY_VISITOR, visitorId); } catch (_e) {}
+                        }
+                        if (parsed.conversation_id) {
+                            conversationId = parsed.conversation_id;
+                            try { localStorage.setItem(STORAGE_KEY_CONVERSATION, conversationId); } catch (_e) {}
+                        }
                     } else if (parsed.type === 'token') {
                         assistantText += parsed.content || '';
                         assistantBubble.innerHTML = renderMarkdown(assistantText);
