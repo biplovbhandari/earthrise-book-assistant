@@ -87,6 +87,47 @@ class TestAskStream:
         assert "error" in types
         assert "done" not in types
 
+    def test_recording_ctx_populated(self):
+        """_recording_ctx dict is populated with chunk data and timing."""
+        pipeline = QueryPipeline(
+            strategy=FakeStrategy([make_scored_chunk()]),
+            context_builder=FakeContextBuilder(),
+            llm_client=FakeStreamingLLMClient(),
+            citation_builder=FakeCitationBuilder(),
+            top_k=8,
+        )
+        recording_ctx = {}
+        events = list(pipeline.ask_stream("What is U-Net?", _recording_ctx=recording_ctx))
+        # Events unchanged
+        types = [e["type"] for e in events]
+        assert types[0] == "meta"
+        assert types[-1] == "done"
+        # Recording context populated
+        assert len(recording_ctx["scored_chunks"]) == 1
+        assert recording_ctx["scored_chunks"][0]["chunk_id"]
+        assert recording_ctx["scored_chunks"][0]["source_type"] == "book_text"
+        assert recording_ctx["retrieval_query"] == "What is U-Net?"
+        assert isinstance(recording_ctx["retrieval_ms"], int)
+        assert isinstance(recording_ctx["generation_wall_ms"], int)
+
+    def test_recording_ctx_zero_results(self):
+        """_recording_ctx is populated with empty chunks on zero-results path."""
+        pipeline = QueryPipeline(
+            strategy=FakeStrategy([]),
+            context_builder=FakeContextBuilder(),
+            llm_client=FakeStreamingLLMClient(),
+            citation_builder=FakeCitationBuilder(),
+            top_k=8,
+        )
+        recording_ctx = {}
+        events = list(pipeline.ask_stream("Unknown?", _recording_ctx=recording_ctx))
+        types = [e["type"] for e in events]
+        assert types == ["meta", "token", "done"]
+        assert recording_ctx["scored_chunks"] == []
+        assert recording_ctx["retrieval_query"] == "Unknown?"
+        assert recording_ctx["retrieval_ms"] >= 0
+        assert recording_ctx["generation_wall_ms"] == 0
+
 
 class TestOpenAIStreamingAdapter:
     def test_chat_stream_yields_content_skips_empty_deltas(self, monkeypatch):
