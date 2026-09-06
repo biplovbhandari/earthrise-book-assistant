@@ -1,4 +1,5 @@
 import json
+import uuid
 
 from conftest import create_test_client
 
@@ -14,7 +15,7 @@ class FakeStreamingQueryPipeline:
         self._citation_builder = object()
         self.last_history = None
 
-    def ask_stream(self, question, *, history=None, filters=None):
+    def ask_stream(self, question, *, history=None, filters=None, _recording_ctx=None):
         self.last_history = history
         yield {"type": "meta", "citations": []}
         yield {"type": "token", "content": "Answer text."}
@@ -177,7 +178,7 @@ class TestChatEndpoint:
                 self._llm_client = self
                 self._citation_builder = object()
 
-            def ask_stream(self, question, *, history=None, filters=None):
+            def ask_stream(self, question, *, history=None, filters=None, _recording_ctx=None):
                 yield {"type": "meta", "citations": []}
                 raise RuntimeError("boom")
 
@@ -197,3 +198,70 @@ class TestChatEndpoint:
         error_events = [e for e in events if e["type"] == "error"]
         assert len(error_events) == 1
         assert error_events[0]["message"] == "Generation failed. Please try again."
+
+    def test_meta_includes_interaction_id(self, monkeypatch):
+        """Meta event always includes interaction_id as a string UUID."""
+        client = create_test_client(monkeypatch, _make_fake_pipelines())
+        with client:
+            resp = client.post("/chat", json={"question": "Q?"})
+        events = [
+            json.loads(line.removeprefix("data: "))
+            for line in resp.text.strip().split("\n\n")
+            if line.startswith("data:")
+        ]
+        meta = next(e for e in events if e["type"] == "meta")
+        assert "interaction_id" in meta
+        # Should be a valid UUID string
+        uuid.UUID(meta["interaction_id"])
+
+    def test_new_conversation_meta_includes_ids(self, monkeypatch):
+        """First request (no conversation_id) gets conversation_id and visitor_id in meta."""
+        client = create_test_client(monkeypatch, _make_fake_pipelines())
+        with client:
+            resp = client.post("/chat", json={"question": "Q?"})
+        events = [
+            json.loads(line.removeprefix("data: "))
+            for line in resp.text.strip().split("\n\n")
+            if line.startswith("data:")
+        ]
+        meta = next(e for e in events if e["type"] == "meta")
+        assert "conversation_id" in meta
+        assert "visitor_id" in meta
+        uuid.UUID(meta["conversation_id"])
+        uuid.UUID(meta["visitor_id"])
+
+    def test_existing_conversation_meta_omits_known_ids(self, monkeypatch):
+        """When conversation_id and visitor_id are supplied, meta omits them."""
+        client = create_test_client(monkeypatch, _make_fake_pipelines())
+        with client:
+            resp = client.post(
+                "/chat",
+                json={
+                    "question": "Q?",
+                    "conversation_id": "11111111-1111-1111-1111-111111111111",
+                    "visitor_id": "22222222-2222-2222-2222-222222222222",
+                },
+            )
+        events = [
+            json.loads(line.removeprefix("data: "))
+            for line in resp.text.strip().split("\n\n")
+            if line.startswith("data:")
+        ]
+        meta = next(e for e in events if e["type"] == "meta")
+        assert "interaction_id" in meta
+        assert "conversation_id" not in meta
+        assert "visitor_id" not in meta
+
+    def test_no_recording_without_deployment(self, monkeypatch):
+        """Chat works normally when active_deployment_id is None (no recording)."""
+        client = create_test_client(monkeypatch, _make_fake_pipelines())
+        with client:
+            resp = client.post("/chat", json={"question": "Q?"})
+        assert resp.status_code == 200
+        types = [
+            json.loads(line.removeprefix("data: "))["type"]
+            for line in resp.text.strip().split("\n\n")
+            if line.startswith("data:")
+        ]
+        assert "meta" in types
+        assert "done" in types
