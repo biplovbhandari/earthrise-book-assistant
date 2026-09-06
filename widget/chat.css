@@ -116,6 +116,24 @@
   line-height: 1;
 }
 
+.earthrise-chat-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#earthrise-chat-new {
+  font-size: 0.75rem;
+  opacity: 0.85;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+#earthrise-chat-new:hover {
+  opacity: 1;
+  background: rgb(255 255 255 / 15%);
+}
+
 #earthrise-chat-suggestions button:hover {
   background: var(--er-user-bg);
 }
