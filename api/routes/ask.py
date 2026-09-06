@@ -36,10 +36,16 @@ def ask(request: Request, body: AskRequest):
         raise HTTPException(status_code=503, detail=reason)
     assert pipelines is not None and pipelines.query is not None
 
+    llm_semaphore = getattr(request.app.state, "llm_semaphore", None)
+    if llm_semaphore is not None:
+        llm_semaphore.acquire()
     try:
         result = pipelines.query.ask(body.question, body.filters)
     except Exception:
         logger.exception("Generation failed")
         raise HTTPException(status_code=503, detail="generation failed")
+    finally:
+        if llm_semaphore is not None:
+            llm_semaphore.release()
 
     return result
