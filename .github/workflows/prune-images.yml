@@ -1,0 +1,41 @@
+name: Prune Images
+
+on:
+  schedule:
+    - cron: "0 3 * * 1"
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: "Dry run (log deletions without executing)"
+        type: boolean
+        default: true
+
+concurrency:
+  group: prune-images
+
+permissions: {}
+
+jobs:
+  prune:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    strategy:
+      matrix:
+        package:
+          - earthrise-book-assistant/api
+          - earthrise-book-assistant/indexer
+          - earthrise-book-assistant/book-builder
+    steps:
+      - uses: dataaxiom/ghcr-cleanup-action@v1
+        with:
+          package: ${{ matrix.package }}
+          delete-untagged: true
+          delete-ghost-images: true
+          delete-partial-images: true
+          older-than: 2 weeks
+          keep-n-tagged: 1
+          exclude-tags: "dev,latest,v*,*.*.*,*.*"
+          validate: true
+          dry-run: ${{ github.event_name == 'schedule' && 'false' || inputs.dry-run }}
+          token: ${{ secrets.GITHUB_TOKEN }}
