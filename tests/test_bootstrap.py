@@ -5,6 +5,8 @@ of scope here; only the database-free config-snapshot and prompt-hashing
 logic is covered.
 """
 
+from pydantic import SecretStr
+
 from earthrise_rag.config import Settings
 from earthrise_rag.db.bootstrap import _build_config_snapshot, _read_prompt
 
@@ -18,8 +20,8 @@ class TestBuildConfigSnapshot:
             llm_model="gpt-4",
             reranker_provider="noop",
             sparse_model_name="splade",
-            database_url="postgresql://secret",
-            llm_api_key="sk-secret",
+            database_url=SecretStr("postgresql://secret"),
+            llm_api_key=SecretStr("sk-secret"),
         )
         snapshot = _build_config_snapshot(settings)
 
@@ -32,8 +34,8 @@ class TestBuildConfigSnapshot:
     def test_excludes_secrets(self):
         """Config snapshot must not contain database_url or llm_api_key."""
         settings = Settings(
-            database_url="postgresql://secret",
-            llm_api_key="sk-secret",
+            database_url=SecretStr("postgresql://secret"),
+            llm_api_key=SecretStr("sk-secret"),
         )
         snapshot = _build_config_snapshot(settings)
 
