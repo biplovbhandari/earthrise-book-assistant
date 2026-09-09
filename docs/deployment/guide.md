@@ -295,3 +295,17 @@ docker compose logs -f postgres   # database logs
 ```
 
 Check Qdrant dashboard at http://localhost:6333/dashboard for collection stats and indexed chunk counts.
+
+## 12. Maintenance
+
+Reset the database without re-indexing (keeps Qdrant vectors intact):
+
+```bash
+just db-reset
+```
+
+Wipe everything for a completely fresh start (removes all volumes and data):
+
+```bash
+just clean
+```

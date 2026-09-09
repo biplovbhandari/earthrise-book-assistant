@@ -127,6 +127,7 @@ The RAG endpoints work without it, and it is only used for interaction recording
 
 `just db-migrate` applies pending migrations.
 `just db-revision "describe the change"` generates a new migration after you edit the ORM models.
+`just db-reset` wipes and recreates the database without touching Qdrant (no re-indexing needed).
 
 Docker Compose applies migrations automatically on app startup, through the entrypoint script.
 `just up` and `just dev-docker` do not need a manual migration step as a result.
@@ -168,7 +169,8 @@ just up
 
 `just build` builds the app, Quarto builder, and indexer images.
 `just render-book` renders the book with the chat widget injected.
-`just up` starts the full stack in the background.
+`just up` starts the full stack in the background using locally built images.
+`just up-prod` starts the full stack using pre-built GHCR images (no local build needed).
 Docker Compose overrides `QDRANT_URL`, `LLM_BASE_URL`, and `DATABASE_URL` automatically so the containers can reach each other.
 Database migrations run automatically on startup, through the entrypoint script.
 
@@ -201,6 +203,8 @@ earthrise-book-assistant/
 ├── api/                         # FastAPI app
 │   ├── main.py                  # /health, lifespan (DB engine), routers, static book mount
 │   ├── dependencies.py          # Adapter wiring (factories, DB session providers)
+│   ├── middleware.py            # Per-IP rate limiting
+│   ├── recording.py             # Chat interaction recording (BackgroundTask)
 │   └── routes/                  # /search, /ask, /chat endpoints + readiness helpers
 ├── scripts/
 │   ├── index_book.py            # CLI: index book + PDFs + transcripts into Qdrant
@@ -216,6 +220,7 @@ earthrise-book-assistant/
 │   ├── chat.html                # Widget HTML structure
 │   └── _quarto-chat.yml         # Quarto profile overlay
 ├── alembic/                     # Database migrations (Alembic)
+├── docs/deployment/             # Deployment guide
 ├── infra/docker/                # Dockerfiles + entrypoint script
 ├── system-design/               # Architecture and deployment docs
 ├── tests/
@@ -223,6 +228,7 @@ earthrise-book-assistant/
 ├── justfile                     # Task runner (run `just --list`)
 ├── docker-compose.yml           # Full stack (app, qdrant, postgres, build profiles)
 ├── docker-compose.dev.yml       # Dev override (source mount + hot-reload)
+├── docker-compose.prod.yml      # GHCR image override (for production deployment)
 ├── .env.example                 # Config template (all available settings)
 └── pyproject.toml
 ```
