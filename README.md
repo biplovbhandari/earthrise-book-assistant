@@ -180,6 +180,7 @@ The app and API are reachable the same way as local development:
 
 For hot-reload against the Docker stack during development, use `just dev-docker` instead of `just up`.
 Use `just down` to stop all services.
+Use `just clean` to stop services and wipe all data (volumes, Qdrant, Postgres, rendered book) for a fresh start.
 
 See [system-design/deployment-models.md](system-design/deployment-models.md) for model recommendations across different memory configurations.
 
