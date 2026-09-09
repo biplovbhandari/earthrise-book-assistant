@@ -42,6 +42,7 @@ services:
       POSTGRES_USER: earthrise
       POSTGRES_PASSWORD: earthrise
       POSTGRES_DB: earthrise
+      PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
       - ./.data/postgres:/var/lib/postgresql/data
     healthcheck:
@@ -60,6 +61,14 @@ services:
       - ./book:/book:ro
       - ./widget:/widget:ro
       - book_html:/output
+
+  book-copy:
+    image: alpine:3
+    profiles: ["build"]
+    volumes:
+      - book_html:/src:ro
+      - ./_book:/dst
+    command: sh -c 'cp -a /src/. /dst/'
 
   indexer:
     build:
