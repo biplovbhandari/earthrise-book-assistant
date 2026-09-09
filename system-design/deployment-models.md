@@ -91,10 +91,12 @@ Budget: ~8-9 GB for LLM after OS (~4 GB) + services (~500 MB) + ML models (~1.8 
 
 ```
 EMBEDDING_MODEL_NAME=BAAI/bge-large-en-v1.5    # 1.2 GB, 1024-dim
+EMBEDDING_DIMENSION=1024
 SPARSE_MODEL_NAME=prithivida/Splade_PP_en_v1    # 530 MB
 RERANKER_PROVIDER=local_cross_encoder
 RERANKER_MODEL_NAME=cross-encoder/ms-marco-MiniLM-L6-v2  # 80 MB
 LLM_MODEL=qwen3:8b                              # 5 GB
+MAX_CONCURRENT_LLM=1
 ```
 
 **ML model total: ~6.8 GB.** Leaves ~5 GB for OS + Docker + KV cache.
@@ -110,10 +112,12 @@ Budget: ~16 GB for LLM.
 
 ```
 EMBEDDING_MODEL_NAME=BAAI/bge-large-en-v1.5    # 1.2 GB, 1024-dim
+EMBEDDING_DIMENSION=1024
 SPARSE_MODEL_NAME=prithivida/Splade_PP_en_v1    # 530 MB
 RERANKER_PROVIDER=local_cross_encoder
 RERANKER_MODEL_NAME=cross-encoder/ms-marco-MiniLM-L6-v2  # 80 MB
 LLM_MODEL=qwen3.5:14b                           # 9 GB
+MAX_CONCURRENT_LLM=2
 ```
 
 **ML model total: ~10.8 GB.** Room for a larger LLM or `OLLAMA_NUM_PARALLEL=2`.
@@ -124,10 +128,12 @@ Alternative LLM: `mistral-small3.2:24b` (~14 GB) fits with less headroom.
 
 ```
 EMBEDDING_MODEL_NAME=BAAI/bge-large-en-v1.5    # 1.2 GB, 1024-dim
+EMBEDDING_DIMENSION=1024
 SPARSE_MODEL_NAME=prithivida/Splade_PP_en_v1    # 530 MB
 RERANKER_PROVIDER=local_cross_encoder
 RERANKER_MODEL_NAME=BAAI/bge-reranker-v2-m3     # 2.3 GB, better quality
 LLM_MODEL=mistral-small3.2:24b                  # 14 GB
+MAX_CONCURRENT_LLM=2
 ```
 
 **ML model total: ~18 GB.** Room for multiple parallel LLM slots or a 31B model.

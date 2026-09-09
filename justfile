@@ -80,6 +80,16 @@ dev-docker:
 down:
     docker compose down
 
+# Reset the database only (keeps Qdrant index intact)
+db-reset:
+    docker compose stop postgres
+    rm -rf .data/postgres
+    docker compose up postgres -d
+    @echo "Waiting for PostgreSQL..."
+    @until docker exec earthrise-db psql -U earthrise -d earthrise -c "SELECT 1" >/dev/null 2>&1; do sleep 1; done
+    @echo "PostgreSQL ready."
+    uv run alembic upgrade head
+
 # Stop services, remove volumes and data for a fresh start
 clean:
     docker compose down -v --remove-orphans
