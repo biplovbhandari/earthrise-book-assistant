@@ -1,0 +1,12 @@
+services:
+  app:
+    image: ghcr.io/biplovbhandari/earthrise-book-assistant/api:dev
+    build: !reset null
+
+  indexer:
+    image: ghcr.io/biplovbhandari/earthrise-book-assistant/indexer:dev
+    build: !reset null
+
+  quarto-builder:
+    image: ghcr.io/biplovbhandari/earthrise-book-assistant/book-builder:dev
+    build: !reset null

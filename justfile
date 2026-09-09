@@ -53,20 +53,24 @@ transcribe *args='':
 render-book:
     docker compose --profile build run --rm quarto-builder
     mkdir -p _book
-    docker run --rm \
-        -v earthrise-book-assistant_book_html:/src \
-        -v "$(pwd)/_book":/dst \
-        alpine sh -c 'cp -a /src/. /dst/'
+    docker compose --profile build run --rm book-copy
 
 # ------------------ Docker services -------------------------------
 
 # Start Qdrant and PostgreSQL in the background
 services:
     docker compose up qdrant postgres -d
+    @echo "Waiting for PostgreSQL..."
+    @until docker exec earthrise-db psql -U earthrise -d earthrise -c "SELECT 1" >/dev/null 2>&1; do sleep 1; done
+    @echo "PostgreSQL ready."
 
-# Start the full Docker stack (production-like)
+# Start the full Docker stack (local build)
 up:
     docker compose up -d
+
+# Start the full Docker stack using GHCR images
+up-prod:
+    docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 
 # Start the full Docker stack with hot-reload (dev override)
 dev-docker:
@@ -75,6 +79,13 @@ dev-docker:
 # Stop all Docker services
 down:
     docker compose down
+
+# Stop services, remove volumes and data for a fresh start
+clean:
+    docker compose down -v --remove-orphans
+    -docker rm -f $(docker ps -aq --filter "label=com.docker.compose.project=earthrise-book-assistant") 2>/dev/null
+    -docker volume ls -q --filter "name=earthrise-book-assistant" | xargs -r docker volume rm 2>/dev/null
+    rm -rf .data/qdrant .data/postgres _book
 
 # Rebuild Docker images
 build:
