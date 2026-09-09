@@ -149,19 +149,18 @@ def chat(request: Request, body: ChatRequest):
 
     history_dicts = [{"role": m.role, "content": m.content} for m in body.history]
 
+    llm_semaphore = getattr(request.app.state, "llm_semaphore", None)
+    if llm_semaphore is not None and not llm_semaphore.acquire(timeout=120):
+        raise HTTPException(status_code=503, detail="LLM busy. Please try again later.")
+
     def event_stream():
         """Yield SSE-formatted events from the streaming pipeline.
 
-        Acquires the LLM semaphore for the duration of the stream so
-        concurrent requests queue instead of overloading Ollama.
         Accumulates response text, token count, and completion state onto
         ``ctx`` as events pass through, so the background recording task has
         everything it needs once the stream is exhausted.
         """
-        llm_semaphore = getattr(request.app.state, "llm_semaphore", None)
         start_time = time.monotonic()
-        if llm_semaphore is not None:
-            llm_semaphore.acquire()
         try:
             for event in pipelines.query.ask_stream(
                 body.question,
@@ -186,9 +185,6 @@ def chat(request: Request, body: ChatRequest):
             logger.exception("Streaming generation failed")
             error = {"type": "error", "message": "Generation failed. Please try again."}
             yield f"data: {json.dumps(error)}\n\n"
-        finally:
-            if llm_semaphore is not None:
-                llm_semaphore.release()
 
         ctx.latency_ms = int((time.monotonic() - start_time) * 1000)
         ctx.scored_chunks = pipeline_ctx.get("scored_chunks", [])
@@ -196,12 +192,19 @@ def chat(request: Request, body: ChatRequest):
         ctx.retrieval_ms = pipeline_ctx.get("retrieval_ms", 0)
         ctx.generation_wall_ms = pipeline_ctx.get("generation_wall_ms", 0)
 
-    async def _record():
-        """Compute the query embedding and persist the interaction. Never raises.
+    async def _cleanup():
+        """Release the LLM semaphore and persist the interaction. Never raises.
 
-        Runs as a StreamingResponse BackgroundTask, i.e. after the SSE
-        response has already been fully sent to the client.
+        Runs as a StreamingResponse BackgroundTask after the SSE response
+        has been fully sent (or the client has disconnected). The semaphore
+        is released here instead of inside the generator so that client
+        disconnects cannot leak the slot.
         """
+        try:
+            if llm_semaphore is not None:
+                llm_semaphore.release()
+        except Exception:
+            logger.exception("Failed to release LLM semaphore for %s", ctx.interaction_id)
         try:
             if not (can_record and ctx.saw_done):
                 return
@@ -224,5 +227,5 @@ def chat(request: Request, body: ChatRequest):
         event_stream(),
         media_type="text/event-stream",
         headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
-        background=BackgroundTask(_record),
+        background=BackgroundTask(_cleanup),
     )
