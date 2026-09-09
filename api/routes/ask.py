@@ -37,8 +37,8 @@ def ask(request: Request, body: AskRequest):
     assert pipelines is not None and pipelines.query is not None
 
     llm_semaphore = getattr(request.app.state, "llm_semaphore", None)
-    if llm_semaphore is not None:
-        llm_semaphore.acquire()
+    if llm_semaphore is not None and not llm_semaphore.acquire(timeout=120):
+        raise HTTPException(status_code=503, detail="LLM busy. Please try again later.")
     try:
         result = pipelines.query.ask(body.question, body.filters)
     except Exception:
