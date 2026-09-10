@@ -15,7 +15,7 @@ RUN ARCH=$(dpkg --print-architecture) \
     && rm /tmp/quarto.deb
 
 RUN quarto install tinytex --no-prompt \
-    && tlmgr update --self \
+    && export PATH="$(find /root -name tlmgr -exec dirname {} \; 2>/dev/null | head -1):$PATH" \
     && tlmgr install luatexbase ctablestack
 
 RUN pip install --no-cache-dir jupyter
