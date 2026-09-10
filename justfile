@@ -41,17 +41,27 @@ db-revision msg:
 
 # ------------------ Content ---------------------------------------
 
-# Index book chapters, PDFs, and transcripts into Qdrant
+# Index book chapters, PDFs, and transcripts into Qdrant (local)
 index *args='':
     BOOK_COMMIT_SHA=$(git -C book rev-parse HEAD) uv run python scripts/index_book.py {{ args }}
+
+# Index using Docker indexer (production deployment, no uv needed)
+index-prod *args='':
+    BOOK_COMMIT_SHA=$(git -C book rev-parse HEAD) docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile build run --rm indexer {{ args }}
 
 # Transcribe YouTube lecture videos
 transcribe *args='':
     uv run --group indexer python scripts/transcribe.py {{ args }}
 
-# Render the book with the chat widget and copy to _book/
+# Render the book with the chat widget and copy to _book/ (local build)
 render-book:
     docker compose --profile build run --rm quarto-builder
+    mkdir -p _book
+    docker compose --profile build run --rm book-copy
+
+# Render the book using GHCR image (production deployment)
+render-book-prod:
+    docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile build run --rm quarto-builder
     mkdir -p _book
     docker compose --profile build run --rm book-copy
 
