@@ -1,37 +1,76 @@
 # Deployment Guide
 
-Deploy the EarthRISE book assistant on a local machine using Docker and Ollama.
-This guide covers a single-machine setup suitable for a Mac Mini, Linux server, or similar host.
+Deploy the EarthRISE book assistant on a single machine.
+This guide covers macOS (Mac Mini / Apple Silicon) and Linux deployment paths.
 
 For model selection and memory budgets, see [deployment-models.md](../../system-design/deployment-models.md).
 
+## Platform differences
+
+The app, indexer, and reranker use ML models (sentence-transformers, fastembed) that benefit from GPU acceleration.
+Docker containers on macOS cannot access the Metal GPU, so the app and indexer run natively on macOS.
+On Linux with NVIDIA GPU, everything runs in Docker with GPU passthrough.
+
+| Component | macOS | Linux (NVIDIA) |
+|-----------|-------|----------------|
+| Qdrant + Postgres | Docker | Docker |
+| Ollama (LLM) | Native (Metal) | Native (CUDA) |
+| App (uvicorn) | Native (Metal/MPS) | Docker (CUDA) |
+| Indexer | Native (Metal/MPS) | Docker (CUDA) |
+| Book builder | Docker (no GPU needed) | Docker |
+
 ## Prerequisites
 
-- [Docker](https://docs.docker.com/get-docker/) and Docker Compose
-- [Ollama](https://ollama.com/) installed natively (not in Docker)
+### macOS note: admin vs non-admin users
 
-Ollama must run outside Docker so it can access the GPU directly (Metal on macOS, CUDA on Linux).
+Installing Docker Desktop and Ollama requires writing to `/Applications`, which needs an admin account.
+If your deployment user is non-admin (recommended for servers), install from the admin account, then switch back to the non-admin user for everything else.
 
-## 1. Install Ollama
-
-### macOS
+### just (task runner)
 
 ```bash
-brew install ollama
+brew install just       # macOS
+# Linux: see https://just.systems/man/en/installation.html
 ```
 
-### Linux
+All deployment commands in this guide use `just` recipes.
+Run `just --list` to see available commands.
+
+### Docker
+
+On macOS, install [Docker Desktop](https://www.docker.com/products/docker-desktop/).
+Download the `.dmg` from the website and drag Docker.app to `/Applications`, or:
+
+```bash
+brew install --cask docker-desktop
+```
+
+On Linux, install [Docker Engine](https://docs.docker.com/engine/install/) and the [Compose plugin](https://docs.docker.com/compose/install/linux/).
+For GPU support, install the [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html).
+
+After installation, open the app once to complete setup:
+
+```bash
+open /Applications/Docker.app    # macOS
+```
+
+Docker Desktop runs in the background after first launch and auto-starts on boot.
+
+### Ollama
+
+Ollama runs natively (not in Docker) so it can access the GPU directly (Metal on macOS, CUDA on Linux).
 
 ```bash
 curl -fsSL https://ollama.com/install.sh | sh
 ```
 
-Start the Ollama service:
+On macOS, you can also download the `.dmg` from [ollama.com/download/mac](https://ollama.com/download/mac).
+
+After installation, start Ollama before pulling models:
 
 ```bash
-# macOS: Ollama runs as a background service after installation.
-# Linux: start it manually or via systemd.
-ollama serve &
+open /Applications/Ollama.app    # macOS, wait for menu bar icon
+ollama serve &                   # Linux
 ```
 
 Pull the LLM model:
@@ -49,12 +88,31 @@ ollama run qwen3:8b "Hello, what is semantic segmentation?"
 You should get a coherent response.
 Press Ctrl+D to exit.
 
-## 2. Clone the repository
+### uv (macOS only)
+
+On macOS, the app and indexer run natively (not in Docker) to access the Metal GPU.
+This requires uv, which manages Python and dependencies:
+
+```bash
+brew install uv
+```
+
+`uv sync` auto-downloads the right Python version (3.12+) if it is not already installed.
+
+## 1. Clone the repository
 
 ```bash
 git clone --recurse-submodules https://github.com/biplovbhandari/earthrise-book-assistant.git
 cd earthrise-book-assistant
 ```
+
+## 2. Install dependencies (macOS only)
+
+```bash
+uv sync --group dev --group indexer
+```
+
+Not needed on Linux - the Docker images include all dependencies.
 
 ## 3. Configure the environment
 
@@ -62,103 +120,104 @@ cd earthrise-book-assistant
 cp .env.example .env
 ```
 
-Edit `.env` with production settings.
-The key values to change:
+Edit `.env` with deployment settings.
+
+**macOS (.env):**
 
 ```bash
-# LLM - point to Ollama on the host
 LLM_MODEL=qwen3:8b
-LLM_BASE_URL=http://host.docker.internal:11434/v1    # macOS/Windows (Docker Desktop)
-# LLM_BASE_URL=http://172.17.0.1:11434/v1            # Linux (Docker bridge gateway)
+LLM_BASE_URL=http://localhost:11434/v1
 LLM_API_KEY=ollama
-
-# Database - enable interaction recording
-DATABASE_URL=postgresql+asyncpg://earthrise:earthrise@postgres:5432/earthrise
-
-# Retrieval
+DATABASE_URL=postgresql+asyncpg://earthrise:earthrise@localhost:5432/earthrise
+EMBEDDING_DIMENSION=1024
 RERANKER_PROVIDER=local_cross_encoder
 RETRIEVAL_STRATEGY=hybrid
-
-# Rate limiting and concurrency
 RATE_LIMIT_PER_MINUTE=30
-MAX_CONCURRENT_LLM=1    # set to 2 on 24GB+ systems
+MAX_CONCURRENT_LLM=1
 ```
 
-Docker Compose overrides `QDRANT_URL` and `DATABASE_URL` automatically so the containers can reach each other.
-The `LLM_BASE_URL` must use `host.docker.internal` (macOS/Windows) or `172.17.0.1` (Linux) so the app container can reach Ollama on the host.
+On macOS, `LLM_BASE_URL` and `DATABASE_URL` use `localhost` because the app runs natively on the host alongside Ollama and Docker services.
 
-## 4. Build or pull images
-
-### Option A: Pull pre-built images from GHCR (recommended)
-
-Images are published on every merge to main.
-Docker pulls the correct architecture (amd64 or arm64) automatically.
+**Linux (.env):**
 
 ```bash
-docker pull ghcr.io/biplovbhandari/earthrise-book-assistant/api:dev
-docker pull ghcr.io/biplovbhandari/earthrise-book-assistant/indexer:dev
-docker pull ghcr.io/biplovbhandari/earthrise-book-assistant/book-builder:dev
+LLM_MODEL=qwen3:8b
+LLM_BASE_URL=http://172.17.0.1:11434/v1
+LLM_API_KEY=ollama
+DATABASE_URL=postgresql+asyncpg://earthrise:earthrise@postgres:5432/earthrise
+EMBEDDING_DIMENSION=1024
+RERANKER_PROVIDER=local_cross_encoder
+RETRIEVAL_STRATEGY=hybrid
+RATE_LIMIT_PER_MINUTE=30
+MAX_CONCURRENT_LLM=1
 ```
 
-The repo includes `docker-compose.prod.yml` which overrides the build targets to use GHCR images.
-Run with:
+On Linux, `LLM_BASE_URL` uses the Docker bridge gateway (`172.17.0.1`) and `DATABASE_URL` uses the Docker service name (`postgres`) because the app runs inside Docker.
+
+## 4. Start services and application
+
+### macOS
 
 ```bash
-just up-prod
+just services       # Docker: Qdrant + PostgreSQL
+just db-migrate     # Apply database migrations
+just serve          # Native: uvicorn in production mode with Metal GPU
 ```
 
-### Option B: Build locally
+`just serve` starts the API without hot-reload, bound to all interfaces.
+`just dev` is available for development (adds hot-reload).
+The embedding model and reranker run on the Metal GPU via MPS.
+
+To run as a persistent service that survives reboots:
 
 ```bash
-just build
+mkdir -p logs
+
+# Copy the template and edit paths
+cp infra/launchd/com.earthrise.assistant.plist ~/Library/LaunchAgents/
+# Edit ~/Library/LaunchAgents/com.earthrise.assistant.plist:
+#   Replace REPO_PATH with your clone location (e.g. /Users/yourname/earthrise-book-assistant)
+#   Replace HOMEBREW_PREFIX with /opt/homebrew (Apple Silicon) or /usr/local (Intel)
+
+launchctl load ~/Library/LaunchAgents/com.earthrise.assistant.plist
 ```
 
-Then run with:
+This auto-starts the app on login, restarts on crash, and logs to `logs/app.log`.
+To stop: `launchctl unload ~/Library/LaunchAgents/com.earthrise.assistant.plist`.
+
+### Linux
 
 ```bash
-just up
-```
-
-## 5. Render the book
-
-```bash
-just render-book
-```
-
-This renders the Quarto book with the chat widget injected and copies the output to the `book_html` Docker volume.
-
-## 6. Index content
-
-```bash
-just index
-```
-
-This indexes book chapters, companion PDFs, and video transcripts into Qdrant.
-You only need to re-index when the book content changes or the Qdrant volume is removed.
-
-To start fresh:
-
-```bash
-just index --recreate-collection
-```
-
-## 7. Start the application
-
-If you built locally:
-
-```bash
-just up
-```
-
-If using GHCR images:
-
-```bash
-just up-prod
+just up-prod        # Docker: full stack from GHCR images (app + Qdrant + PostgreSQL)
 ```
 
 Database migrations run automatically on startup via the entrypoint script.
+The app and its ML models use CUDA GPU inside the container.
 
-## 8. Verify
+## 5. Render the book and index content
+
+### macOS
+
+```bash
+just render-book    # Docker: Quarto builder (no GPU needed)
+just index          # Native: indexer with Metal GPU for embeddings
+```
+
+### Linux
+
+```bash
+just render-book-prod    # Docker: GHCR Quarto builder image
+just index-prod          # Docker: GHCR indexer image with CUDA GPU
+```
+
+To rebuild the index from scratch, add `--recreate-collection`:
+
+```bash
+just index --recreate-collection          # macOS
+just index-prod --recreate-collection     # Linux
+```
+
+## 6. Verify
 
 ```bash
 # Health check
@@ -183,7 +242,7 @@ Check that:
 The book with chat widget is at http://localhost:8000/.
 The Qdrant dashboard is at http://localhost:6333/dashboard.
 
-## 9. Public access with Cloudflare Tunnel
+## 7. Public access with Cloudflare Tunnel
 
 Cloudflare Tunnel exposes the app to the internet with HTTPS, without opening ports on your router.
 
@@ -221,7 +280,7 @@ Create `~/.cloudflared/config.yml`:
 
 ```yaml
 tunnel: <TUNNEL_ID>
-credentials-file: /Users/<you>/.cloudflared/<TUNNEL_ID>.json
+credentials-file: ~/.cloudflared/<TUNNEL_ID>.json
 
 ingress:
   - hostname: earthrise.yourdomain.com
@@ -259,26 +318,33 @@ sudo cloudflared service install
 sudo systemctl enable --now cloudflared
 ```
 
-## 10. Updating
+## 8. Updating
 
 When new code merges to main, GHCR images are rebuilt automatically.
-To update the deployed app:
+
+### macOS
 
 ```bash
-# Pull latest images and restart
+git pull
+uv sync --group dev --group indexer
+just render-book
+just index
+# Restart just serve (Ctrl+C and re-run, or reload via launchctl)
+```
+
+### Linux
+
+```bash
+git pull
 docker compose -f docker-compose.yml -f docker-compose.prod.yml pull
 just up-prod
-
-# Re-render book if widget or book content changed
-just render-book
-
-# Re-index if book content changed
-just index
+just render-book-prod
+just index-prod
 ```
 
 Database migrations run automatically on restart via the entrypoint script.
 
-## 11. Monitoring
+## 9. Monitoring
 
 Check application health:
 
@@ -289,6 +355,12 @@ curl -s localhost:8000/health | python3 -m json.tool
 View logs:
 
 ```bash
+# macOS: uvicorn logs are in the terminal (just serve) or logs/app.log (launchd)
+# Docker services:
+docker compose logs -f qdrant     # vector DB logs
+docker compose logs -f postgres   # database logs
+
+# Linux (full Docker):
 docker compose logs -f app        # API logs
 docker compose logs -f qdrant     # vector DB logs
 docker compose logs -f postgres   # database logs
@@ -296,7 +368,7 @@ docker compose logs -f postgres   # database logs
 
 Check Qdrant dashboard at http://localhost:6333/dashboard for collection stats and indexed chunk counts.
 
-## 12. Maintenance
+## 10. Maintenance
 
 Reset the database without re-indexing (keeps Qdrant vectors intact):
 
