@@ -14,7 +14,9 @@ RUN ARCH=$(dpkg --print-architecture) \
     && dpkg -i /tmp/quarto.deb \
     && rm /tmp/quarto.deb
 
-RUN quarto install tinytex --no-prompt
+RUN quarto install tinytex --no-prompt \
+    && tlmgr update --self \
+    && tlmgr install luatexbase ctablestack
 
 RUN pip install --no-cache-dir jupyter
 
