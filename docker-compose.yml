@@ -11,7 +11,6 @@ services:
     env_file: .env
     environment:
       - QDRANT_URL=http://qdrant:6333
-      - LLM_BASE_URL=http://host.docker.internal:11434/v1
       - DATABASE_URL=postgresql+asyncpg://earthrise:earthrise@postgres:5432/earthrise
     volumes:
       - models_cache:/models
