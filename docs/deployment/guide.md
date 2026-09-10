@@ -88,14 +88,16 @@ ollama run qwen3:8b "Hello, what is semantic segmentation?"
 You should get a coherent response.
 Press Ctrl+D to exit.
 
-### Python and uv (macOS only)
+### uv (macOS only)
 
 On macOS, the app and indexer run natively (not in Docker) to access the Metal GPU.
-This requires Python and uv:
+This requires uv, which manages Python and dependencies:
 
 ```bash
-brew install python@3.12 uv
+brew install uv
 ```
+
+`uv sync` auto-downloads the right Python version (3.12+) if it is not already installed.
 
 ## 1. Clone the repository
 
@@ -127,6 +129,7 @@ LLM_MODEL=qwen3:8b
 LLM_BASE_URL=http://localhost:11434/v1
 LLM_API_KEY=ollama
 DATABASE_URL=postgresql+asyncpg://earthrise:earthrise@localhost:5432/earthrise
+EMBEDDING_DIMENSION=1024
 RERANKER_PROVIDER=local_cross_encoder
 RETRIEVAL_STRATEGY=hybrid
 RATE_LIMIT_PER_MINUTE=30
@@ -142,6 +145,7 @@ LLM_MODEL=qwen3:8b
 LLM_BASE_URL=http://172.17.0.1:11434/v1
 LLM_API_KEY=ollama
 DATABASE_URL=postgresql+asyncpg://earthrise:earthrise@postgres:5432/earthrise
+EMBEDDING_DIMENSION=1024
 RERANKER_PROVIDER=local_cross_encoder
 RETRIEVAL_STRATEGY=hybrid
 RATE_LIMIT_PER_MINUTE=30
@@ -157,11 +161,29 @@ On Linux, `LLM_BASE_URL` uses the Docker bridge gateway (`172.17.0.1`) and `DATA
 ```bash
 just services       # Docker: Qdrant + PostgreSQL
 just db-migrate     # Apply database migrations
-just dev            # Native: uvicorn with Metal GPU for embeddings
+just serve          # Native: uvicorn in production mode with Metal GPU
 ```
 
-`just dev` starts the API with hot-reload.
+`just serve` starts the API without hot-reload, bound to all interfaces.
+`just dev` is available for development (adds hot-reload).
 The embedding model and reranker run on the Metal GPU via MPS.
+
+To run as a persistent service that survives reboots:
+
+```bash
+mkdir -p logs
+
+# Copy the template and edit paths
+cp infra/launchd/com.earthrise.assistant.plist ~/Library/LaunchAgents/
+# Edit ~/Library/LaunchAgents/com.earthrise.assistant.plist:
+#   Replace REPO_PATH with your clone location (e.g. /Users/yourname/earthrise-book-assistant)
+#   Replace HOMEBREW_PREFIX with /opt/homebrew (Apple Silicon) or /usr/local (Intel)
+
+launchctl load ~/Library/LaunchAgents/com.earthrise.assistant.plist
+```
+
+This auto-starts the app on login, restarts on crash, and logs to `logs/app.log`.
+To stop: `launchctl unload ~/Library/LaunchAgents/com.earthrise.assistant.plist`.
 
 ### Linux
 
@@ -258,7 +280,7 @@ Create `~/.cloudflared/config.yml`:
 
 ```yaml
 tunnel: <TUNNEL_ID>
-credentials-file: /Users/<you>/.cloudflared/<TUNNEL_ID>.json
+credentials-file: ~/.cloudflared/<TUNNEL_ID>.json
 
 ingress:
   - hostname: earthrise.yourdomain.com
@@ -307,7 +329,7 @@ git pull
 uv sync --group dev --group indexer
 just render-book
 just index
-# Restart just dev (Ctrl+C and re-run)
+# Restart just serve (Ctrl+C and re-run, or reload via launchctl)
 ```
 
 ### Linux
@@ -333,7 +355,7 @@ curl -s localhost:8000/health | python3 -m json.tool
 View logs:
 
 ```bash
-# macOS: uvicorn logs are in the terminal running just dev
+# macOS: uvicorn logs are in the terminal (just serve) or logs/app.log (launchd)
 # Docker services:
 docker compose logs -f qdrant     # vector DB logs
 docker compose logs -f postgres   # database logs
