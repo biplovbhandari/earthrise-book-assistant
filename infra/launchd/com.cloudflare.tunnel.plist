@@ -4,21 +4,19 @@
   Template: edit the paths below before loading.
   Replace REPO_PATH with your clone location (e.g. /Users/yourname/earthrise-book-assistant).
   Replace HOMEBREW_PREFIX with /opt/homebrew (Apple Silicon) or /usr/local (Intel).
-  Replace DOCKER_BIN with the output of: dirname $(which docker)
 -->
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>com.earthrise.assistant</string>
+    <string>com.cloudflare.tunnel</string>
 
     <key>ProgramArguments</key>
     <array>
-        <string>HOMEBREW_PREFIX/bin/just</string>
-        <string>serve</string>
+        <string>HOMEBREW_PREFIX/bin/cloudflared</string>
+        <string>tunnel</string>
+        <string>run</string>
+        <string>earthrise</string>
     </array>
-
-    <key>WorkingDirectory</key>
-    <string>REPO_PATH</string>
 
     <key>RunAtLoad</key>
     <true/>
@@ -27,15 +25,9 @@
     <true/>
 
     <key>StandardOutPath</key>
-    <string>REPO_PATH/logs/app.log</string>
+    <string>REPO_PATH/logs/tunnel.log</string>
 
     <key>StandardErrorPath</key>
-    <string>REPO_PATH/logs/app.error.log</string>
-
-    <key>EnvironmentVariables</key>
-    <dict>
-        <key>PATH</key>
-        <string>HOMEBREW_PREFIX/bin:DOCKER_BIN:/usr/local/bin:/usr/bin:/bin</string>
-    </dict>
+    <string>REPO_PATH/logs/tunnel.error.log</string>
 </dict>
 </plist>

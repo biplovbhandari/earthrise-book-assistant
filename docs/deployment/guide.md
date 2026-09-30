@@ -308,12 +308,30 @@ The app is now reachable at `https://earthrise.yourdomain.com`.
 
 To keep the tunnel running after logout:
 
+**macOS (non-admin user):**
+
 ```bash
-# macOS
+# Copy the template and edit paths
+cp infra/launchd/com.cloudflare.tunnel.plist ~/Library/LaunchAgents/
+# Edit ~/Library/LaunchAgents/com.cloudflare.tunnel.plist:
+#   Replace REPO_PATH with your clone location (e.g. /Users/yourname/earthrise-book-assistant)
+#   Replace HOMEBREW_PREFIX with /opt/homebrew (Apple Silicon) or /usr/local (Intel)
+
+launchctl load ~/Library/LaunchAgents/com.cloudflare.tunnel.plist
+```
+
+To stop: `launchctl unload ~/Library/LaunchAgents/com.cloudflare.tunnel.plist`.
+
+**macOS (admin user):**
+
+```bash
 sudo cloudflared service install
 sudo launchctl start com.cloudflare.cloudflared
+```
 
-# Linux (systemd)
+**Linux (systemd):**
+
+```bash
 sudo cloudflared service install
 sudo systemctl enable --now cloudflared
 ```
