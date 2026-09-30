@@ -348,8 +348,17 @@ git pull
 uv sync --group dev --group indexer
 just render-book
 just index
-# Restart just serve (Ctrl+C and re-run, or reload via launchctl)
+
+# Restart the app service
+launchctl unload ~/Library/LaunchAgents/com.earthrise.assistant.plist
+launchctl load ~/Library/LaunchAgents/com.earthrise.assistant.plist
+
+# Restart the tunnel (only if tunnel config changed)
+launchctl unload ~/Library/LaunchAgents/com.cloudflare.tunnel.plist
+launchctl load ~/Library/LaunchAgents/com.cloudflare.tunnel.plist
 ```
+
+If the update includes database schema changes, run `just db-migrate` before restarting the app.
 
 ### Linux
 
