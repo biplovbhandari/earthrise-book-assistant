@@ -151,20 +151,17 @@ On 24 GB+, `OLLAMA_NUM_PARALLEL=2` works with the recommended configs above.
 Install Ollama and pull the model:
 
 ```bash
-# macOS
-brew install ollama
-
-# Linux
 curl -fsSL https://ollama.com/install.sh | sh
 
-# Pull the model
 ollama pull qwen3:8b          # or whichever LLM you chose
 ```
 
-When the FastAPI app runs inside Docker, set `LLM_BASE_URL` so the container can reach Ollama on the host:
+On macOS, you can also download the `.dmg` from [ollama.com/download/mac](https://ollama.com/download/mac).
 
-- **macOS/Windows (Docker Desktop):** `http://host.docker.internal:11434/v1`
-- **Linux:** `http://172.17.0.1:11434/v1` (Docker bridge gateway) or use `--network host`
+Set `LLM_BASE_URL` in `.env` based on your deployment:
+
+- **macOS (native app):** `http://localhost:11434/v1` (app and Ollama both run on the host)
+- **Linux (Docker app):** `http://172.17.0.1:11434/v1` (Docker bridge gateway) or `http://host.docker.internal:11434/v1` (Docker Desktop)
 
 ## Embedding dimension and schema
 

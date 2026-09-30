@@ -89,7 +89,7 @@ Open http://localhost:8000/ to see the book with the chat FAB in the bottom-righ
 `just index` indexes book chapters, companion PDFs, and video transcripts into Qdrant.
 Transcripts are committed to the repo, so a fresh clone already has everything needed.
 You do not need to run the transcriber first.
-The Qdrant `qdrant_data` volume persists across restarts, so you only need to re-index when the volume is removed or the content changes.
+Qdrant data persists across restarts in `.data/qdrant`, so you only need to re-index when the data is removed or the content changes.
 Use `just index --recreate-collection` to delete and rebuild the collection from scratch.
 
 Check the [Qdrant dashboard - http://localhost:6333/dashboard](http://localhost:6333/dashboard) to see indexed chunks.
@@ -157,34 +157,18 @@ npx stylelint widget/chat.css
 
 ## Deployment
 
-This path runs the full stack in Docker: the app, Qdrant, and PostgreSQL.
-It does not require Python or uv on your machine.
-Complete [Getting Started](#getting-started) first for the repository clone and `.env` file.
+See [docs/deployment/guide.md](docs/deployment/guide.md) for the full deployment guide with platform-specific instructions.
 
-```bash
-just build
-just render-book
-just up
-```
+The deployment differs by platform because Docker on macOS cannot access the Metal GPU:
 
-`just build` builds the app, Quarto builder, and indexer images.
-`just render-book` renders the book with the chat widget injected.
-`just up` starts the full stack in the background using locally built images.
-`just up-prod` starts the full stack using pre-built GHCR images (no local build needed).
-Docker Compose overrides `QDRANT_URL`, `LLM_BASE_URL`, and `DATABASE_URL` automatically so the containers can reach each other.
-Database migrations run automatically on startup, through the entrypoint script.
+- **macOS**: `just services` (Docker: Qdrant + Postgres) + `just serve` (native: app with Metal GPU)
+- **Linux**: `just up-prod` (full Docker stack with CUDA GPU)
 
-Index content the same way as local development, with `just index` (see Content Management).
-The app and API are reachable the same way as local development:
+Both platforms use Ollama natively for LLM generation.
+See [system-design/deployment-models.md](system-design/deployment-models.md) for model recommendations across different memory configurations.
 
-- Book with chat widget: http://localhost:8000/
-- Qdrant dashboard: http://localhost:6333/dashboard
-
-For hot-reload against the Docker stack during development, use `just dev-docker` instead of `just up`.
 Use `just down` to stop all services.
 Use `just clean` to stop services and wipe all data (volumes, Qdrant, Postgres, rendered book) for a fresh start.
-
-See [system-design/deployment-models.md](system-design/deployment-models.md) for model recommendations across different memory configurations.
 
 ## Project Structure
 
@@ -222,6 +206,7 @@ earthrise-book-assistant/
 ├── alembic/                     # Database migrations (Alembic)
 ├── docs/deployment/             # Deployment guide
 ├── infra/docker/                # Dockerfiles + entrypoint script
+├── infra/launchd/               # macOS launchd service config
 ├── system-design/               # Architecture and deployment docs
 ├── tests/
 ├── book/                        # Git submodule (book source)

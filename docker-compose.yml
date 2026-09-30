@@ -11,11 +11,15 @@ services:
     env_file: .env
     environment:
       - QDRANT_URL=http://qdrant:6333
-      - LLM_BASE_URL=http://host.docker.internal:11434/v1
       - DATABASE_URL=postgresql+asyncpg://earthrise:earthrise@postgres:5432/earthrise
     volumes:
       - models_cache:/models
       - book_html:/app/_book:ro
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
     restart: unless-stopped
 
   qdrant:
@@ -80,6 +84,7 @@ services:
         condition: service_healthy
     env_file: .env
     environment:
+      - QDRANT_URL=http://qdrant:6333
       - BOOK_SOURCE_DIR=/book
       - BOOK_COMMIT_SHA=${BOOK_COMMIT_SHA:-unknown}
       - WHISPER_CACHE_DIR=/models/whisper
@@ -88,6 +93,11 @@ services:
       - ./data:/app/data
       - ./logs:/app/logs
       - models_cache:/models
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - capabilities: [gpu]
 
 volumes:
   models_cache:
