@@ -54,7 +54,8 @@ After installation, open the app once to complete setup:
 open /Applications/Docker.app    # macOS
 ```
 
-Docker Desktop runs in the background after first launch and auto-starts on boot.
+Docker Desktop runs in the background after first launch.
+Enable "Start Docker Desktop when you sign in" in Docker Desktop > Settings > General so it auto-starts on reboot.
 
 ### Ollama
 
