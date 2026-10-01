@@ -398,6 +398,44 @@ Check Qdrant dashboard at http://localhost:6333/dashboard for collection stats a
 
 ## 10. Maintenance
 
+### Database backups
+
+Back up PostgreSQL on demand:
+
+```bash
+just db-backup
+```
+
+This writes a timestamped compressed dump to `backups/` (e.g. `backups/earthrise_20261001_020000.sql.gz`).
+
+To schedule nightly backups at 2 AM via launchd (recommended over cron - launchd catches up on missed runs after sleep or shutdown):
+
+```bash
+cp infra/launchd/com.earthrise.db-backup.plist ~/Library/LaunchAgents/
+# Edit ~/Library/LaunchAgents/com.earthrise.db-backup.plist:
+#   Replace REPO_PATH with your clone location (e.g. /Users/yourname/earthrise-book-assistant)
+#   Replace HOMEBREW_PREFIX with /opt/homebrew (Apple Silicon) or /usr/local (Intel)
+#   Replace DOCKER_BIN with the output of: dirname $(which docker)
+
+launchctl load ~/Library/LaunchAgents/com.earthrise.db-backup.plist
+```
+
+Logs go to `backups/backup.log`.
+To stop: `launchctl unload ~/Library/LaunchAgents/com.earthrise.db-backup.plist`.
+
+Each backup run automatically prunes old files, keeping the 30 most recent.
+At nightly frequency this gives 30 days of history with no manual cleanup.
+
+To restore from a backup (replaces all data in the database):
+
+```bash
+just db-restore backups/earthrise_20261001_020000.sql.gz
+```
+
+If the backup predates a schema change, run `just db-migrate` after restoring.
+
+### Reset and cleanup
+
 Reset the database without re-indexing (keeps Qdrant vectors intact):
 
 ```bash
