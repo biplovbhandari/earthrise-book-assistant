@@ -43,6 +43,47 @@ db-migrate:
 db-revision msg:
     uv run alembic revision --autogenerate -m "{{ msg }}"
 
+# Dump PostgreSQL to a timestamped compressed file in backups/
+db-backup: (_db-backup-prune)
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if ! docker exec earthrise-db pg_isready -U earthrise -d earthrise >/dev/null 2>&1; then
+        echo "Error: PostgreSQL is not running" >&2
+        exit 1
+    fi
+    mkdir -p backups
+    outfile="backups/earthrise_$(date +%Y%m%d_%H%M%S).sql.gz"
+    docker exec earthrise-db pg_dump -U earthrise earthrise | gzip > "$outfile"
+    echo "Backup: $outfile ($(du -h "$outfile" | cut -f1))"
+
+# Remove old backups, keeping the 30 most recent
+_db-backup-prune:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    [[ -d backups ]] || exit 0
+    count=$(ls -1 backups/earthrise_*.sql.gz 2>/dev/null | wc -l)
+    if (( count > 30 )); then
+        ls -1t backups/earthrise_*.sql.gz | tail -n +"31" | xargs rm -f
+        echo "Pruned $((count - 30)) old backup(s)"
+    fi
+
+# Restore PostgreSQL from a backup file (replaces current data)
+db-restore file:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    if [[ ! -f "{{ file }}" ]]; then
+        echo "File not found: {{ file }}" >&2
+        exit 1
+    fi
+    echo "WARNING: This will replace all data in the earthrise database."
+    read -p "Continue? [y/N] " -n 1 -r; echo
+    [[ $REPLY =~ ^[Yy]$ ]] || { echo "Cancelled."; exit 1; }
+    docker exec earthrise-db dropdb -U earthrise --force --if-exists earthrise
+    docker exec earthrise-db createdb -U earthrise earthrise
+    gunzip -c "{{ file }}" | docker exec -i earthrise-db psql -U earthrise -d earthrise --quiet
+    echo "Restored from: {{ file }}"
+    echo "Run 'just db-migrate' if the backup predates a schema change."
+
 # ------------------ Content ---------------------------------------
 
 # Index book chapters, PDFs, and transcripts into Qdrant (local)
