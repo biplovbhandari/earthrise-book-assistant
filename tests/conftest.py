@@ -2,10 +2,28 @@
 
 from __future__ import annotations
 
+import pytest
 from fastapi.testclient import TestClient
 
 from earthrise_rag.models import Chunk, ScoredChunk
 from earthrise_rag.models.citation import Citation
+
+
+@pytest.fixture(autouse=True)
+def _reset_rate_limiter():
+    """Clear rate limiter state between tests to prevent cross-test 429s."""
+    from api.middleware import RateLimitMiddleware
+
+    try:
+        from api.main import app
+    except ImportError:
+        return
+    current = getattr(app, "middleware_stack", None)
+    while current is not None:
+        if isinstance(current, RateLimitMiddleware):
+            current._requests.clear()
+            return
+        current = getattr(current, "app", None)
 
 
 def make_scored_chunk(

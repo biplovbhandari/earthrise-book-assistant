@@ -21,6 +21,10 @@ def _create_app(max_requests: int = 5) -> FastAPI:
     async def chat():
         return {"response": "hello"}
 
+    @app.get("/analytics/overview")
+    async def analytics():
+        return {"total": 42}
+
     @app.get("/static-page")
     async def static_page():
         return {"page": "content"}
@@ -67,6 +71,15 @@ class TestRateLimitMiddleware:
         client.get("/health")
 
         resp = client.post("/chat")
+        assert resp.status_code == 429
+
+    def test_analytics_routes_are_rate_limited(self):
+        """Analytics endpoints are subject to the same rate limit as other API routes."""
+        client = TestClient(_create_app(max_requests=2))
+        client.get("/analytics/overview")
+        client.get("/analytics/overview")
+
+        resp = client.get("/analytics/overview")
         assert resp.status_code == 429
 
     def test_window_expiry_resets_count(self):
