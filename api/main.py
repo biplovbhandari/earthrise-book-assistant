@@ -8,6 +8,7 @@ from fastapi.staticfiles import StaticFiles
 
 from api.dependencies import create_pipelines
 from api.middleware import RateLimitMiddleware
+from api.routes.analytics import router as analytics_router
 from api.routes.ask import router as ask_router
 from api.routes.chat import check_generation_ready, check_retrieval_ready
 from api.routes.chat import router as chat_router
@@ -124,6 +125,7 @@ app.add_middleware(
 app.include_router(ask_router)
 app.include_router(chat_router)
 app.include_router(search_router)
+app.include_router(analytics_router)
 
 # --- Static book HTML below (catch-all, must be last) ---
 _book_html_dir = Path(get_settings().book_html_dir)
