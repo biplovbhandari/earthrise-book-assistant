@@ -37,6 +37,8 @@ class Settings(BaseSettings):
 
     database_url: SecretStr = SecretStr("")
 
+    admin_token: SecretStr = SecretStr("")
+
     rate_limit_per_minute: int = Field(default=30, ge=1, le=1000)
     max_concurrent_llm: int = Field(default=1, ge=1, le=8)
 

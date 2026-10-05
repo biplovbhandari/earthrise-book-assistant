@@ -10,7 +10,7 @@ from uuid import UUID
 import pytest
 from conftest import create_test_client
 
-from api.dependencies import Pipelines, require_db_session
+from api.dependencies import Pipelines, require_admin_token, require_db_session
 
 _LIST_PATHS = [
     "/analytics/daily",
@@ -21,6 +21,16 @@ _LIST_PATHS = [
 _ALL_PATHS = ["/analytics/overview", *_LIST_PATHS]
 
 
+def _bypass_admin_token(monkeypatch):
+    """Override the admin auth dependency so data tests skip auth."""
+    from api.main import app
+
+    async def _noop():
+        """No-op stand-in for require_admin_token."""
+
+    monkeypatch.setitem(app.dependency_overrides, require_admin_token, _noop)
+
+
 @pytest.fixture
 def session():
     """Mock AsyncSession; each test decides what session.execute returns."""
@@ -29,9 +39,11 @@ def session():
 
 @pytest.fixture
 def client(monkeypatch, session):
-    """TestClient whose database dependency hands out the mock session."""
+    """TestClient with admin auth bypassed and a mock DB session."""
     test_client = create_test_client(monkeypatch, Pipelines())
     from api.main import app
+
+    _bypass_admin_token(monkeypatch)
 
     async def mock_session():
         """Stand in for require_db_session so no real database is needed."""
@@ -44,7 +56,8 @@ def client(monkeypatch, session):
 
 @pytest.fixture
 def client_no_db(monkeypatch):
-    """TestClient with the database disabled and the real require_db_session in place."""
+    """TestClient with admin auth bypassed but the database disabled."""
+    _bypass_admin_token(monkeypatch)
     with create_test_client(monkeypatch, Pipelines()) as test_client:
         yield test_client
 
@@ -315,3 +328,46 @@ def test_returns_503_when_database_is_unavailable(client_no_db, path):
 
     assert resp.status_code == 503
     assert resp.json() == {"detail": "Database unavailable"}
+
+
+# --- Auth tests ---
+@pytest.fixture
+def auth_client(monkeypatch):
+    """TestClient with real admin auth dependency (no override)."""
+    monkeypatch.setenv("ADMIN_TOKEN", "correct-token")
+    with create_test_client(monkeypatch, Pipelines()) as test_client:
+        yield test_client
+
+
+def test_auth_missing_header_returns_401(auth_client):
+    """A request with no Authorization header is rejected."""
+    resp = auth_client.get("/analytics/overview")
+
+    assert resp.status_code == 401
+    assert resp.json() == {"detail": "Missing Bearer token"}
+
+
+def test_auth_wrong_token_returns_401(auth_client):
+    """A request with an incorrect token is rejected."""
+    resp = auth_client.get("/analytics/overview", headers={"authorization": "Bearer wrong"})
+
+    assert resp.status_code == 401
+    assert resp.json() == {"detail": "Invalid token"}
+
+
+def test_auth_correct_token_passes(auth_client):
+    """A valid token passes auth (then hits 503 because DB is disabled - that's expected)."""
+    resp = auth_client.get("/analytics/overview", headers={"authorization": "Bearer correct-token"})
+
+    assert resp.status_code == 503
+    assert resp.json() == {"detail": "Database unavailable"}
+
+
+def test_auth_returns_403_when_admin_token_not_configured(monkeypatch):
+    """With no ADMIN_TOKEN set, all analytics endpoints return 403."""
+    monkeypatch.setenv("ADMIN_TOKEN", "")
+    with create_test_client(monkeypatch, Pipelines()) as client:
+        resp = client.get("/analytics/overview", headers={"authorization": "Bearer anything"})
+
+    assert resp.status_code == 403
+    assert resp.json() == {"detail": "Admin access not configured"}
