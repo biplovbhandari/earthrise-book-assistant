@@ -29,10 +29,13 @@ jobs:
         include:
           - target: api
             dockerfile: infra/docker/Dockerfile.app
+            platforms: linux/amd64,linux/arm64
           - target: indexer
             dockerfile: infra/docker/Dockerfile.indexer
+            platforms: linux/amd64,linux/arm64
           - target: book-builder
             dockerfile: infra/docker/Dockerfile.quarto
+            platforms: linux/amd64
     steps:
       - uses: actions/checkout@v4
         with:
@@ -63,7 +66,7 @@ jobs:
         with:
           context: .
           file: ${{ matrix.dockerfile }}
-          platforms: linux/amd64,linux/arm64
+          platforms: ${{ matrix.platforms }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
