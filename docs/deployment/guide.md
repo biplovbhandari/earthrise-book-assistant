@@ -130,12 +130,17 @@ LLM_MODEL=qwen3:8b
 LLM_BASE_URL=http://localhost:11434/v1
 LLM_API_KEY=ollama
 DATABASE_URL=postgresql+asyncpg://earthrise:earthrise@localhost:5432/earthrise
+ADMIN_TOKEN=<generate with: python3 -c "import secrets; print(secrets.token_urlsafe(32))">
 EMBEDDING_DIMENSION=1024
 RERANKER_PROVIDER=local_cross_encoder
 RETRIEVAL_STRATEGY=hybrid
 RATE_LIMIT_PER_MINUTE=30
 MAX_CONCURRENT_LLM=1
 ```
+
+`ADMIN_TOKEN` protects the `/analytics/*` endpoints.
+Requests must include `Authorization: Bearer <token>`.
+If left empty, all analytics endpoints return 403.
 
 On macOS, `LLM_BASE_URL` and `DATABASE_URL` use `localhost` because the app runs natively on the host alongside Ollama and Docker services.
 
@@ -146,6 +151,7 @@ LLM_MODEL=qwen3:8b
 LLM_BASE_URL=http://172.17.0.1:11434/v1
 LLM_API_KEY=ollama
 DATABASE_URL=postgresql+asyncpg://earthrise:earthrise@postgres:5432/earthrise
+ADMIN_TOKEN=<generate with: python3 -c "import secrets; print(secrets.token_urlsafe(32))">
 EMBEDDING_DIMENSION=1024
 RERANKER_PROVIDER=local_cross_encoder
 RETRIEVAL_STRATEGY=hybrid
