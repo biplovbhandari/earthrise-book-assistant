@@ -14,16 +14,15 @@ jobs:
         with:
           enable-cache: true
 
+      - uses: extractions/setup-just@v2
+
       - run: uv sync --frozen --group dev
 
-      - name: Lint
-        run: uv run ruff check .
-
-      - name: Format check
-        run: uv run ruff format --check .
+      - name: Lint and format check
+        run: just lint
 
       - name: Type check
-        run: uv run pyright
+        run: just typecheck
 
       - name: Tests
-        run: uv run pytest -v
+        run: just test
