@@ -13,11 +13,11 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
     Tracks request timestamps per client IP and rejects requests that
     exceed the configured rate with a 429 response. Only API routes
-    (paths starting with /search, /ask, /chat, /health, /analytics)
+    (paths starting with /search, /ask, /chat, /health, /analytics, /feedback)
     are rate-limited; static file requests pass through.
     """
 
-    _API_PREFIXES = ("/search", "/ask", "/chat", "/health", "/analytics")
+    _API_PREFIXES = ("/search", "/ask", "/chat", "/health", "/analytics", "/feedback")
 
     def __init__(self, app, max_requests: int = 30, window_seconds: int = 60):
         super().__init__(app)

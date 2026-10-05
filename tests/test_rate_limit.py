@@ -25,6 +25,11 @@ def _create_app(max_requests: int = 5) -> FastAPI:
     async def analytics():
         return {"total": 42}
 
+    @app.post("/feedback")
+    async def feedback():
+        """Stand-in for the feedback endpoint."""
+        return {"ok": True}
+
     @app.get("/static-page")
     async def static_page():
         return {"page": "content"}
@@ -80,6 +85,15 @@ class TestRateLimitMiddleware:
         client.get("/analytics/overview")
 
         resp = client.get("/analytics/overview")
+        assert resp.status_code == 429
+
+    def test_feedback_route_is_rate_limited(self):
+        """The feedback endpoint is subject to the same rate limit as other API routes."""
+        client = TestClient(_create_app(max_requests=2))
+        client.post("/feedback")
+        client.post("/feedback")
+
+        resp = client.post("/feedback")
         assert resp.status_code == 429
 
     def test_window_expiry_resets_count(self):

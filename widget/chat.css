@@ -457,6 +457,79 @@
   clip-path: inset(50%);
 }
 
+#earthrise-chat-widget .er-feedback {
+  display: flex;
+  gap: 4px;
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px solid var(--er-border);
+}
+
+#earthrise-chat-widget .er-feedback-btn {
+  background: none;
+  border: 1px solid var(--er-border);
+  border-radius: 6px;
+  padding: 4px 8px;
+  cursor: pointer;
+  color: var(--er-text);
+  opacity: 0.5;
+  transition: opacity 0.15s, background 0.15s;
+  display: flex;
+  align-items: center;
+}
+
+#earthrise-chat-widget .er-feedback-btn:hover {
+  opacity: 0.8;
+  background: var(--er-user-bg);
+}
+
+#earthrise-chat-widget .er-feedback-btn.active {
+  opacity: 1;
+  background: var(--er-user-bg);
+  border-color: var(--er-primary);
+}
+
+#earthrise-chat-widget .er-feedback-btn svg {
+  fill: currentcolor;
+}
+
+#earthrise-chat-widget .er-feedback-comment {
+  margin-top: 6px;
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+}
+
+#earthrise-chat-widget .er-feedback-comment textarea {
+  flex: 1;
+  border: 1px solid var(--er-border);
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 0.8rem;
+  font-family: inherit;
+  resize: none;
+  background: var(--er-bg);
+  color: var(--er-text);
+  line-height: 1.4;
+}
+
+#earthrise-chat-widget .er-feedback-comment textarea:focus {
+  outline: 2px solid var(--er-primary);
+  outline-offset: -1px;
+}
+
+#earthrise-chat-widget .er-feedback-comment button {
+  background: var(--er-primary);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
 @media (width <= 640px) {
   #earthrise-chat-panel {
     width: calc(100vw - 16px);
