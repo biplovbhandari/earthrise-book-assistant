@@ -8,6 +8,7 @@
     var STORAGE_KEY_CONVERSATION = 'earthrise-conversation-id';
     var visitorId = null;
     var conversationId = null;
+    var currentInteractionId = null;
     try { visitorId = localStorage.getItem(STORAGE_KEY_VISITOR); } catch (_e) {}
     try { conversationId = localStorage.getItem(STORAGE_KEY_CONVERSATION); } catch (_e) {}
     var SUGGESTED_QUESTIONS = [
@@ -348,10 +349,80 @@
         bubble.innerHTML = renderMarkdown(assistantText);
         linkCitations(bubble);
         renderSources(bubble, currentCitations);
+        if (currentInteractionId) renderFeedback(bubble, currentInteractionId);
         statusEl.textContent = 'Assistant response complete.';
         state.isLoading = false;
         setControls(false);
         autoScroll();
+    }
+
+    function renderFeedback(bubble, interactionId) {
+        var container = document.createElement('div');
+        container.className = 'er-feedback';
+        var thumbsUp = document.createElement('button');
+        thumbsUp.type = 'button';
+        thumbsUp.className = 'er-feedback-btn';
+        thumbsUp.setAttribute('aria-label', 'Helpful');
+        thumbsUp.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M2 20h2V8H2v12zm20-11a2 2 0 0 0-2-2h-6.31l.95-4.57.03-.32a1.5 1.5 0 0 0-.44-1.06L13.17 0 6.59 6.59A2 2 0 0 0 6 8v10a2 2 0 0 0 2 2h9a2 2 0 0 0 1.84-1.22l3.02-7.05A2 2 0 0 0 22 11V9z"/></svg>';
+        var thumbsDown = document.createElement('button');
+        thumbsDown.type = 'button';
+        thumbsDown.className = 'er-feedback-btn';
+        thumbsDown.setAttribute('aria-label', 'Not helpful');
+        thumbsDown.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M22 4h-2v12h2V4zM2 15a2 2 0 0 0 2 2h6.31l-.95 4.57-.03.32a1.5 1.5 0 0 0 .44 1.06L10.83 24l6.58-6.59A2 2 0 0 0 18 16V6a2 2 0 0 0-2-2H7a2 2 0 0 0-1.84 1.22l-3.02 7.05A2 2 0 0 0 2 13v2z"/></svg>';
+        container.appendChild(thumbsUp);
+        container.appendChild(thumbsDown);
+        bubble.appendChild(container);
+
+        var commentBox = null;
+        var selectedRating = null;
+
+        function submitFeedback(rating, comment) {
+            var payload = { interaction_id: interactionId, rating: rating };
+            if (comment) payload.comment = comment;
+            fetch('/feedback', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            }).catch(function() {});
+        }
+
+        function selectRating(rating) {
+            selectedRating = rating;
+            thumbsUp.classList.toggle('active', rating === 'up');
+            thumbsDown.classList.toggle('active', rating === 'down');
+            if (rating === 'down' && !commentBox) {
+                commentBox = document.createElement('div');
+                commentBox.className = 'er-feedback-comment';
+                var input = document.createElement('textarea');
+                input.placeholder = 'What was wrong? (optional)';
+                input.rows = 2;
+                input.maxLength = 2000;
+                var sendBtn = document.createElement('button');
+                sendBtn.type = 'button';
+                sendBtn.textContent = 'Send';
+                sendBtn.addEventListener('click', function() {
+                    var text = input.value.trim();
+                    submitFeedback('down', text || null);
+                    commentBox.remove();
+                    commentBox = null;
+                    thumbsDown.disabled = false;
+                    autoScroll();
+                });
+                commentBox.appendChild(input);
+                commentBox.appendChild(sendBtn);
+                container.after(commentBox);
+                autoScroll();
+            } else if (rating === 'up') {
+                if (commentBox) { commentBox.remove(); commentBox = null; }
+                submitFeedback('up', null);
+            }
+        }
+
+        thumbsUp.addEventListener('click', function() { selectRating('up'); });
+        thumbsDown.addEventListener('click', function() {
+            if (selectedRating === 'down' && commentBox) return;
+            selectRating('down');
+        });
     }
 
     async function sendMessage(question) {
@@ -362,6 +433,7 @@
         setControls(true);
         suggestions.classList.add('hidden');
         currentCitations = null;
+        currentInteractionId = null;
         userHasScrolled = false;
         var userBubble = createBubble('user');
         userBubble.textContent = question;
@@ -408,6 +480,7 @@
                     try { parsed = JSON.parse(dataLine.slice(5).trim()); } catch (_e) { continue; }
                     if (parsed.type === 'meta') {
                         currentCitations = Array.isArray(parsed.citations) ? parsed.citations : [];
+                        currentInteractionId = parsed.interaction_id || null;
                         if (parsed.visitor_id) {
                             visitorId = parsed.visitor_id;
                             try { localStorage.setItem(STORAGE_KEY_VISITOR, visitorId); } catch (_e) {}
