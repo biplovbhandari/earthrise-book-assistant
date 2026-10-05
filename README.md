@@ -71,6 +71,14 @@ curl -s -X POST localhost:8000/ask \
 curl -N -X POST localhost:8000/chat \
   -H 'content-type: application/json' \
   -d '{"question": "What is semantic segmentation?"}'
+
+# Feedback (thumbs up/down on a chat interaction - use the interaction_id from the meta SSE event)
+curl -s -X POST localhost:8000/feedback \
+  -H 'content-type: application/json' \
+  -d '{"interaction_id": "<uuid>", "rating": "up"}'
+
+# Analytics (requires ADMIN_TOKEN)
+curl -s -H "Authorization: Bearer <token>" localhost:8000/analytics/overview | python3 -m json.tool
 ```
 
 If the index is empty or Qdrant is unreachable, `/search`, `/ask`, and `/chat` return `503`.
@@ -189,7 +197,7 @@ earthrise-book-assistant/
 │   ├── dependencies.py          # Adapter wiring (factories, DB session providers)
 │   ├── middleware.py            # Per-IP rate limiting
 │   ├── recording.py             # Chat interaction recording (BackgroundTask)
-│   └── routes/                  # /search, /ask, /chat endpoints + readiness helpers
+│   └── routes/                  # /search, /ask, /chat, /feedback, /analytics endpoints
 ├── scripts/
 │   ├── index_book.py            # CLI: index book + PDFs + transcripts into Qdrant
 │   ├── transcribe.py            # CLI: download + transcribe YouTube lectures
