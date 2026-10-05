@@ -17,9 +17,11 @@ from sqlalchemy import text
 from sqlalchemy.engine import RowMapping
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.dependencies import require_db_session
+from api.dependencies import require_admin_token, require_db_session
 
-router = APIRouter(prefix="/analytics", tags=["analytics"])
+router = APIRouter(
+    prefix="/analytics", tags=["analytics"], dependencies=[Depends(require_admin_token)]
+)
 
 
 class OverviewStats(BaseModel):
