@@ -1,4 +1,9 @@
-from scripts.index_book import _discover_companion_pdfs, _discover_transcripts, _extract_chapters
+from scripts.index_book import (
+    _discover_companion_pdfs,
+    _discover_transcripts,
+    _extract_chapters,
+    _load_quarto_config,
+)
 
 
 def test_extract_chapters_from_quarto_yml():
@@ -66,6 +71,38 @@ def test_discover_transcripts(tmp_path):
 def test_discover_transcripts_missing_dir_returns_empty(tmp_path):
     # The indexer must run cleanly before any transcripts have been generated.
     assert _discover_transcripts(tmp_path / "does_not_exist") == []
+
+
+def test_load_quarto_config_base_only(tmp_path):
+    """When no profile file exists, the base _quarto.yml is used as-is."""
+    base = tmp_path / "_quarto.yml"
+    base.write_text("book:\n  chapters:\n    - index.md\n    - ch1.ipynb\n")
+    config = _load_quarto_config(tmp_path)
+    assert config is not None
+    chapters = _extract_chapters(config)
+    assert chapters == ["index.md", "ch1.ipynb"]
+
+
+def test_load_quarto_config_merges_profile(tmp_path):
+    """A profile file's book.chapters overrides the base when the base has none."""
+    base = tmp_path / "_quarto.yml"
+    base.write_text('profile:\n  default: book\nbook:\n  title: "Test"\n')
+    profile = tmp_path / "_quarto-book.yml"
+    profile.write_text(
+        "book:\n  chapters:\n    - index.md\n"
+        '    - part: "Part 1"\n'
+        "      chapters:\n        - ch1.ipynb\n"
+    )
+    config = _load_quarto_config(tmp_path)
+    assert config is not None
+    chapters = _extract_chapters(config)
+    assert "index.md" in chapters
+    assert "ch1.ipynb" in chapters
+
+
+def test_load_quarto_config_missing_quarto_yml(tmp_path):
+    """Returns None when _quarto.yml does not exist."""
+    assert _load_quarto_config(tmp_path) is None
 
 
 def test_extract_chapters_bibliography_as_list():

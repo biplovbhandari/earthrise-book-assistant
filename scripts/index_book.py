@@ -1,5 +1,9 @@
 """Index book content into Qdrant.
 
+Discovers chapters from the book's Quarto config (_quarto.yml, merged with the
+profile file _quarto-<profile>.yml when one exists). Also indexes companion PDFs
+under book/<chapter>/pdf/ and video transcripts from data/transcripts/.
+
 Usage:
     uv run python scripts/index_book.py
     QDRANT_URL=http://localhost:6333 BOOK_COMMIT_SHA=$(git -C book rev-parse HEAD) uv run python scripts/index_book.py
@@ -38,6 +42,50 @@ def _setup_logging() -> None:
     file_handler = logging.FileHandler(LOG_DIR / f"indexing_{timestamp}.log")
     file_handler.setFormatter(logging.Formatter("%(asctime)s %(name)s %(levelname)s: %(message)s"))
     logging.getLogger().addHandler(file_handler)
+
+
+def _load_quarto_config(source_dir: Path) -> dict | None:
+    """Load and merge Quarto config files.
+
+    Quarto splits config across _quarto.yml (base) and profile files like
+    _quarto-book.yml. The profile file carries the chapter list when the base
+    file uses `profile: default: book`. We merge them so the indexer sees
+    the same chapter list Quarto does.
+    """
+    base_path = source_dir / "_quarto.yml"
+    if not base_path.exists():
+        logger.error("_quarto.yml not found at %s", base_path)
+        return None
+
+    try:
+        with open(base_path, encoding="utf-8") as f:
+            config = yaml.safe_load(f)
+    except yaml.YAMLError as e:
+        logger.error("Failed to parse _quarto.yml: %s", e)
+        return None
+
+    if not isinstance(config, dict):
+        logger.error("_quarto.yml is not a valid YAML mapping")
+        return None
+
+    profile_name = config.get("profile", {}).get("default", "")
+    if profile_name:
+        profile_path = source_dir / f"_quarto-{profile_name}.yml"
+        if profile_path.exists():
+            try:
+                with open(profile_path, encoding="utf-8") as f:
+                    profile_config = yaml.safe_load(f) or {}
+                for key, value in profile_config.items():
+                    if isinstance(value, dict) and isinstance(config.get(key), dict):
+                        config[key].update(value)
+                    else:
+                        config[key] = value
+            except yaml.YAMLError as e:
+                logger.warning(
+                    "Failed to parse %s: %s (using base config only)", profile_path.name, e
+                )
+
+    return config
 
 
 def _extract_chapters(quarto_config: dict) -> list[str]:
@@ -117,20 +165,8 @@ def main() -> int:
     settings = get_settings()
     source_dir = Path(settings.book_source_dir)
 
-    quarto_yml = source_dir / "_quarto.yml"
-    if not quarto_yml.exists():
-        logger.error("_quarto.yml not found at %s", quarto_yml)
-        return 1
-
-    try:
-        with open(quarto_yml, encoding="utf-8") as f:
-            quarto_config = yaml.safe_load(f)
-    except yaml.YAMLError as e:
-        logger.error("Failed to parse _quarto.yml: %s", e)
-        return 1
-
-    if not isinstance(quarto_config, dict):
-        logger.error("_quarto.yml is not a valid YAML mapping")
+    quarto_config = _load_quarto_config(source_dir)
+    if quarto_config is None:
         return 1
 
     chapter_files = _extract_chapters(quarto_config)
