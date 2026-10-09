@@ -1,0 +1,2823 @@
+{
+  "video_id": "c7_GxZ6apqY",
+  "title": "Benchmarking Earth Observation Foundation Models for Wildfire Monitoring | Chapter 10.2",
+  "duration_seconds": 3605.0,
+  "url": "https://www.youtube.com/watch?v=c7_GxZ6apqY",
+  "segments": [
+    {
+      "start": 0.0,
+      "end": 6.5600000000000005,
+      "text": " Hello, my name is Ryan DeMilt. I'm a research data scientist here at Spatial Informatics Group and one of the authors of this chapter."
+    },
+    {
+      "start": 6.5600000000000005,
+      "end": 17.84,
+      "text": " In this tutorial, my colleagues and I will be taking you through the notebook and discussing some important details and running you all through the content while providing some relevant background to the methods used."
+    },
+    {
+      "start": 17.84,
+      "end": 26.400000000000002,
+      "text": " Our content will be focused on methods for comparing Earth observation Foundation models using two wildfire monitoring tasks as an example."
+    },
+    {
+      "start": 26.4,
+      "end": 30.52,
+      "text": " So starting with some practical considerations, if you're running in a"
+    },
+    {
+      "start": 30.52,
+      "end": 35.08,
+      "text": " CoLab environment you'll want to put yourself in the latest CoLab runtime and"
+    },
+    {
+      "start": 35.08,
+      "end": 38.379999999999995,
+      "text": " get yourself at least a T4 GPU. If you're running on your own machine you'll"
+    },
+    {
+      "start": 38.379999999999995,
+      "end": 42.4,
+      "text": " want to make sure you have all of the latest CUDA drivers installed for your"
+    },
+    {
+      "start": 42.4,
+      "end": 47.8,
+      "text": " machine. We have some guidelines here for troubleshooting memory needs for the"
+    },
+    {
+      "start": 47.8,
+      "end": 52.68,
+      "text": " system but and it's a great exercise for if you're just getting started with this"
+    },
+    {
+      "start": 52.68,
+      "end": 56.06,
+      "text": " kind of work but it will be very dependent on what models you're working"
+    },
+    {
+      "start": 56.06,
+      "end": 63.1,
+      "text": " than what system that you're trying to set up. In terms of timing, I would not expect to do this"
+    },
+    {
+      "start": 63.1,
+      "end": 67.9,
+      "text": " all at once. You'll probably very frequently be setting things running and then coming back to"
+    },
+    {
+      "start": 67.9,
+      "end": 73.42,
+      "text": " check on them after they are complete, especially the model benchmarking tasks at the end can take"
+    },
+    {
+      "start": 73.42,
+      "end": 79.74000000000001,
+      "text": " many hours to finish and will complete progressively as each benchmarking run finishes."
+    },
+    {
+      "start": 79.74,
+      "end": 86.61999999999999,
+      "text": " If you're interested in logging, weights and biases is a popular tool for tracking experiments that we have"
+    },
+    {
+      "start": 87.33999999999999,
+      "end": 89.61999999999999,
+      "text": " integrated into this library that we're working with."
+    },
+    {
+      "start": 90.86,
+      "end": 95.5,
+      "text": " Follow their tutorials for setting the right environment variables and getting yourself an account set up."
+    },
+    {
+      "start": 95.8,
+      "end": 101.1,
+      "text": " But other than that, if you'd like to just leave it off, make sure you set the environment variable to put weights and biases"
+    },
+    {
+      "start": 101.97999999999999,
+      "end": 103.8,
+      "text": " offline."
+    },
+    {
+      "start": 103.8,
+      "end": 108.19999999999999,
+      "text": " Finally, we have a couple cells here just for pulling the relevant repositories."
+    },
+    {
+      "start": 108.2,
+      "end": 112.64,
+      "text": " grabbing the data sets that we're going to be using in the tutorial today and"
+    },
+    {
+      "start": 112.64,
+      "end": 116.18,
+      "text": " then in this last cell here we just do a little bit of organization with our"
+    },
+    {
+      "start": 116.18,
+      "end": 119.82000000000001,
+      "text": " working directories. With the setup tasks done we're ready to get into the thicker"
+    },
+    {
+      "start": 119.82000000000001,
+      "end": 123.24000000000001,
+      "text": " things. I'm going to give a brief introduction to the tasks and methods"
+    },
+    {
+      "start": 123.24000000000001,
+      "end": 126.14,
+      "text": " that we're discussing today before passing it off to my colleagues to step"
+    },
+    {
+      "start": 126.14,
+      "end": 130.34,
+      "text": " you through the later sections of the tutorial. Our tutorial today focuses on a"
+    },
+    {
+      "start": 130.34,
+      "end": 134.94,
+      "text": " pair of wildfire monitoring tasks, the burn scar monitoring and fire severity"
+    },
+    {
+      "start": 134.94,
+      "end": 138.66,
+      "text": " assessment tasks. We give some greater details about the tasks and the"
+    },
+    {
+      "start": 138.66,
+      "end": 143.04,
+      "text": " construction of the datasets in the text below. While these tasks vary slightly in"
+    },
+    {
+      "start": 143.04,
+      "end": 145.92,
+      "text": " their specifics of labeling, they're alike in that they are both"
+    },
+    {
+      "start": 145.92,
+      "end": 149.4,
+      "text": " traditionally performed by expert analysis of specific satellite indices"
+    },
+    {
+      "start": 149.4,
+      "end": 153.66,
+      "text": " or by adhering to hand-tuned thresholds for specific regions. This makes"
+    },
+    {
+      "start": 153.66,
+      "end": 157.62,
+      "text": " production of these maps time-consuming, difficult to produce in new regions, and"
+    },
+    {
+      "start": 157.62,
+      "end": 162.42,
+      "text": " hard to extend to a general system. Automated monitoring in both cases"
+    },
+    {
+      "start": 162.42,
+      "end": 165.83999999999997,
+      "text": " provide ample opportunities for supporting these important mapping"
+    },
+    {
+      "start": 165.83999999999997,
+      "end": 170.56,
+      "text": " projects and are most often proposed as fast and cost-effective alternatives to"
+    },
+    {
+      "start": 170.56,
+      "end": 174.23999999999998,
+      "text": " produce provisional maps for planners to use prior to the production of a full"
+    },
+    {
+      "start": 174.23999999999998,
+      "end": 179.57999999999998,
+      "text": " assessment. Since the original maps are costly to produce and there's not"
+    },
+    {
+      "start": 179.57999999999998,
+      "end": 184.17999999999998,
+      "text": " abundant data for training a traditional machine learning system which often"
+    },
+    {
+      "start": 184.17999999999998,
+      "end": 187.98,
+      "text": " requires many many well labeled samples, this provides an excellent testing ground"
+    },
+    {
+      "start": 187.98,
+      "end": 191.33999999999997,
+      "text": " for the core promises of our foundation models for Earth observation."
+    },
+    {
+      "start": 191.34,
+      "end": 204.98000000000002,
+      "text": " The proposition goes that pre-training on a wide range of satellite data that the model weights can serve as a foundation for new problems beyond what they were trained on and make it easier both in training time and sample complexity to train new classifiers."
+    },
+    {
+      "start": 205.92000000000002,
+      "end": 216.62,
+      "text": " As you see here, our goal here is as much to use these novel downstream tasks to understand the capabilities and behavior of our pre-trained models as it is to measure performance on the tasks as such."
+    },
+    {
+      "start": 216.62,
+      "end": 222.62,
+      "text": " To facilitate this, I'll give a brief introduction to the core concepts underlying foundation models as a concept."
+    },
+    {
+      "start": 222.62,
+      "end": 226.62,
+      "text": " We'll introduce some of the mechanics of how one is built, how you adapt it to a new task,"
+    },
+    {
+      "start": 226.62,
+      "end": 231.62,
+      "text": " and how you use this information to evaluate the properties of different encoders,"
+    },
+    {
+      "start": 231.62,
+      "end": 237.62,
+      "text": " use your data to understand the internal mechanisms encoded in the model by its pre-training process."
+    },
+    {
+      "start": 237.62,
+      "end": 242.62,
+      "text": " For any of the topics I'll discuss in the following sections, trust that this is just the briefest of introductions,"
+    },
+    {
+      "start": 242.62,
+      "end": 247.74,
+      "text": " introductions, and if you're interested, I encourage you to follow our text citations and learn more."
+    },
+    {
+      "start": 248.44,
+      "end": 255.20000000000002,
+      "text": " So, what we are proposing here in this tutorial is a classic example of what in machine learning we call a transfer learning problem."
+    },
+    {
+      "start": 255.22,
+      "end": 259.56,
+      "text": " We want to take a model which has been trained, which is just a process of repeatedly"
+    },
+    {
+      "start": 259.84000000000003,
+      "end": 266.84000000000003,
+      "text": " adjusting a number of weights to optimize some function, and use those weights as a starting point for another problem with the purpose of"
+    },
+    {
+      "start": 267.12,
+      "end": 270.56,
+      "text": " transferring the beneficial insights of the first optimization process"
+    },
+    {
+      "start": 270.56,
+      "end": 274.76,
+      "text": " into the next one. In the case of foundation models specifically, we want"
+    },
+    {
+      "start": 274.76,
+      "end": 278.3,
+      "text": " to take models which were optimized on generic tasks on very large datasets and"
+    },
+    {
+      "start": 278.3,
+      "end": 283.34000000000003,
+      "text": " show improvements on specific tasks and much smaller ones. However, these models"
+    },
+    {
+      "start": 283.34000000000003,
+      "end": 286.22,
+      "text": " don't arrive as systems from nowhere. They're created through a handful of"
+    },
+    {
+      "start": 286.22,
+      "end": 289.82,
+      "text": " well-tested pre-training strategies applied to large collections of satellite"
+    },
+    {
+      "start": 289.82,
+      "end": 294.2,
+      "text": " data. The purpose of a pre-training strategy is very simple. We have large"
+    },
+    {
+      "start": 294.2,
+      "end": 297.5,
+      "text": " collections of data for which we do not have labels, and the labels would be"
+    },
+    {
+      "start": 297.5,
+      "end": 301.72,
+      "text": " prohibitively expensive to produce and we want to make the most out of training"
+    },
+    {
+      "start": 301.72,
+      "end": 306.92,
+      "text": " off of that data. The first and likely most common pre-training strategy is the"
+    },
+    {
+      "start": 306.92,
+      "end": 311.72,
+      "text": " masked auto-encoding strategy. It stems from a simple intuition. If we cover"
+    },
+    {
+      "start": 311.72,
+      "end": 315.98,
+      "text": " certain parts of an image called masking in the machine learning parlance and ask"
+    },
+    {
+      "start": 315.98,
+      "end": 319.3,
+      "text": " the model to reconstruct the missing parts, it will be forced to learn certain"
+    },
+    {
+      "start": 319.3,
+      "end": 323.36,
+      "text": " properties of the image as a whole that allow it to reconstruct the masked"
+    },
+    {
+      "start": 323.36,
+      "end": 328.46000000000004,
+      "text": " sections. With a large enough and general enough collection of images, we hope that"
+    },
+    {
+      "start": 328.46000000000004,
+      "end": 331.96000000000004,
+      "text": " this will optimize towards a model which learns general functions to filter"
+    },
+    {
+      "start": 331.96000000000004,
+      "end": 336.02000000000004,
+      "text": " information out of an image at various levels and make it fit for describing a"
+    },
+    {
+      "start": 336.02000000000004,
+      "end": 340.52000000000004,
+      "text": " broad category of images on a variety of downstream tasks. The second strategy"
+    },
+    {
+      "start": 340.52000000000004,
+      "end": 343.98,
+      "text": " that we'll discuss is the contrastive learning strategy, the second major"
+    },
+    {
+      "start": 343.98,
+      "end": 349.98,
+      "text": " paradigm for pre-training. This also stems from a similarly simple intuition"
+    },
+    {
+      "start": 349.98,
+      "end": 354.08000000000004,
+      "text": " in which we wish to move data from a space where we don't know much about it"
+    },
+    {
+      "start": 354.08000000000004,
+      "end": 358.68,
+      "text": " into a space where similar samples are closer to each other and distinct"
+    },
+    {
+      "start": 358.68,
+      "end": 362.70000000000005,
+      "text": " samples are farther away from each other. How this is achieved and the"
+    },
+    {
+      "start": 362.70000000000005,
+      "end": 366.24,
+      "text": " mathematics and practicalities behind it are beyond the scope of this"
+    },
+    {
+      "start": 366.24,
+      "end": 371.20000000000005,
+      "text": " conversation and depend on the particular contrastive scheme employed"
+    },
+    {
+      "start": 371.20000000000005,
+      "end": 375.90000000000003,
+      "text": " and our topic unto themselves. We leave a few citations here for those who wish to"
+    },
+    {
+      "start": 375.9,
+      "end": 381.67999999999995,
+      "text": " to explore more and dive into the contrasted strategy of a specific model of interest."
+    },
+    {
+      "start": 382.28,
+      "end": 386.91999999999996,
+      "text": " Finally, assuming you have a model whose outputs you're happy with, you can introduce the"
+    },
+    {
+      "start": 386.91999999999996,
+      "end": 390.91999999999996,
+      "text": " possibility of training via distillation, which is the process of optimizing a model"
+    },
+    {
+      "start": 390.91999999999996,
+      "end": 393.0,
+      "text": " to emulate a trusted teacher model."
+    },
+    {
+      "start": 393.64,
+      "end": 397.94,
+      "text": " In some cases, this teacher is another pre-trained model and can be used to reduce the cost of"
+    },
+    {
+      "start": 397.94,
+      "end": 402.21999999999997,
+      "text": " training from scratch, and in others, we use older versions of the model we are actively"
+    },
+    {
+      "start": 402.22,
+      "end": 406.38000000000005,
+      "text": " trained to help prevent the model from wandering off in its optimization into functions which are"
+    },
+    {
+      "start": 406.38000000000005,
+      "end": 410.78000000000003,
+      "text": " not generally helpful. The vast majority of foundation models you find will make use of"
+    },
+    {
+      "start": 410.78000000000003,
+      "end": 415.18,
+      "text": " at least one of these strategies, but they're not exclusive to each other and can be combined"
+    },
+    {
+      "start": 415.18,
+      "end": 420.86,
+      "text": " or modified to blend elements of each other into a more complex process. But how do we adapt a"
+    },
+    {
+      "start": 420.86,
+      "end": 425.34000000000003,
+      "text": " foundation model to accept new data? You may have heard that you need something called a decoder."
+    },
+    {
+      "start": 425.34000000000003,
+      "end": 430.14000000000004,
+      "text": " A decoder is just an additional step that you insert at the end of a pre-trained model to take"
+    },
+    {
+      "start": 430.14,
+      "end": 435.94,
+      "text": " take the outputs of that model and assign a classification or regression value meaningful"
+    },
+    {
+      "start": 435.94,
+      "end": 441.41999999999996,
+      "text": " to the problem you're studying. This can be as simple or as complicated as meets the needs of"
+    },
+    {
+      "start": 441.41999999999996,
+      "end": 446.3,
+      "text": " your problem, and the dynamics of which models and problems are best served by which decoder"
+    },
+    {
+      "start": 446.3,
+      "end": 451.5,
+      "text": " are an active area of study and deserve careful inquiry for your problem of interest."
+    },
+    {
+      "start": 452.08,
+      "end": 457.8,
+      "text": " The design of decoder heads is also highly varying, and we present a few here, building up to"
+    },
+    {
+      "start": 457.8,
+      "end": 464.8,
+      "text": " increasing complexity from a single linear layer all the way up to convolutions and finally to"
+    },
+    {
+      "start": 464.8,
+      "end": 470.92,
+      "text": " bespoke transformers all of their own. Each model will have various trade-offs in size, training"
+    },
+    {
+      "start": 470.92,
+      "end": 476.5,
+      "text": " time, and performance that should be considered when choosing the right decoder head. Finally,"
+    },
+    {
+      "start": 476.64,
+      "end": 480.54,
+      "text": " I'm going to work through some of the additional metrics we recommend for evaluating and ranking"
+    },
+    {
+      "start": 480.54,
+      "end": 485.56,
+      "text": " these encoders and their performance on the wildfire assessment tasks introduced previously."
+    },
+    {
+      "start": 485.56,
+      "end": 490.14,
+      "text": " Now the most straightforward approach would be to simply rank these models on the performance"
+    },
+    {
+      "start": 490.14,
+      "end": 495.12,
+      "text": " metrics of interest for the task provided, aka how well the model labels burn scars or"
+    },
+    {
+      "start": 495.12,
+      "end": 499.12,
+      "text": " how well it can map levels of fire severity on a given image."
+    },
+    {
+      "start": 499.12,
+      "end": 503.04,
+      "text": " This however tells us relatively little about the model itself and does not leave us with"
+    },
+    {
+      "start": 503.04,
+      "end": 507.56,
+      "text": " much insight for what we want to do next time we want to use a model on a similar or slightly"
+    },
+    {
+      "start": 507.56,
+      "end": 509.24,
+      "text": " different problem."
+    },
+    {
+      "start": 509.24,
+      "end": 514.26,
+      "text": " EOFM releases are many these days and while the ecosystem has matured greatly, that also"
+    },
+    {
+      "start": 514.26,
+      "end": 518.26,
+      "text": " means it has expanded. There are dozens of models to choose from at any given time."
+    },
+    {
+      "start": 518.8199999999999,
+      "end": 524.02,
+      "text": " And so we want to develop some processes to delve deeper into a model's internal functioning and"
+    },
+    {
+      "start": 524.02,
+      "end": 529.14,
+      "text": " build insight onto when and how to use a model, its strengths and weaknesses, and contribute to"
+    },
+    {
+      "start": 529.14,
+      "end": 534.58,
+      "text": " building pathways for the future development. The first and abundantly most practical metric"
+    },
+    {
+      "start": 535.22,
+      "end": 539.7,
+      "text": " that we can discuss is that of resource requirements. Models vary in resources both in"
+    },
+    {
+      "start": 539.7,
+      "end": 544.98,
+      "text": " computing needs and in memory footprint. We provide a couple of metrics here and"
+    },
+    {
+      "start": 544.98,
+      "end": 549.94,
+      "text": " ways to compute them that can help evaluate the matter of cost incurred by"
+    },
+    {
+      "start": 549.94,
+      "end": 556.26,
+      "text": " using one model or a decoder over another. Increasing in complexity we can"
+    },
+    {
+      "start": 556.26,
+      "end": 561.72,
+      "text": " employ a type of analysis called weight matrix analysis. Given that neural"
+    },
+    {
+      "start": 561.72,
+      "end": 566.0400000000001,
+      "text": " networks are large collections of matrices, we can perform spectral"
+    },
+    {
+      "start": 566.04,
+      "end": 572.38,
+      "text": " analysis over these matrices and using properties of that spectral analysis evaluates certain"
+    },
+    {
+      "start": 572.38,
+      "end": 580.1999999999999,
+      "text": " outcomes that may tell us various things about how the model encodes data, its shortcomings"
+    },
+    {
+      "start": 580.1999999999999,
+      "end": 587.0,
+      "text": " or strengths, and give us a peek into how the model's internal representations are structured."
+    },
+    {
+      "start": 587.54,
+      "end": 591.78,
+      "text": " We can also take a look at the embeddings of foundation models. These are the vector"
+    },
+    {
+      "start": 591.78,
+      "end": 597.24,
+      "text": " representations that an encoder returns to you after you feed in a satellite"
+    },
+    {
+      "start": 597.24,
+      "end": 604.4399999999999,
+      "text": " image. However, these embeddings tend to be in the low hundreds to thousands of"
+    },
+    {
+      "start": 604.4399999999999,
+      "end": 608.6999999999999,
+      "text": " dimensions for each patch of an image, which is just a small section of an"
+    },
+    {
+      "start": 608.6999999999999,
+      "end": 614.26,
+      "text": " image. Unfortunately, we can't visualize things in these 700 or 1000 dimensional"
+    },
+    {
+      "start": 614.26,
+      "end": 617.86,
+      "text": " spaces, and even if we could, it would be difficult to make informed statements"
+    },
+    {
+      "start": 617.86,
+      "end": 623.14,
+      "text": " about them, so we're required to apply a variety of diagnostic and analytical tools to help"
+    },
+    {
+      "start": 623.14,
+      "end": 629.36,
+      "text": " us understand the structure and similarity in these spaces."
+    },
+    {
+      "start": 629.36,
+      "end": 634.34,
+      "text": " One common one that we employ here is the uniform manifold approximation and projection"
+    },
+    {
+      "start": 634.34,
+      "end": 640.36,
+      "text": " methodology, which allows us to project embeddings into a lower dimensional space in which it"
+    },
+    {
+      "start": 640.36,
+      "end": 647.76,
+      "text": " is easier to visualize and understand certain patterns of structure in the embedding space."
+    },
+    {
+      "start": 647.76,
+      "end": 655.9399999999999,
+      "text": " Increasing further in complexity, we can utilize the data kernel methods to evaluate the structure"
+    },
+    {
+      "start": 655.9399999999999,
+      "end": 663.04,
+      "text": " of the entire embedding space itself by evaluating differences in the distances between known"
+    },
+    {
+      "start": 663.04,
+      "end": 669.68,
+      "text": " data points to understand how the model is encoding certain properties of task-specific"
+    },
+    {
+      "start": 669.68,
+      "end": 671.38,
+      "text": " information."
+    },
+    {
+      "start": 671.38,
+      "end": 676.14,
+      "text": " Each of these methods involves some very interesting mathematics in their own right, and it really"
+    },
+    {
+      "start": 676.14,
+      "end": 680.78,
+      "text": " pay us to take the time to dig into these analysis methods to help sharpen your understanding of what"
+    },
+    {
+      "start": 680.78,
+      "end": 685.02,
+      "text": " they are and are not showing you when you make use of them to evaluate an embedding space."
+    },
+    {
+      "start": 685.66,
+      "end": 690.6999999999999,
+      "text": " This however is beyond the scope of this video and we encourage those interested to dive into"
+    },
+    {
+      "start": 690.6999999999999,
+      "end": 696.38,
+      "text": " the source publications and learn more about the very interesting mathematics that makes up these"
+    },
+    {
+      "start": 696.38,
+      "end": 702.22,
+      "text": " embedding comparisons. However, I'll now pass it off to my colleague Nick who will be walking you"
+    },
+    {
+      "start": 702.22,
+      "end": 707.74,
+      "text": " through the first of our demos. Now I move to section B and introduce the framework used for"
+    },
+    {
+      "start": 707.74,
+      "end": 713.1800000000001,
+      "text": " this analysis. PangeaBench provides a PyTorch based environment for benchmarking earth observation"
+    },
+    {
+      "start": 713.1800000000001,
+      "end": 719.4200000000001,
+      "text": " foundation models against common geospatial tasks. It integrates data sets, encoders, decoder heads,"
+    },
+    {
+      "start": 719.4200000000001,
+      "end": 724.94,
+      "text": " pre-processing, training logic, metrics, and optional experiment logging into an easy to use"
+    },
+    {
+      "start": 724.94,
+      "end": 729.82,
+      "text": " package. The workflow should feel somewhat familiar to anyone who has trained a deep"
+    },
+    {
+      "start": 729.82,
+      "end": 734.62,
+      "text": " learning model for classic or typical computer vision tasks like dense classification,"
+    },
+    {
+      "start": 734.62,
+      "end": 741.98,
+      "text": " regression, or image-wide classification. A data loader, shown here, supplies imagery and labels."
+    },
+    {
+      "start": 741.98,
+      "end": 747.98,
+      "text": " Pre-processing makes inputs compatible with the task and the model. The encoder transforms those"
+    },
+    {
+      "start": 748.5400000000001,
+      "end": 753.1800000000001,
+      "text": " input images into learned feature maps or embeddings, and the decoder turns those"
+    },
+    {
+      "start": 753.18,
+      "end": 760.76,
+      "text": " representations into final predictions. The trainer along with the associated"
+    },
+    {
+      "start": 760.76,
+      "end": 767.9599999999999,
+      "text": " loss function guide optimization and the metrics and logging help the end user to"
+    },
+    {
+      "start": 767.9599999999999,
+      "end": 775.2199999999999,
+      "text": " the evaluation of performance of the tasks being run."
+    },
+    {
+      "start": 775.22,
+      "end": 782.22,
+      "text": " This notebook uses the Torch Run command as the entry point."
+    },
+    {
+      "start": 782.22,
+      "end": 789.22,
+      "text": " In PyTorch, Torch Run launches distributed training processes and supplies the environment settings needed for coordinated execution."
+    },
+    {
+      "start": 789.22,
+      "end": 797.22,
+      "text": " Although it can scale across GPUs or nodes, this demonstration uses it as a consistent way to launch a run on a single machine."
+    },
+    {
+      "start": 797.22,
+      "end": 809.22,
+      "text": " Here is an example Torch Run command being used in conjunction with this run.py script inside PangeaBench."
+    },
+    {
+      "start": 809.22,
+      "end": 816.22,
+      "text": " And we have a series of parameters being passed to the run.py script."
+    },
+    {
+      "start": 816.22,
+      "end": 820.22,
+      "text": " There's documentation here. We'll quickly step through those."
+    },
+    {
+      "start": 820.22,
+      "end": 826.72,
+      "text": " config name is the name of a configuration associated with the training process."
+    },
+    {
+      "start": 826.72,
+      "end": 837.26,
+      "text": " This example here is stepping through the fine-tuning of a decoder given an attached pre-trained encoder."
+    },
+    {
+      "start": 838.64,
+      "end": 846.84,
+      "text": " This working directory here specifies where checkpoints and other intermediate files can be output."
+    },
+    {
+      "start": 846.84,
+      "end": 859.84,
+      "text": " This dataset here, MTBS, or Burn Severity Dataset that we discussed in this notebook already, is being specified as the dataset of choice."
+    },
+    {
+      "start": 859.84,
+      "end": 874.84,
+      "text": " We're using the DOFA EOFM, or Earth Observation Foundation Model, using a fully convolutional network specialized for segmentation as the decoder head."
+    },
+    {
+      "start": 874.84,
+      "end": 882.34,
+      "text": " head and then there's some pre-processing loss function and task"
+    },
+    {
+      "start": 882.34,
+      "end": 889.5400000000001,
+      "text": " type being specified to help the the runner understand how to put all the"
+    },
+    {
+      "start": 889.5400000000001,
+      "end": 896.2800000000001,
+      "text": " different tasks together and initialize the trainer there's some different"
+    },
+    {
+      "start": 896.28,
+      "end": 905.4399999999999,
+      "text": " configurations for the amount of epochs being run, the amount of epochs in"
+    },
+    {
+      "start": 905.4399999999999,
+      "end": 916.6999999999999,
+      "text": " between each log entry, and in between each checkpoint weight file being saved"
+    },
+    {
+      "start": 916.6999999999999,
+      "end": 923.38,
+      "text": " to disk. And then there's a specification of the file where the pre-trained"
+    },
+    {
+      "start": 923.38,
+      "end": 930.6,
+      "text": " weights exist on the local machine and there's a flag to use an online"
+    },
+    {
+      "start": 931.52,
+      "end": 938.5,
+      "text": " performance visualization logging tool called weights and biases here which is"
+    },
+    {
+      "start": 938.5,
+      "end": 944.6,
+      "text": " integrated into to pangea bench already it's not necessary to use but it can be"
+    },
+    {
+      "start": 944.6,
+      "end": 949.74,
+      "text": " helpful to visualize performance and progress"
+    },
+    {
+      "start": 949.74,
+      "end": 958.44,
+      "text": " Now that we have some clarity on the training interface and the commands we can use to kick"
+    },
+    {
+      "start": 958.44,
+      "end": 966.14,
+      "text": " those off, the next challenge that we want to look at is interpreting what encoders bring"
+    },
+    {
+      "start": 966.14,
+      "end": 978.74,
+      "text": " to the task and how we can evaluate that using different experimental parameterizations."
+    },
+    {
+      "start": 978.74,
+      "end": 985.48,
+      "text": " For different configurations of encoder weights and task adaptations, those encoders, there"
+    },
+    {
+      "start": 985.48,
+      "end": 987.74,
+      "text": " are a few options."
+    },
+    {
+      "start": 987.74,
+      "end": 995.82,
+      "text": " The first one being frozen encoders, which retain the weights generated during the pre-training"
+    },
+    {
+      "start": 995.82,
+      "end": 1004.0,
+      "text": " process and freeze those during the training of the decoder while the decoder learns and"
+    },
+    {
+      "start": 1004.0,
+      "end": 1008.5,
+      "text": " optimizes in that training process."
+    },
+    {
+      "start": 1008.5,
+      "end": 1012.82,
+      "text": " This allows us to ask, are the pre-trained features already useful enough for the task"
+    },
+    {
+      "start": 1012.82,
+      "end": 1022.36,
+      "text": " at hand given a typically shorter training process on that decoder?"
+    },
+    {
+      "start": 1022.36,
+      "end": 1028.08,
+      "text": " We can also choose to unfreeze those weights and use those pre-trained weights as an initial"
+    },
+    {
+      "start": 1028.08,
+      "end": 1036.08,
+      "text": " foundation while updating both the encoder and the decoder during the fine-tuning phase."
+    },
+    {
+      "start": 1036.08,
+      "end": 1043.52,
+      "text": " offers greater task adaptation but there's a significant amount of increased resource use"
+    },
+    {
+      "start": 1044.08,
+      "end": 1053.52,
+      "text": " required there and you run the risk of you know too much updates to the encoder mitigates the"
+    },
+    {
+      "start": 1054.56,
+      "end": 1063.12,
+      "text": " the benefit of that that pre-training process in some cases and then you can also take a look at"
+    },
+    {
+      "start": 1063.12,
+      "end": 1068.9599999999998,
+      "text": " random initializations of those weights using the same architecture and you can use those to ask the"
+    },
+    {
+      "start": 1068.9599999999998,
+      "end": 1079.84,
+      "text": " question of what what value gained can we assess from the the pre-trained weights versus the same"
+    },
+    {
+      "start": 1079.84,
+      "end": 1087.76,
+      "text": " architecture with no pre-training and just random initialization of those weights and then finally"
+    },
+    {
+      "start": 1087.76,
+      "end": 1092.06,
+      "text": " is low-rank adaptation, or LoRa,"
+    },
+    {
+      "start": 1092.6,
+      "end": 1094.9,
+      "text": " which is not used here in this experimentation,"
+    },
+    {
+      "start": 1095.84,
+      "end": 1097.92,
+      "text": " but it is somewhat of a middle ground option."
+    },
+    {
+      "start": 1098.78,
+      "end": 1100.7,
+      "text": " It keeps the encoder weights frozen,"
+    },
+    {
+      "start": 1101.26,
+      "end": 1105.06,
+      "text": " but does learn a lower-rank set of weights"
+    },
+    {
+      "start": 1105.06,
+      "end": 1107.92,
+      "text": " that can modify the latent representations"
+    },
+    {
+      "start": 1107.92,
+      "end": 1110.42,
+      "text": " coming out of the encoder,"
+    },
+    {
+      "start": 1111.52,
+      "end": 1114.74,
+      "text": " special to the task at hand,"
+    },
+    {
+      "start": 1114.74,
+      "end": 1126.7,
+      "text": " the task that the decoder is using to train and optimize over."
+    },
+    {
+      "start": 1126.7,
+      "end": 1136.6,
+      "text": " Given these different ways to handle the weights inside the Earth Observation Foundation models,"
+    },
+    {
+      "start": 1136.6,
+      "end": 1139.8,
+      "text": " we select three models here to experiment with."
+    },
+    {
+      "start": 1139.8,
+      "end": 1144.28,
+      "text": " We select DOFA, Prithvi 1.0, and Chroma."
+    },
+    {
+      "start": 1145.1599999999999,
+      "end": 1157.32,
+      "text": " Each of these models differ in what they saw during pre-training, their architecture and the design that went into them, and the organizations that developed the models."
+    },
+    {
+      "start": 1158.18,
+      "end": 1161.3,
+      "text": " The first model pictured here is DOFA."
+    },
+    {
+      "start": 1161.86,
+      "end": 1165.96,
+      "text": " This is a schematic from the original publication."
+    },
+    {
+      "start": 1165.96,
+      "end": 1171.26,
+      "text": " DOFA combines masked image modeling with self-distillation."
+    },
+    {
+      "start": 1172.72,
+      "end": 1178.96,
+      "text": " Its defining mechanism is this wavelength-conditioned dynamic patch embedding,"
+    },
+    {
+      "start": 1179.66,
+      "end": 1186.4,
+      "text": " where central wavelengths of a given sensor are used to derive the weights for processing the respective data."
+    },
+    {
+      "start": 1187.66,
+      "end": 1192.7,
+      "text": " This choice aims to improve flexibility across sensors and modalities,"
+    },
+    {
+      "start": 1192.7,
+      "end": 1202.7,
+      "text": " but also raises some scientific questions about when and where wavelength-based transfer is feasible"
+    },
+    {
+      "start": 1202.7,
+      "end": 1205.94,
+      "text": " and where it might degrade performance."
+    },
+    {
+      "start": 1206.82,
+      "end": 1216.42,
+      "text": " So significant flexibility and also much to be explored in the way of where that flexibility is beneficial"
+    },
+    {
+      "start": 1216.42,
+      "end": 1218.26,
+      "text": " and where it gives way."
+    },
+    {
+      "start": 1218.26,
+      "end": 1233.08,
+      "text": " The second model we're looking at here, Prithvi 1.0, and again this is a schematic from the original publication, is a masked autoencoder pre-trained on harmonized Landsat Sentinel reflectance data."
+    },
+    {
+      "start": 1234.48,
+      "end": 1240.46,
+      "text": " And the model itself includes mechanisms for spatial and temporal encoding."
+    },
+    {
+      "start": 1241.66,
+      "end": 1247.7,
+      "text": " The HLS pre-training makes it especially relevant for the selected tasks for this experimentation."
+    },
+    {
+      "start": 1248.26,
+      "end": 1255.32,
+      "text": " as it allows us to ask questions about whether or not the pre-training on the same data that we're evaluating on"
+    },
+    {
+      "start": 1255.32,
+      "end": 1259.54,
+      "text": " gives Prithvi kind of a head start or a benefit,"
+    },
+    {
+      "start": 1260.1,
+      "end": 1266.78,
+      "text": " or whether there's other factors at play that alter the varied performance across the models."
+    },
+    {
+      "start": 1268.64,
+      "end": 1275.56,
+      "text": " And then finally, we have Chroma here with its schematic from its original manuscript."
+    },
+    {
+      "start": 1275.56,
+      "end": 1280.56,
+      "text": " Chroma combines masked image modeling and cross-modal contrastive learning."
+    },
+    {
+      "start": 1280.56,
+      "end": 1289.56,
+      "text": " It has two different encoders, one for optical, one for radar, and it fuses information through cross-attention mechanisms"
+    },
+    {
+      "start": 1289.56,
+      "end": 1297.56,
+      "text": " that learn information across radar and optical during the training process."
+    },
+    {
+      "start": 1297.56,
+      "end": 1306.52,
+      "text": " In the downstream setting or in this notebook, we're only using the optical encoder."
+    },
+    {
+      "start": 1306.86,
+      "end": 1318.62,
+      "text": " And it should be noted that the training process and Chroma's optical encoder in its native sense uses 12 bands,"
+    },
+    {
+      "start": 1318.76,
+      "end": 1321.06,
+      "text": " and it was trained on the 12 bands from Sentinel-2."
+    },
+    {
+      "start": 1321.06,
+      "end": 1326.3,
+      "text": " and the tasks that we're looking at are using six bands from the harmonized Landsat Sentinel"
+    },
+    {
+      "start": 1326.3,
+      "end": 1333.58,
+      "text": " reflectance data set. So there's some variation there and leads us to some interesting and"
+    },
+    {
+      "start": 1333.58,
+      "end": 1339.6399999999999,
+      "text": " important questions as to, you know, how does performance change given varied optical data"
+    },
+    {
+      "start": 1339.6399999999999,
+      "end": 1347.7,
+      "text": " sets even when they come from the same sensor. Now we're going to take these models that we've"
+    },
+    {
+      "start": 1347.7,
+      "end": 1352.24,
+      "text": " introduced and do some analysis on them starting with this encoder weight matrix"
+    },
+    {
+      "start": 1352.24,
+      "end": 1358.82,
+      "text": " analysis using this the Weight Watcher tool so we'll go over some example"
+    },
+    {
+      "start": 1358.82,
+      "end": 1366.3,
+      "text": " commands that can be run we integrated this into our fork of Pangea bench but"
+    },
+    {
+      "start": 1366.3,
+      "end": 1372.8400000000001,
+      "text": " Weight Watcher is a standalone tool that's pretty easy to use as well this"
+    },
+    {
+      "start": 1372.84,
+      "end": 1379.28,
+      "text": " This is direct analysis on the weight matrices of the models."
+    },
+    {
+      "start": 1379.28,
+      "end": 1390.34,
+      "text": " The data sets being provided as input is only being used here to pass metadata into the"
+    },
+    {
+      "start": 1390.34,
+      "end": 1395.84,
+      "text": " PangeaBench framework as is required, but we don't actually use data here as part of"
+    },
+    {
+      "start": 1395.84,
+      "end": 1399.3999999999999,
+      "text": " this analysis."
+    },
+    {
+      "start": 1399.4,
+      "end": 1407.44,
+      "text": " we're just moving to directory where we can run this analysis and then we call this Weight Watcher"
+    },
+    {
+      "start": 1407.44,
+      "end": 1416.7800000000002,
+      "text": " tool passing in again the M2BS data set. This first example is using the chroma encoder,"
+    },
+    {
+      "start": 1416.7800000000002,
+      "end": 1425.2800000000002,
+      "text": " specifically the optical encoder. Then we have our pre-processing options and identifying the"
+    },
+    {
+      "start": 1425.28,
+      "end": 1429.82,
+      "text": " fact that the task that we would use this for is segmentation and then we"
+    },
+    {
+      "start": 1429.82,
+      "end": 1437.3999999999999,
+      "text": " have some movement of some of the artifacts being generated and then the"
+    },
+    {
+      "start": 1437.3999999999999,
+      "end": 1446.7,
+      "text": " same example just being run with DOFA and then with Prithvi here so we step"
+    },
+    {
+      "start": 1446.7,
+      "end": 1456.32,
+      "text": " down the primary output that we'll focus on in this setting is this per layer"
+    },
+    {
+      "start": 1456.32,
+      "end": 1462.1200000000001,
+      "text": " power law exponent called alpha. There are other outputs that are produced from"
+    },
+    {
+      "start": 1462.1200000000001,
+      "end": 1466.68,
+      "text": " the Weight Watcher tool and the referenced manuscripts associated with"
+    },
+    {
+      "start": 1466.68,
+      "end": 1474.72,
+      "text": " the tool provide very detailed descriptions of those. From the empirical"
+    },
+    {
+      "start": 1474.72,
+      "end": 1478.56,
+      "text": " and theoretical analyses in those manuscripts."
+    },
+    {
+      "start": 1478.56,
+      "end": 1482.68,
+      "text": " There's a predefined ideal range of between two to five"
+    },
+    {
+      "start": 1482.68,
+      "end": 1487.52,
+      "text": " that maps to, typically to layers that are well trained"
+    },
+    {
+      "start": 1487.52,
+      "end": 1493.22,
+      "text": " and generally usable or generalizable."
+    },
+    {
+      "start": 1493.22,
+      "end": 1498.88,
+      "text": " And then lower alpha values typically correspond"
+    },
+    {
+      "start": 1498.88,
+      "end": 1502.42,
+      "text": " to heavier distribution tails"
+    },
+    {
+      "start": 1502.42,
+      "end": 1506.68,
+      "text": " from that empirical spectral density analysis,"
+    },
+    {
+      "start": 1506.68,
+      "end": 1509.1200000000001,
+      "text": " and may indicate a more complex structure"
+    },
+    {
+      "start": 1509.1200000000001,
+      "end": 1511.5,
+      "text": " with a higher risk of overfitting,"
+    },
+    {
+      "start": 1511.5,
+      "end": 1514.66,
+      "text": " while higher values above that range of two to five"
+    },
+    {
+      "start": 1514.66,
+      "end": 1517.2,
+      "text": " can indicate more noise-like randomness"
+    },
+    {
+      "start": 1517.2,
+      "end": 1519.1200000000001,
+      "text": " and a higher risk of underfitting."
+    },
+    {
+      "start": 1520.78,
+      "end": 1523.74,
+      "text": " So we have plots,"
+    },
+    {
+      "start": 1523.74,
+      "end": 1525.8400000000001,
+      "text": " so chroma here in the top left,"
+    },
+    {
+      "start": 1526.8000000000002,
+      "end": 1528.1000000000001,
+      "text": " DOFA here in the top right,"
+    },
+    {
+      "start": 1528.1000000000001,
+      "end": 1530.5600000000002,
+      "text": " and then in the bottom center, here is prithvi."
+    },
+    {
+      "start": 1532.42,
+      "end": 1539.46,
+      "text": " On the x-axis, we have the layer number or the layer index, and then we have the alpha"
+    },
+    {
+      "start": 1539.46,
+      "end": 1547.88,
+      "text": " value for each of those layers plotted here on the y."
+    },
+    {
+      "start": 1547.88,
+      "end": 1553.14,
+      "text": " Chroma has, between the three models evaluated here, has the most consistently moderate layer"
+    },
+    {
+      "start": 1553.14,
+      "end": 1562.3400000000001,
+      "text": " values with most of the points lying between that ideal range of two to five."
+    },
+    {
+      "start": 1562.34,
+      "end": 1569.1599999999999,
+      "text": " There's a very small outlier here and here as well with the majority of the points lying"
+    },
+    {
+      "start": 1569.1599999999999,
+      "end": 1572.0,
+      "text": " within that ideal range."
+    },
+    {
+      "start": 1572.0,
+      "end": 1581.1799999999998,
+      "text": " Prithvi has several mildly low or slightly lower than ideal layers or layers with alpha"
+    },
+    {
+      "start": 1581.1799999999998,
+      "end": 1588.3799999999999,
+      "text": " values across the set here."
+    },
+    {
+      "start": 1588.38,
+      "end": 1596.0800000000002,
+      "text": " DOFA shows a more distributed pattern of relatively high alpha layers, again, across the full"
+    },
+    {
+      "start": 1596.0800000000002,
+      "end": 1599.1000000000001,
+      "text": " set of layers that we look at."
+    },
+    {
+      "start": 1599.1000000000001,
+      "end": 1608.2800000000002,
+      "text": " And all of the models have one or a couple of layers at the beginning where the values"
+    },
+    {
+      "start": 1608.2800000000002,
+      "end": 1610.24,
+      "text": " are relatively low."
+    },
+    {
+      "start": 1610.24,
+      "end": 1616.5800000000002,
+      "text": " The initial manuscripts associated with Weight Watchers identify this pattern in vision models"
+    },
+    {
+      "start": 1616.58,
+      "end": 1619.08,
+      "text": " or models used in vision-related tasks."
+    },
+    {
+      "start": 1620.28,
+      "end": 1624.54,
+      "text": " And the hypothesis is that many of the early layers"
+    },
+    {
+      "start": 1624.54,
+      "end": 1631.32,
+      "text": " are identifying relatively ubiquitous core scale structures"
+    },
+    {
+      "start": 1631.32,
+      "end": 1633.4199999999998,
+      "text": " within the data that they're trained on,"
+    },
+    {
+      "start": 1633.4199999999998,
+      "end": 1637.6,
+      "text": " and therefore they become pretty fixed or overfit."
+    },
+    {
+      "start": 1638.3,
+      "end": 1641.52,
+      "text": " So it's more a structure of the paradigm"
+    },
+    {
+      "start": 1641.52,
+      "end": 1646.76,
+      "text": " as opposed to a problem with these specific training runs here."
+    },
+    {
+      "start": 1649.54,
+      "end": 1657.98,
+      "text": " As with all of the analyses that we do, especially in this section,"
+    },
+    {
+      "start": 1658.52,
+      "end": 1663.3,
+      "text": " taken by itself can only provide a very small sliver of information"
+    },
+    {
+      "start": 1663.3,
+      "end": 1668.28,
+      "text": " and difficult to make decisions upon,"
+    },
+    {
+      "start": 1668.28,
+      "end": 1672.94,
+      "text": " but taken as a collective in conjunction with the other analyses that we do."
+    },
+    {
+      "start": 1673.56,
+      "end": 1680.72,
+      "text": " We suggest that this provides a nice comprehensive picture of the model,"
+    },
+    {
+      "start": 1681.28,
+      "end": 1687.02,
+      "text": " the resources required, the representation analysis,"
+    },
+    {
+      "start": 1687.28,
+      "end": 1689.16,
+      "text": " and the downstream task performance."
+    },
+    {
+      "start": 1689.16,
+      "end": 1695.54,
+      "text": " All of that collectively gives us a more holistic picture of model performance."
+    },
+    {
+      "start": 1698.28,
+      "end": 1710.84,
+      "text": " And this diagnostic is interesting and important in directly understanding the status of a given EOFM after a pre-training run, after pre-training and fine-tuning."
+    },
+    {
+      "start": 1711.42,
+      "end": 1716.82,
+      "text": " It can also be helpful as a piece of information to help guide a fine-tuning strategy."
+    },
+    {
+      "start": 1716.82,
+      "end": 1736.1599999999999,
+      "text": " For example, if you have layers with signs of fragile or highly specialized structure or overfitting, you may want to provide conservative learning rates or partial freezing to those layers or figure out a different strategy that may help you overcome that overfitting."
+    },
+    {
+      "start": 1737.86,
+      "end": 1739.8999999999999,
+      "text": " So we take this information with us."
+    },
+    {
+      "start": 1739.9,
+      "end": 1749.02,
+      "text": " we have an understanding of the fittedness per layer level from this"
+    },
+    {
+      "start": 1749.02,
+      "end": 1755.52,
+      "text": " diagnostic again a piece of the larger analysis we do here and we move into"
+    },
+    {
+      "start": 1755.52,
+      "end": 1766.3200000000002,
+      "text": " resource requirement estimation and comparison before we get into evaluating"
+    },
+    {
+      "start": 1766.32,
+      "end": 1771.72,
+      "text": " representations and looking at embeddings, we first ask ourselves a"
+    },
+    {
+      "start": 1771.72,
+      "end": 1779.1399999999999,
+      "text": " practical question and that is can these models be trained and deployed given an"
+    },
+    {
+      "start": 1779.1399999999999,
+      "end": 1785.32,
+      "text": " available computational budget and you know what is the most efficient model"
+    },
+    {
+      "start": 1785.32,
+      "end": 1795.7,
+      "text": " that can give us performance that meets our needs. Our goal is not to choose to"
+    },
+    {
+      "start": 1795.7,
+      "end": 1800.94,
+      "text": " the best performing model or the smallest model but the model that"
+    },
+    {
+      "start": 1800.94,
+      "end": 1808.1000000000001,
+      "text": " combines efficiency minimizes resource usage while still still meeting our"
+    },
+    {
+      "start": 1808.1000000000001,
+      "end": 1814.96,
+      "text": " performance needs for the task at hand this subsection here uses three"
+    },
+    {
+      "start": 1814.96,
+      "end": 1819.94,
+      "text": " complementary proxies for model costs parameter count multiply and accumulate"
+    },
+    {
+      "start": 1819.94,
+      "end": 1826.9,
+      "text": " operations or max and floating-point operations or flops. Parameter count is a"
+    },
+    {
+      "start": 1826.9,
+      "end": 1833.4,
+      "text": " number of learned weights and biases stored that need to be used for model"
+    },
+    {
+      "start": 1833.4,
+      "end": 1838.3,
+      "text": " training and inference. It is a useful first estimate of storage and memory"
+    },
+    {
+      "start": 1838.3,
+      "end": 1842.26,
+      "text": " requirements. More parameters typically mean more memory is required to load the"
+    },
+    {
+      "start": 1842.26,
+      "end": 1848.8,
+      "text": " model, retain gradients during training, and store checkpoints. Max estimate the"
+    },
+    {
+      "start": 1848.8,
+      "end": 1852.12,
+      "text": " core arithmetic workload of neural network layers."
+    },
+    {
+      "start": 1852.12,
+      "end": 1854.96,
+      "text": " A multiply accumulate operation multiplies two values"
+    },
+    {
+      "start": 1854.96,
+      "end": 1857.3799999999999,
+      "text": " and adds the product to a running total."
+    },
+    {
+      "start": 1857.3799999999999,
+      "end": 1859.3999999999999,
+      "text": " This is the basic calculation that's repeated"
+    },
+    {
+      "start": 1859.3999999999999,
+      "end": 1861.94,
+      "text": " throughout convolutions and matrix multiplications."
+    },
+    {
+      "start": 1863.2,
+      "end": 1864.6,
+      "text": " Flops estimate the total number"
+    },
+    {
+      "start": 1864.6,
+      "end": 1866.2,
+      "text": " of floating point operations required"
+    },
+    {
+      "start": 1866.2,
+      "end": 1868.1,
+      "text": " for a single forward pass."
+    },
+    {
+      "start": 1868.1,
+      "end": 1871.02,
+      "text": " Higher flop counts typically imply greater compute demand"
+    },
+    {
+      "start": 1871.02,
+      "end": 1875.6399999999999,
+      "text": " and can translate into longer inference and training times."
+    },
+    {
+      "start": 1875.64,
+      "end": 1881.8600000000001,
+      "text": " So each of these metrics gives us a slightly different perspective on the question we're asking here."
+    },
+    {
+      "start": 1884.46,
+      "end": 1891.8200000000002,
+      "text": " Here we integrated some capabilities from an external tool called CalFLOPs."
+    },
+    {
+      "start": 1893.16,
+      "end": 1896.8200000000002,
+      "text": " And the interface is much the same as it was before."
+    },
+    {
+      "start": 1896.82,
+      "end": 1905.3,
+      "text": " here. We run a couple of samples through the models in order to get some estimations on"
+    },
+    {
+      "start": 1908.34,
+      "end": 1914.58,
+      "text": " the requirements used for forward pass and things like that. So we are testing with"
+    },
+    {
+      "start": 1915.7,
+      "end": 1925.1399999999999,
+      "text": " MTBS and the data set is actually being used here. The value should not vary too much, if at all,"
+    },
+    {
+      "start": 1925.14,
+      "end": 1932.3400000000001,
+      "text": " as you vary the data set there. If you were to update the pre-processing schemes, there may be"
+    },
+    {
+      "start": 1932.3400000000001,
+      "end": 1940.3400000000001,
+      "text": " some variations because that can alter the way the data passes through the model. But altering"
+    },
+    {
+      "start": 1940.3400000000001,
+      "end": 1945.46,
+      "text": " the data set should not alter these values too much. So again, we have an example for each of the"
+    },
+    {
+      "start": 1945.46,
+      "end": 1950.3400000000001,
+      "text": " encoders we're looking at. We have our pre-processing set up, and we're specifying"
+    },
+    {
+      "start": 1950.34,
+      "end": 1956.98,
+      "text": " that our task would be segmentation given given our data set and then we have this table here"
+    },
+    {
+      "start": 1958.1799999999998,
+      "end": 1967.1399999999999,
+      "text": " where we have gigaflops gigamax for forward passes we have forward and backward gigaflops"
+    },
+    {
+      "start": 1967.1399999999999,
+      "end": 1973.3799999999999,
+      "text": " and forward and backward gigamax and then total training parameter count in millions"
+    },
+    {
+      "start": 1973.38,
+      "end": 1983.48,
+      "text": " And then this is a table of a larger suite of models that exist in PangeaBench, but the"
+    },
+    {
+      "start": 1983.48,
+      "end": 1985.8400000000001,
+      "text": " ones highlighted are the ones that we're specifically looking at."
+    },
+    {
+      "start": 1985.8400000000001,
+      "end": 1992.8200000000002,
+      "text": " And we felt it was more interesting to look at this table from a relative perspective,"
+    },
+    {
+      "start": 1992.8200000000002,
+      "end": 1998.8600000000001,
+      "text": " comparing against some of the other foundation models, comparing against more traditional"
+    },
+    {
+      "start": 1998.86,
+      "end": 2010.4599999999998,
+      "text": " resnets and the the vit that's inside of pangea bench and we can see that chroma is the largest"
+    },
+    {
+      "start": 2010.4599999999998,
+      "end": 2020.62,
+      "text": " model and has the most significant number of operations in all categories and Prithvi is"
+    },
+    {
+      "start": 2020.62,
+      "end": 2032.78,
+      "text": " the smallest model but tends to have a larger compute need than the larger DOFA or the model"
+    },
+    {
+      "start": 2032.78,
+      "end": 2039.5,
+      "text": " that sits in the middle of the three DOFA where the the flops and max are are a bit smaller than"
+    },
+    {
+      "start": 2039.5,
+      "end": 2048.62,
+      "text": " the values reported by Prithvi so you can take this information with us in conjunction with our"
+    },
+    {
+      "start": 2048.62,
+      "end": 2055.5,
+      "text": " understanding of the weight matrix analysis and the diagnostics there and"
+    },
+    {
+      "start": 2055.5,
+      "end": 2062.8199999999997,
+      "text": " help use this information for our final kind of comprehensive model evaluation"
+    },
+    {
+      "start": 2062.8199999999997,
+      "end": 2068.72,
+      "text": " and final selection down the line. Next we're going to have a look at generating"
+    },
+    {
+      "start": 2068.72,
+      "end": 2075.14,
+      "text": " embedding so we can do representation analysis across them. We now move from"
+    },
+    {
+      "start": 2075.14,
+      "end": 2081.52,
+      "text": " the model centric evaluations down into the embedding based or representation"
+    },
+    {
+      "start": 2081.52,
+      "end": 2088.7,
+      "text": " analysis and look into examining the geometry of the representations relative"
+    },
+    {
+      "start": 2088.7,
+      "end": 2095.7599999999998,
+      "text": " to our two label sets as a quick reminder and embedding is the encoders"
+    },
+    {
+      "start": 2095.7599999999998,
+      "end": 2101.58,
+      "text": " numerical representation of an image patch or a sample if that representation"
+    },
+    {
+      "start": 2101.58,
+      "end": 2107.98,
+      "text": " organizes task-relevant observations in an interpretable and useful way, we should be able to"
+    },
+    {
+      "start": 2108.7799999999997,
+      "end": 2117.66,
+      "text": " extract and reveal coherent structure even before we fine-tune or train a task-specific decoder."
+    },
+    {
+      "start": 2120.14,
+      "end": 2123.42,
+      "text": " The first operation towards this end is generating the actual embeddings."
+    },
+    {
+      "start": 2123.42,
+      "end": 2132.0,
+      "text": " Here we have an example command, one for each of the encoders that we're looking at."
+    },
+    {
+      "start": 2132.0,
+      "end": 2141.78,
+      "text": " We move into the directory within which we run the commands, and then we run this embed.py,"
+    },
+    {
+      "start": 2141.78,
+      "end": 2143.94,
+      "text": " giving the dataset."
+    },
+    {
+      "start": 2143.94,
+      "end": 2147.5,
+      "text": " In this case, this example is for the MTBS dataset."
+    },
+    {
+      "start": 2147.5,
+      "end": 2151.58,
+      "text": " We give the encoder, so we have one for Chroma, one for DOFA, one for Prithvi, and then we"
+    },
+    {
+      "start": 2151.58,
+      "end": 2158.34,
+      "text": " have our pre-processing options and the specification of our task type."
+    },
+    {
+      "start": 2158.34,
+      "end": 2166.38,
+      "text": " These will allow you to generate the per model, per data set embeddings and then we can move"
+    },
+    {
+      "start": 2166.38,
+      "end": 2173.0,
+      "text": " into the downstream analysis of those."
+    },
+    {
+      "start": 2173.0,
+      "end": 2182.44,
+      "text": " As the example provided here, we use a UMAP projection or a feature reduction technique"
+    },
+    {
+      "start": 2182.44,
+      "end": 2193.36,
+      "text": " called UMAP in order to do some visualization and downstream model inter-comparison."
+    },
+    {
+      "start": 2193.36,
+      "end": 2198.7,
+      "text": " Embeddings typically have feature counts on the order of tens to thousands, which makes"
+    },
+    {
+      "start": 2198.7,
+      "end": 2208.7599999999998,
+      "text": " direct inspection of these quite difficult. UMAP is one methodology. There are others that"
+    },
+    {
+      "start": 2208.7599999999998,
+      "end": 2216.58,
+      "text": " can be used here, including but not limited to things like PCA and TSNE."
+    },
+    {
+      "start": 2218.08,
+      "end": 2224.3799999999997,
+      "text": " But the goal here is to project those high dimensional vectors into a low and inspectable"
+    },
+    {
+      "start": 2224.38,
+      "end": 2233.7400000000002,
+      "text": " number of dimensions, typically two to three when doing visual analysis. In the plots that we will"
+    },
+    {
+      "start": 2233.7400000000002,
+      "end": 2242.1400000000003,
+      "text": " look at for qualitative analysis, under ideal conditions, points that lie near one another or"
+    },
+    {
+      "start": 2242.1400000000003,
+      "end": 2249.82,
+      "text": " close within the given geometry represent samples that the encoder considers similar."
+    },
+    {
+      "start": 2249.82,
+      "end": 2261.82,
+      "text": " We're coloring each of these points by the given labels that we have, so burn scar, no burn scar, or the different burn severity labels in the MTBS dataset."
+    },
+    {
+      "start": 2262.0800000000004,
+      "end": 2273.02,
+      "text": " This allows us to do some qualitative analysis and ask questions like, do observations with the same downstream label tend to occupy similar regions?"
+    },
+    {
+      "start": 2273.02,
+      "end": 2284.58,
+      "text": " and are the given representations interpretable in a way that already maps to the task at hand."
+    },
+    {
+      "start": 2288.58,
+      "end": 2296.36,
+      "text": " On the other end of that, we should note that UMAP is a feature reduction technique and a visualization tool,"
+    },
+    {
+      "start": 2296.36,
+      "end": 2298.38,
+      "text": " not a direct performance metric."
+    },
+    {
+      "start": 2298.38,
+      "end": 2305.42,
+      "text": " the geometry generated depends on hyperparameter choices and representational similarity"
+    },
+    {
+      "start": 2305.42,
+      "end": 2311.86,
+      "text": " between the UMAP projection paradigm and the native geometric representations of the model."
+    },
+    {
+      "start": 2314.0,
+      "end": 2322.1400000000003,
+      "text": " Given these caveats, we should consider two things when using these for qualitative and"
+    },
+    {
+      "start": 2322.1400000000003,
+      "end": 2327.94,
+      "text": " downstream analysis. Messy projections do not necessarily prove that useful class structure"
+    },
+    {
+      "start": 2327.94,
+      "end": 2332.94,
+      "text": " is absent from the original embedding space, but on the other hand, models that are too"
+    },
+    {
+      "start": 2332.94,
+      "end": 2338.86,
+      "text": " difficult to interpret or have too brittle of representations make it difficult for us"
+    },
+    {
+      "start": 2338.86,
+      "end": 2346.88,
+      "text": " to ask the whys that are central to most scientific endeavors."
+    },
+    {
+      "start": 2346.88,
+      "end": 2357.06,
+      "text": " On top of the UMAP projections, we're going to build KNN graphs, and that allows us to"
+    },
+    {
+      "start": 2357.06,
+      "end": 2364.86,
+      "text": " nearest neighbor analysis and look at how the encoder organizes relationships"
+    },
+    {
+      "start": 2364.86,
+      "end": 2371.2799999999997,
+      "text": " among all the samples or samples that sit close together so we have more of a"
+    },
+    {
+      "start": 2371.2799999999997,
+      "end": 2375.68,
+      "text": " quantitative look at neighborhoods whereas the initial visual inspection"
+    },
+    {
+      "start": 2375.68,
+      "end": 2380.12,
+      "text": " that we'll take a look at here in a second gives us more qualitative"
+    },
+    {
+      "start": 2380.12,
+      "end": 2389.7999999999997,
+      "text": " evaluation of that. And once we run that we can visualize the two-dimensional"
+    },
+    {
+      "start": 2389.7999999999997,
+      "end": 2397.4,
+      "text": " projections of the original samples from the embedding space. And here are some"
+    },
+    {
+      "start": 2397.4,
+      "end": 2404.5,
+      "text": " examples from Chroma, DOFA, and Prithvi. For the HLS burn scars data set we have"
+    },
+    {
+      "start": 2404.5,
+      "end": 2410.84,
+      "text": " zero or no burn scar represented with this yellow color and then we have burn"
+    },
+    {
+      "start": 2410.84,
+      "end": 2419.46,
+      "text": " scar or one represented with this blue color we can see in all of the cases"
+    },
+    {
+      "start": 2419.46,
+      "end": 2428.92,
+      "text": " that there is a capability to separate some of the no burn scars or negative"
+    },
+    {
+      "start": 2428.92,
+      "end": 2435.58,
+      "text": " labels from the rest of the samples and then there's varying levels of mixture"
+    },
+    {
+      "start": 2435.58,
+      "end": 2442.0,
+      "text": " going on between a subset of the no burn scars and the true labels or the burn"
+    },
+    {
+      "start": 2442.0,
+      "end": 2449.7400000000002,
+      "text": " scars here with DOFA we see a very strong mixture and then it looks like"
+    },
+    {
+      "start": 2449.7400000000002,
+      "end": 2454.78,
+      "text": " there's kind of an intermediate level of mixture with chroma samples and the"
+    },
+    {
+      "start": 2454.78,
+      "end": 2462.52,
+      "text": " the Prithvi samples."
+    },
+    {
+      "start": 2462.52,
+      "end": 2471.42,
+      "text": " If we look at the examples for the MTBS data, we can see strong capability to distinguish"
+    },
+    {
+      "start": 2471.42,
+      "end": 2478.82,
+      "text": " between most of the background samples and other classes for each of the models with"
+    },
+    {
+      "start": 2478.82,
+      "end": 2484.1800000000003,
+      "text": " with chroma appearing to have the strongest capabilities there."
+    },
+    {
+      "start": 2484.1800000000003,
+      "end": 2490.26,
+      "text": " And then again, varied levels of intermixing between some of those background classes and"
+    },
+    {
+      "start": 2490.26,
+      "end": 2493.6000000000004,
+      "text": " all the others."
+    },
+    {
+      "start": 2493.6000000000004,
+      "end": 2501.96,
+      "text": " It looks like Prithvi and Dofa have similar levels of mixing and chroma is again doing"
+    },
+    {
+      "start": 2501.96,
+      "end": 2508.38,
+      "text": " a little bit better of a job making a distinguishment between the various classes while they're"
+    },
+    {
+      "start": 2508.38,
+      "end": 2515.38,
+      "text": " still appears to be some intermixing. The next step is to take those K and N graphs"
+    },
+    {
+      "start": 2516.9,
+      "end": 2523.9,
+      "text": " and use the data kernel analysis methodology to intercompare representations or look at"
+    },
+    {
+      "start": 2525.04,
+      "end": 2532.04,
+      "text": " representational similarity. The reason we want to look at this is two encoders can have"
+    },
+    {
+      "start": 2532.04,
+      "end": 2539.48,
+      "text": " comparable downstream scores, but the representational geometry used can be completely"
+    },
+    {
+      "start": 2539.48,
+      "end": 2545.1,
+      "text": " different. For instance, one model could be relying completely on the performance of the decoder,"
+    },
+    {
+      "start": 2545.5,
+      "end": 2551.16,
+      "text": " while another could have strong cues from its pre-training representations that it was"
+    },
+    {
+      "start": 2551.16,
+      "end": 2557.84,
+      "text": " already set up for success for this kind of task. So it's important to look at this intermediate"
+    },
+    {
+      "start": 2557.84,
+      "end": 2565.36,
+      "text": " representation and extract what we can from intercomparisons as well as direct individual"
+    },
+    {
+      "start": 2565.36,
+      "end": 2575.76,
+      "text": " model analysis. So here's an example command for running that data kernel-based intercomparison."
+    },
+    {
+      "start": 2576.32,
+      "end": 2580.6400000000003,
+      "text": " Again we move into that encoder analysis subdirectory and then we run this single command"
+    },
+    {
+      "start": 2581.52,
+      "end": 2587.6000000000004,
+      "text": " here specifying dataset and task type. Because we're doing intermodel comparison it's going to"
+    },
+    {
+      "start": 2587.6,
+      "end": 2596.08,
+      "text": " run some functionality across all of the models and do comparisons across each pair that we have"
+    },
+    {
+      "start": 2597.68,
+      "end": 2600.56,
+      "text": " access to for each data set."
+    },
+    {
+      "start": 2603.52,
+      "end": 2610.96,
+      "text": " This function generates a number of plots and samples, a subset of which we'll talk about here."
+    },
+    {
+      "start": 2610.96,
+      "end": 2640.94,
+      "text": " The first one is a scatter plot of the samples in the uniform embedding space generated by the data kernels methodology, taking those nearest neighbor graphs and projecting them multiple times and finally into a uniform embedding space where we can measure similarity and dissimilarity of the data kernels."
+    },
+    {
+      "start": 2640.96,
+      "end": 2648.96,
+      "text": " the embeddings of the same samples but generated from distinct models."
+    },
+    {
+      "start": 2648.96,
+      "end": 2656.2200000000003,
+      "text": " On the top left, we have the subset of models that we're looking at in this analysis,"
+    },
+    {
+      "start": 2656.2200000000003,
+      "end": 2660.32,
+      "text": " all of the samples that we're looking at,"
+    },
+    {
+      "start": 2660.32,
+      "end": 2666.3,
+      "text": " but subsided by the three models that we're looking at here."
+    },
+    {
+      "start": 2666.3,
+      "end": 2680.5,
+      "text": " And then on the top right we have a wider set of models, so all of the models available,"
+    },
+    {
+      "start": 2680.5,
+      "end": 2687.94,
+      "text": " same samples, but all projected into the uniform embedding space."
+    },
+    {
+      "start": 2687.94,
+      "end": 2695.26,
+      "text": " And then on the bottom we have each of the models of interest, the samples within this"
+    },
+    {
+      "start": 2695.26,
+      "end": 2704.0400000000004,
+      "text": " red box here highlighting the area of highest density for the models of interest that we're"
+    },
+    {
+      "start": 2704.0400000000004,
+      "end": 2711.1200000000003,
+      "text": " looking at. So chroma is here in the red, DOFA is here in the black, and prithvi is here"
+    },
+    {
+      "start": 2711.1200000000003,
+      "end": 2718.6400000000003,
+      "text": " in the blue. And the opacity is measuring sample density in a given area for these bottom"
+    },
+    {
+      "start": 2718.64,
+      "end": 2728.66,
+      "text": " plots. So we can just again do a visual inspection of the placement of the"
+    },
+    {
+      "start": 2728.66,
+      "end": 2735.44,
+      "text": " various samples. In these analyses we don't have direct indicators of which"
+    },
+    {
+      "start": 2735.44,
+      "end": 2744.48,
+      "text": " sample maps to the same sample projected via a different encoder. We're just"
+    },
+    {
+      "start": 2744.48,
+      "end": 2750.54,
+      "text": " looking at like the full distribution here. This gives us a initial glimpse"
+    },
+    {
+      "start": 2750.54,
+      "end": 2757.66,
+      "text": " into into the uniform embedding space. We can take the same methodology and apply"
+    },
+    {
+      "start": 2757.66,
+      "end": 2767.58,
+      "text": " it once more in an iterative fashion to do a projection of all of the samples"
+    },
+    {
+      "start": 2767.58,
+      "end": 2773.08,
+      "text": " into a single point per model and we get a scatter plot that looks something like"
+    },
+    {
+      "start": 2773.08,
+      "end": 2783.46,
+      "text": " like this with each point representing the full distribution of samples from"
+    },
+    {
+      "start": 2783.46,
+      "end": 2789.8199999999997,
+      "text": " the previous plot into a new uniform space and we can just see"
+    },
+    {
+      "start": 2789.8199999999997,
+      "end": 2795.3199999999997,
+      "text": " instead of per sample similarities and distances we can do per model"
+    },
+    {
+      "start": 2795.3199999999997,
+      "end": 2802.14,
+      "text": " similarities and distances. So again just take a look at visual inspections here"
+    },
+    {
+      "start": 2802.14,
+      "end": 2810.74,
+      "text": " Here with the full set of models we have Prithvi in this darker yellow orangish color."
+    },
+    {
+      "start": 2811.74,
+      "end": 2815.2,
+      "text": " We have DOFA here in black and then Chroma here in red."
+    },
+    {
+      "start": 2816.3199999999997,
+      "end": 2824.8799999999997,
+      "text": " So DOFA and Prithvi sit a little bit closer relative to one another than either of them do to Chroma."
+    },
+    {
+      "start": 2825.8799999999997,
+      "end": 2831.48,
+      "text": " We'll get a more quantitatively focused view of this analysis here with the next plots."
+    },
+    {
+      "start": 2832.14,
+      "end": 2841.14,
+      "text": " So here we have the same scatter plots as above with chroma in red, DOFA in black, and"
+    },
+    {
+      "start": 2841.14,
+      "end": 2849.18,
+      "text": " prithvi in blue, but now the opacity has an inverse relationship to p-value."
+    },
+    {
+      "start": 2849.18,
+      "end": 2860.8199999999997,
+      "text": " So lower the p-value relative to the null hypothesis of similarity and sample proximity."
+    },
+    {
+      "start": 2860.82,
+      "end": 2869.2400000000002,
+      "text": " The higher the p-value, the more faint a given sample is."
+    },
+    {
+      "start": 2869.2400000000002,
+      "end": 2877.52,
+      "text": " We can see plots of the p-value distribution here as well, where the distribution is the"
+    },
+    {
+      "start": 2877.52,
+      "end": 2879.52,
+      "text": " blue line."
+    },
+    {
+      "start": 2879.52,
+      "end": 2888.32,
+      "text": " The uniform distribution is the orange line that takes the diagonal from bottom left to"
+    },
+    {
+      "start": 2888.32,
+      "end": 2898.5800000000004,
+      "text": " top right and leftward shifted distributions relative to that null"
+    },
+    {
+      "start": 2898.5800000000004,
+      "end": 2905.8,
+      "text": " distribution line indicate a projection of the null hypothesis and therefore"
+    },
+    {
+      "start": 2905.8,
+      "end": 2913.6400000000003,
+      "text": " intermodal dissimilarity whereas rightward shifts indicate an acceptance"
+    },
+    {
+      "start": 2913.64,
+      "end": 2921.52,
+      "text": " of that null hypothesis of similarity and therefore similar representations."
+    },
+    {
+      "start": 2921.52,
+      "end": 2929.42,
+      "text": " So we can see that with Prithvi and Dofa, relative to the HLS-Bernskars dataset,"
+    },
+    {
+      "start": 2929.42,
+      "end": 2939.08,
+      "text": " the representations are being evaluated as somewhat similar, whereas the other"
+    },
+    {
+      "start": 2939.08,
+      "end": 2944.84,
+      "text": " pairs of models have leftward shifts in the p-value distribution and therefore a"
+    },
+    {
+      "start": 2944.84,
+      "end": 2951.88,
+      "text": " rejection of that hypothesis of similarity. One last interesting thing to"
+    },
+    {
+      "start": 2951.88,
+      "end": 2962.98,
+      "text": " point out here is the variance in the comparison when you swap which model as"
+    },
+    {
+      "start": 2962.98,
+      "end": 2972.34,
+      "text": " the reference versus which model is the one we're comparing with. The right-hand"
+    },
+    {
+      "start": 2972.34,
+      "end": 2977.38,
+      "text": " side of this arrow is the reference model and then the left-hand side is the"
+    },
+    {
+      "start": 2977.38,
+      "end": 2985.36,
+      "text": " one that we're comparing that reference against. And the reason that we have"
+    },
+    {
+      "start": 2985.36,
+      "end": 2989.44,
+      "text": " varied performance and that the performance isn't bidirectionally"
+    },
+    {
+      "start": 2989.44,
+      "end": 3000.2400000000002,
+      "text": " The uniform has to do with spread of samples in the uniform embedding space."
+    },
+    {
+      "start": 3000.2400000000002,
+      "end": 3011.54,
+      "text": " A model that has a wider spread of samples is going to have a larger rejection radius"
+    },
+    {
+      "start": 3011.54,
+      "end": 3017.86,
+      "text": " for the null hypothesis testing, whereas if the samples have a tighter spread, that rejection"
+    },
+    {
+      "start": 3017.86,
+      "end": 3025.36,
+      "text": " radius is going to be lower so that ends up showing up in the distributions here"
+    },
+    {
+      "start": 3025.36,
+      "end": 3034.0,
+      "text": " and therefore the similarity metrics. So these plots are all using the HLS"
+    },
+    {
+      "start": 3034.0,
+      "end": 3044.6200000000003,
+      "text": " burn scars data set. We have the same plots generated for the MTBS data and at"
+    },
+    {
+      "start": 3044.62,
+      "end": 3053.06,
+      "text": " the end we can see there's generally more dissimilarity with a couple of"
+    },
+    {
+      "start": 3053.06,
+      "end": 3059.46,
+      "text": " examples of potential similarity between DOFA and chroma and unidirectionally"
+    },
+    {
+      "start": 3059.46,
+      "end": 3069.7,
+      "text": " with prithvi and chroma here. Given these tools discussed in this section here we"
+    },
+    {
+      "start": 3069.7,
+      "end": 3079.08,
+      "text": " can have a look at initial take on interpretability of models representation."
+    },
+    {
+      "start": 3079.08,
+      "end": 3088.0,
+      "text": " We can intercompare representations and understand what models we or model"
+    },
+    {
+      "start": 3088.0,
+      "end": 3092.8799999999997,
+      "text": " families may or may not want to include and see how that maps to the"
+    },
+    {
+      "start": 3092.8799999999997,
+      "end": 3099.14,
+      "text": " resource requirements given or required for for a given model or a set of models."
+    },
+    {
+      "start": 3099.14,
+      "end": 3126.92,
+      "text": " All of that collectively allows us to either down-select models for our final fine-tuning or apply different techniques and approaches to account for either strength of representation or a lack of representational capability at the initial stage of the analysis here."
+    },
+    {
+      "start": 3126.92,
+      "end": 3137.6,
+      "text": " And then we can reapply these methods if we choose to do a fine-tuning approach that includes unfreezing some of the encoder weights."
+    },
+    {
+      "start": 3137.6,
+      "end": 3146.86,
+      "text": " where we can come back and compare the representations of the initial model with just the pre-training"
+    },
+    {
+      "start": 3146.86,
+      "end": 3151.96,
+      "text": " and then the model with the updated weights from the fine-tuning"
+    },
+    {
+      "start": 3151.96,
+      "end": 3161.02,
+      "text": " and see what has changed with respect to the representation as it relates to the task at hand."
+    },
+    {
+      "start": 3161.02,
+      "end": 3190.02,
+      "text": " should, in theory, provide us with a stronger representation or an ability to better separate the classes of interest within both the model's initial feature space as well as the reduced or projected feature spaces from a tool like UMAP or PCA or TSNE."
+    },
+    {
+      "start": 3191.02,
+      "end": 3200.18,
+      "text": " From here, we're going to move into fine-tuning and evaluations of models on the final downstream task."
+    },
+    {
+      "start": 3202.02,
+      "end": 3206.86,
+      "text": " Okay, now that we've finished our encoder analysis using the data kernels method,"
+    },
+    {
+      "start": 3207.12,
+      "end": 3209.62,
+      "text": " we're going to look at fine-tuning the foundation models."
+    },
+    {
+      "start": 3210.68,
+      "end": 3213.88,
+      "text": " There are a number of things to consider in our approach for this task,"
+    },
+    {
+      "start": 3214.02,
+      "end": 3218.82,
+      "text": " the first being whether or not to freeze or unfreeze the encoder."
+    },
+    {
+      "start": 3218.82,
+      "end": 3224.7000000000003,
+      "text": " The latter is more compute intensive since all weights are included in the backpropagation process,"
+    },
+    {
+      "start": 3224.7000000000003,
+      "end": 3230.86,
+      "text": " but you may squeeze out a few more percent accuracies. We touch on this topic in the"
+    },
+    {
+      "start": 3230.86,
+      "end": 3237.06,
+      "text": " transfer learning section and if you want to know more go to chapter 7. The second thing to consider"
+    },
+    {
+      "start": 3237.06,
+      "end": 3243.9,
+      "text": " is our decoder choice from section A. Like freezing and retraining the encoder, one decoder may incur"
+    },
+    {
+      "start": 3243.9,
+      "end": 3248.86,
+      "text": " more compute costs than another towards greater accuracy depending on the use case."
+    },
+    {
+      "start": 3250.7000000000003,
+      "end": 3257.1,
+      "text": " For this exercise we'll only train three FM encoders, Chroma, DOFA, and Prithvi, with the"
+    },
+    {
+      "start": 3257.1,
+      "end": 3262.7000000000003,
+      "text": " five decoders outlined in section A, all to highlight the differences between them."
+    },
+    {
+      "start": 3263.7400000000002,
+      "end": 3270.06,
+      "text": " In the command here we can see the encoder, the decoder, the loss function used for training,"
+    },
+    {
+      "start": 3270.06,
+      "end": 3273.56,
+      "text": " and the checkpoint that we load into the encoder."
+    },
+    {
+      "start": 3274.62,
+      "end": 3277.5,
+      "text": " We repeat this command for all the 15 combinations"
+    },
+    {
+      "start": 3279.84,
+      "end": 3282.18,
+      "text": " till we get our training graph."
+    },
+    {
+      "start": 3282.18,
+      "end": 3285.86,
+      "text": " It's worth noting here that we did freeze all encoders"
+    },
+    {
+      "start": 3285.86,
+      "end": 3288.2,
+      "text": " so that the memory footprint fits"
+    },
+    {
+      "start": 3288.2,
+      "end": 3290.84,
+      "text": " in a free tier Google Colab notebook."
+    },
+    {
+      "start": 3290.84,
+      "end": 3292.44,
+      "text": " Again, an unfrozen encoder"
+    },
+    {
+      "start": 3292.44,
+      "end": 3294.02,
+      "text": " may be a little bit more performant,"
+    },
+    {
+      "start": 3294.02,
+      "end": 3295.64,
+      "text": " but will require more memory."
+    },
+    {
+      "start": 3297.38,
+      "end": 3298.56,
+      "text": " Looking at the training graphs here,"
+    },
+    {
+      "start": 3298.56,
+      "end": 3303.6,
+      "text": " can already see a large difference between all models. While most seem to hover around 0.2"
+    },
+    {
+      "start": 3303.6,
+      "end": 3309.36,
+      "text": " training loss towards the bottom, it's worth noting how different the linear probes are in red,"
+    },
+    {
+      "start": 3309.36,
+      "end": 3315.2,
+      "text": " cyan, and orange. The probes are not meant to produce a final product but does provide"
+    },
+    {
+      "start": 3315.2,
+      "end": 3320.88,
+      "text": " insight into how much work the encoder is doing towards producing the segmentation mass."
+    },
+    {
+      "start": 3321.92,
+      "end": 3328.24,
+      "text": " It seems here that the Prithvi linear model does best, followed by Chroma and DOFA."
+    },
+    {
+      "start": 3328.56,
+      "end": 3337.94,
+      "text": " A similar story is seen in the test metrics where both the Chroma model and Prithvi model"
+    },
+    {
+      "start": 3337.94,
+      "end": 3343.62,
+      "text": " are consistently high performing and the DOFA model falling short depending on the decoder"
+    },
+    {
+      "start": 3343.62,
+      "end": 3346.32,
+      "text": " choice."
+    },
+    {
+      "start": 3346.32,
+      "end": 3349.2999999999997,
+      "text": " But that isn't the whole story."
+    },
+    {
+      "start": 3349.2999999999997,
+      "end": 3357.7599999999998,
+      "text": " Looking at the memory consumed per encoder, we can see that the Chroma models all consume"
+    },
+    {
+      "start": 3357.76,
+      "end": 3364.6400000000003,
+      "text": " lot more memory than either the DOFA or the Prism models and the wall time required to train it"
+    },
+    {
+      "start": 3365.28,
+      "end": 3370.8,
+      "text": " is a little bit higher. And so it's up to the user to determine whether this"
+    },
+    {
+      "start": 3370.8,
+      "end": 3375.6800000000003,
+      "text": " this cost is worth the additional accuracy benefit."
+    },
+    {
+      "start": 3379.2000000000003,
+      "end": 3385.2000000000003,
+      "text": " The last thing to look at are the outputs. Okay looking at these examples it's obvious even with"
+    },
+    {
+      "start": 3385.2,
+      "end": 3391.7599999999998,
+      "text": " the same encoder you may get a different output. The linear probe specifically fails to produce"
+    },
+    {
+      "start": 3391.7599999999998,
+      "end": 3397.12,
+      "text": " even a decent segmentation result which tells us some accuracy metrics may be misleading especially"
+    },
+    {
+      "start": 3397.12,
+      "end": 3403.3599999999997,
+      "text": " given that the vast majority of the pixels belong to the background class. And depending on"
+    },
+    {
+      "start": 3403.3599999999997,
+      "end": 3409.6,
+      "text": " requirements one encoder decoder combination may produce more granular segmentations than another."
+    },
+    {
+      "start": 3409.6,
+      "end": 3417.22,
+      "text": " I'm looking specifically at the FCN outputs versus the other three major decoders."
+    },
+    {
+      "start": 3417.22,
+      "end": 3423.94,
+      "text": " This is likely due to the course representations of the transformer encoder."
+    },
+    {
+      "start": 3423.94,
+      "end": 3427.8399999999997,
+      "text": " It may be that if we train it a little bit further, those will go away."
+    },
+    {
+      "start": 3427.8399999999997,
+      "end": 3433.72,
+      "text": " But again, that requires more wall time and more cost."
+    },
+    {
+      "start": 3433.72,
+      "end": 3439.9199999999996,
+      "text": " Scrolling down, data quality issues complicates this analysis a little bit."
+    },
+    {
+      "start": 3439.9199999999996,
+      "end": 3444.16,
+      "text": " The producer of the HLS burn scars dataset only considered the centered polygons when"
+    },
+    {
+      "start": 3444.16,
+      "end": 3450.18,
+      "text": " producing the mask, so burn scars which surround the target scar are not included."
+    },
+    {
+      "start": 3450.18,
+      "end": 3455.22,
+      "text": " On the other hand, some of the models above actually seem to do fine with this omission"
+    },
+    {
+      "start": 3455.22,
+      "end": 3456.22,
+      "text": " of data."
+    },
+    {
+      "start": 3456.22,
+      "end": 3466.7799999999997,
+      "text": " And so you have to ask for the metrics above whether or not they reflect the model actually"
+    },
+    {
+      "start": 3466.7799999999997,
+      "end": 3472.4599999999996,
+      "text": " being completely wrong or segmenting something that should have been segmented but was omitted"
+    },
+    {
+      "start": 3472.4599999999996,
+      "end": 3475.56,
+      "text": " in the dataset."
+    },
+    {
+      "start": 3475.56,
+      "end": 3480.4399999999996,
+      "text": " While this particular example may be easily avoidable, perfectly clean data is often hard"
+    },
+    {
+      "start": 3480.4399999999996,
+      "end": 3485.3799999999997,
+      "text": " to find in remote sensing and you can't expect an FM to be completely robust to those problems"
+    },
+    {
+      "start": 3485.38,
+      "end": 3493.62,
+      "text": " like any other model. Let's look at a more extreme case where burn scars are segmented from a change"
+    },
+    {
+      "start": 3493.62,
+      "end": 3501.06,
+      "text": " perspective to four time points bracketing an extreme fire event. Again we use the same training"
+    },
+    {
+      "start": 3501.06,
+      "end": 3510.1,
+      "text": " scripts for the 15 variations and unsurprisingly none of the models actually perform all that well."
+    },
+    {
+      "start": 3510.1,
+      "end": 3519.64,
+      "text": " looking at the actual samples, we can see that it's pretty visible in the top left corner here,"
+    },
+    {
+      "start": 3519.64,
+      "end": 3535.36,
+      "text": " right? But there's a lot of noise in and around the target segmentation. It's worth considering,"
+    },
+    {
+      "start": 3535.36,
+      "end": 3542.36,
+      "text": " However, that all three models were not trained with change detection in mind and were all given a reconstruction objective."
+    },
+    {
+      "start": 3542.36,
+      "end": 3552.36,
+      "text": " And it may be that given a more specific pretrading dataset or objective, the architecture may do well enough to do a task such as this."
+    },
+    {
+      "start": 3552.36,
+      "end": 3558.36,
+      "text": " But that remains to be seen and is up to the FM developers."
+    },
+    {
+      "start": 3558.36,
+      "end": 3562.76,
+      "text": " So in conclusion, while FMs may provide a small shortcut to applying computer vision"
+    },
+    {
+      "start": 3562.76,
+      "end": 3566.54,
+      "text": " models by way of pre-training and transfer learning, they are not immune to the same"
+    },
+    {
+      "start": 3566.54,
+      "end": 3571.1200000000003,
+      "text": " problems which remote sensing modelers faced for the past few decades, which is producing"
+    },
+    {
+      "start": 3571.1200000000003,
+      "end": 3572.1200000000003,
+      "text": " clean data."
+    },
+    {
+      "start": 3572.1200000000003,
+      "end": 3577.86,
+      "text": " And this nascent modeling paradigm adds additional complexity for the user, where they must ascertain"
+    },
+    {
+      "start": 3577.86,
+      "end": 3584.02,
+      "text": " whether the pre-training methodology fits their specific use case, a task which is non-trivial"
+    },
+    {
+      "start": 3584.02,
+      "end": 3587.86,
+      "text": " over some not well versed in these techniques"
+    },
+    {
+      "start": 3587.86,
+      "end": 3592.78,
+      "text": " and may incur a lot of costs in testing."
+    },
+    {
+      "start": 3592.78,
+      "end": 3594.88,
+      "text": " For models, we hope that this information pipeline"
+    },
+    {
+      "start": 3594.88,
+      "end": 3597.52,
+      "text": " can be made clear in order to foster"
+    },
+    {
+      "start": 3597.52,
+      "end": 3601.52,
+      "text": " a more collaborative environment and maintain progress"
+    },
+    {
+      "start": 3601.52,
+      "end": 3605.14,
+      "text": " towards something of practical utility."
+    }
+  ]
+}

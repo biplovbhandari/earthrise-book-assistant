@@ -113,6 +113,10 @@ See the [ffmpeg download page - https://ffmpeg.org/download.html](https://ffmpeg
 Pass flags to target a specific video or force re-transcription.
 Run `just transcribe --help` for the full list.
 
+For faster GPU transcription, use the Colab notebook at `notebooks/transcribe_gpu.ipynb`
+([![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/biplovbhandari/earthrise-book-assistant/blob/main/notebooks/transcribe_gpu.ipynb)).
+Prepare audio for upload with `just transcribe --download-only`.
+
 After transcribing, map each video to its book chapter in `data/video_chapter_map.yml`:
 
 ```yaml
@@ -124,6 +128,10 @@ videos:
 
 Video IDs are the JSON filenames in `data/transcripts/` (for example, `dQw4w9WgXcQ.json`).
 Chapter and lesson values match directory names under `book/`.
+
+Run `just clean-transcript` after transcription to apply cleanup filters (hallucination removal, garbled segment removal, duplicate removal) and term corrections from `data/transcript_corrections.yml`.
+The Whisper prompt at `data/whisper_prompt.md` conditions transcription with domain terms and speaker names.
+
 Re-run `just index` afterward to include the new transcripts.
 
 ## Database
@@ -201,9 +209,12 @@ earthrise-book-assistant/
 ├── scripts/
 │   ├── index_book.py            # CLI: index book + PDFs + transcripts into Qdrant
 │   ├── transcribe.py            # CLI: download + transcribe YouTube lectures
+│   ├── clean_transcript.py      # CLI: clean transcripts (4-category filters + corrections)
 │   └── run_query.py             # CLI: search the index
 ├── data/
 │   ├── video_chapter_map.yml    # Maps video IDs to book chapters
+│   ├── whisper_prompt.md        # Domain terms for Whisper transcription accuracy
+│   ├── transcript_corrections.yml # Known misspelling corrections
 │   └── transcripts/             # Whisper-generated JSON transcripts (committed)
 ├── notebooks/                   # Colab notebooks (GPU transcription)
 ├── widget/                      # Chat widget (injected into book pages by Quarto)

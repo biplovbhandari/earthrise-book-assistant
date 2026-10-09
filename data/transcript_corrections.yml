@@ -1,7 +1,9 @@
 # Known Whisper misspellings -> correct spelling.
-# Applied automatically after transcription.
+# Applied by: just clean-transcript
+# Script:     scripts/clean_transcript.py
 # Add new corrections as you discover them.
 
+# Name corrections
 Dip Loth: Biplov
 Vip Loth: Biplov
 Bipalap: Biplov
@@ -10,3 +12,14 @@ Biplav: Biplov
 bib love: Biplov
 biblov: Biplov
 Piplov: Biplov
+
+# Name corrections (spelling)
+DeMelt: DeMilt
+
+# Technical term corrections
+UFRAM: EOFM
+Bangere Bench: PangeaBench
+DOFUS: DOFA
+Dopha: DOFA
+prithee: Prithvi
+EMAP: UMAP

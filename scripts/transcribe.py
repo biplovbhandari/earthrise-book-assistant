@@ -343,20 +343,19 @@ def main() -> int:
                 logger.info("Audio exists for %r (%s), skipping download", title, video_id)
 
             if args.download_only:
-                # Save video metadata so the Colab notebook can use it
                 meta_path = AUDIO_DIR / f"{video_id}.meta.json"
-                if not meta_path.exists():
-                    with open(meta_path, "w", encoding="utf-8") as mf:
-                        json.dump(
-                            {
-                                "id": video_id,
-                                "title": title,
-                                "duration": video["duration"],
-                                "url": video["url"],
-                            },
-                            mf,
-                            indent=2,
-                        )
+                with open(meta_path, "w", encoding="utf-8") as mf:
+                    json.dump(
+                        {
+                            "id": video_id,
+                            "title": title,
+                            "duration": video["duration"],
+                            "url": video["url"],
+                        },
+                        mf,
+                        indent=2,
+                    )
+                logger.info("Saved metadata for %r (%s)", title, video_id)
                 transcribed += 1
                 continue
 

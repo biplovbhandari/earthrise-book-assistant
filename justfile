@@ -98,6 +98,10 @@ index-prod *args='':
 transcribe *args='':
     uv run --group indexer python scripts/transcribe.py {{ args }}
 
+# Clean transcripts (apply corrections from data/transcript_corrections.yml)
+clean-transcript *args='':
+    uv run python scripts/clean_transcript.py {{ args }}
+
 # Render the book with the chat widget and copy to _book/ (local build)
 render-book:
     docker compose --profile build run --rm quarto-builder
