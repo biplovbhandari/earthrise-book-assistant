@@ -34,7 +34,7 @@ printf '<script src="/_widget/chat.js"></script>\n' > "$WORK_DIR/_includes/chat-
 # 5. Render
 echo "--- Rendering book ---"
 cd "$WORK_DIR"
-quarto render --profile chat
+quarto render --profile book,chat
 
 # 6. Copy widget static assets into rendered output
 echo "--- Copying widget assets ---"
