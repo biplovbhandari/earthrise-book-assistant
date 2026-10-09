@@ -45,9 +45,7 @@ _HALLUCINATION_PATTERNS = [
     r"hit the (?:like|bell|notification)",
     r"leave a comment below",
 ]
-_HALLUCINATION_RE = re.compile(
-    "|".join(_HALLUCINATION_PATTERNS), re.IGNORECASE
-)
+_HALLUCINATION_RE = re.compile("|".join(_HALLUCINATION_PATTERNS), re.IGNORECASE)
 
 _MIN_SEGMENT_LENGTH = 3
 
@@ -94,13 +92,13 @@ def _is_garbled(text: str) -> bool:
     if len(stripped) < _MIN_SEGMENT_LENGTH:
         return True
     latin_count = sum(
-        1 for c in stripped if unicodedata.category(c).startswith("L")
+        1
+        for c in stripped
+        if unicodedata.category(c).startswith("L")
         and ord(c) < 0x0250  # Basic Latin + Latin Extended-A
     )
     letter_count = sum(1 for c in stripped if unicodedata.category(c).startswith("L"))
-    if letter_count > 0 and latin_count / letter_count < 0.5:
-        return True
-    return False
+    return letter_count > 0 and latin_count / letter_count < 0.5
 
 
 def _is_duplicate(text: str, prev_text: str | None) -> bool:
@@ -110,9 +108,7 @@ def _is_duplicate(text: str, prev_text: str | None) -> bool:
     return text.strip() == prev_text.strip()
 
 
-def clean_transcript(
-    transcript_path: Path, corrections: dict[str, str]
-) -> dict[str, list[dict]]:
+def clean_transcript(transcript_path: Path, corrections: dict[str, str]) -> dict[str, list[dict]]:
     """Apply all cleanup categories to a transcript.
 
     Returns a dict keyed by category with lists of changes/removals.
@@ -135,11 +131,13 @@ def clean_transcript(
     # Pass 1: Mark hallucinations
     for i, seg in enumerate(segments):
         if _is_hallucination(seg["text"], i, original_count):
-            removals["hallucination"].append({
-                "segment": i,
-                "start": seg.get("start", 0.0),
-                "text": seg["text"].strip(),
-            })
+            removals["hallucination"].append(
+                {
+                    "segment": i,
+                    "start": seg.get("start", 0.0),
+                    "text": seg["text"].strip(),
+                }
+            )
             indices_to_remove.add(i)
 
     # Pass 2: Mark garbled segments
@@ -147,11 +145,13 @@ def clean_transcript(
         if i in indices_to_remove:
             continue
         if _is_garbled(seg["text"]):
-            removals["garbled"].append({
-                "segment": i,
-                "start": seg.get("start", 0.0),
-                "text": seg["text"].strip(),
-            })
+            removals["garbled"].append(
+                {
+                    "segment": i,
+                    "start": seg.get("start", 0.0),
+                    "text": seg["text"].strip(),
+                }
+            )
             indices_to_remove.add(i)
 
     # Pass 3: Mark duplicates (consecutive identical text, skipping already-removed)
@@ -160,20 +160,20 @@ def clean_transcript(
         if i in indices_to_remove:
             continue
         if _is_duplicate(seg["text"], prev_text):
-            removals["duplicate"].append({
-                "segment": i,
-                "start": seg.get("start", 0.0),
-                "text": seg["text"].strip(),
-            })
+            removals["duplicate"].append(
+                {
+                    "segment": i,
+                    "start": seg.get("start", 0.0),
+                    "text": seg["text"].strip(),
+                }
+            )
             indices_to_remove.add(i)
         else:
             prev_text = seg["text"]
 
     # Remove marked segments
     if indices_to_remove:
-        data["segments"] = [
-            seg for i, seg in enumerate(segments) if i not in indices_to_remove
-        ]
+        data["segments"] = [seg for i, seg in enumerate(segments) if i not in indices_to_remove]
         segments = data["segments"]
 
     # Pass 4: Apply corrections on remaining segments
@@ -186,13 +186,15 @@ def clean_transcript(
                 text = text.replace(wrong, right)
                 applied_rules.append(f"{wrong}->{right}")
         if text != original:
-            removals["correction"].append({
-                "segment": i,
-                "start": seg.get("start", 0.0),
-                "original": original.strip(),
-                "corrected": text.strip(),
-                "rules": applied_rules,
-            })
+            removals["correction"].append(
+                {
+                    "segment": i,
+                    "start": seg.get("start", 0.0),
+                    "original": original.strip(),
+                    "corrected": text.strip(),
+                    "rules": applied_rules,
+                }
+            )
             seg["text"] = text
 
     has_changes = any(removals[k] for k in removals)
@@ -205,11 +207,13 @@ def clean_transcript(
 
     return {
         **removals,
-        "_summary": [{
-            "original_segments": original_count,
-            "final_segments": final_count,
-            "removed": removed_count,
-        }],
+        "_summary": [
+            {
+                "original_segments": original_count,
+                "final_segments": final_count,
+                "removed": removed_count,
+            }
+        ],
     }
 
 
@@ -222,13 +226,14 @@ def _log_results(filename: str, results: dict[str, list[dict]]) -> int:
         items = results[category]
         if items:
             total += len(items)
-            logger.info(
-                "%s: %d %s(s) removed", filename, len(items), category
-            )
+            logger.info("%s: %d %s(s) removed", filename, len(items), category)
             for item in items:
                 logger.info(
                     "  REMOVED seg %d [%.1fs] (%s): %r",
-                    item["segment"], item["start"], category, item["text"],
+                    item["segment"],
+                    item["start"],
+                    category,
+                    item["text"],
                 )
 
     corrections = results["correction"]
@@ -238,8 +243,10 @@ def _log_results(filename: str, results: dict[str, list[dict]]) -> int:
         for c in corrections:
             logger.info(
                 "  CORRECTED seg %d [%.1fs]: %r -> %r (%s)",
-                c["segment"], c["start"],
-                c["original"], c["corrected"],
+                c["segment"],
+                c["start"],
+                c["original"],
+                c["corrected"],
                 ", ".join(c["rules"]),
             )
 
@@ -248,8 +255,10 @@ def _log_results(filename: str, results: dict[str, list[dict]]) -> int:
     elif summary["removed"] > 0:
         logger.info(
             "%s: %d -> %d segments (%d removed)",
-            filename, summary["original_segments"],
-            summary["final_segments"], summary["removed"],
+            filename,
+            summary["original_segments"],
+            summary["final_segments"],
+            summary["removed"],
         )
 
     return total
