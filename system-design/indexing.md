@@ -62,8 +62,27 @@ videos:
 
 When a new lecture video is published:
 1. Add its ID to `video_chapter_map.yml`
-2. Transcribe: `just transcribe <video_id>`
-3. Re-index: `just index` (or `--recreate-collection` for a full rebuild)
+2. Transcribe: `just transcribe --video-id <video_id>` (CPU) or GPU via `notebooks/transcribe_gpu.ipynb`
+3. Clean: `just clean-transcript`
+4. Re-index: `just index` (or `--recreate-collection` for a full rebuild)
+
+## Transcript Preparation
+
+Before indexing, transcripts go through a cleanup pipeline (`scripts/clean_transcript.py`):
+
+1. **Hallucination removal** - Whisper sometimes injects fake segments mid-lecture
+   ("thank you for watching", "please subscribe"). These are detected by pattern
+   matching and removed, except in the last 10 segments where they may be legitimate
+   speaker sign-offs.
+2. **Garbled segment removal** - Segments with fewer than 3 characters or with
+   majority non-Latin script (Cyrillic, CJK) in an English transcript.
+3. **Duplicate removal** - Consecutive segments with identical text.
+4. **Term corrections** - Dictionary-based replacements from
+   `data/transcript_corrections.yml` (e.g., "prithee" -> "Prithvi").
+
+The Whisper prompt (`data/whisper_prompt.md`) conditions transcription with domain
+terms and speaker names to improve spelling accuracy.
+It is shared between `scripts/transcribe.py` and the Colab notebook.
 
 ## What Is NOT Indexed
 
