@@ -7,4 +7,9 @@ Bayesian Neural Networks, foundation models, Clay Foundation Model,
 remote sensing, Earth observation, deep learning, convolutional neural network,
 Quarto, Qdrant, Bhutan, deforestation, phenology, soybean yield prediction,
 active fire detection, downscaling, image classification, data fusion,
-GeoTIFF, raster, MODIS, Landsat, Sentinel, Google Earth Engine
+GeoTIFF, raster, MODIS, Landsat, Sentinel, Google Earth Engine,
+Ryan DeMilt, Nicholas LaHaye, Myscon Truong, Karis Tenneson, Julia Harvie,
+Prithvi, DOFA, SatMAE, ScaleMAE, GFM,
+PangeaBench, EOFM, MTBS, FIRMS, NIFC,
+HLS, Sentinel-2, burned area, burn severity, UMAP,
+Weights and Biases, Chroma
