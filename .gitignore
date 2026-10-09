@@ -226,6 +226,7 @@ logs/
 .cache/
 .DS_Store
 data/audio/
+data/audio.zip
 
 # Local dev
 dev/
