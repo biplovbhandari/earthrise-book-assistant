@@ -1,0 +1,264 @@
+body {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding-inline: 20px;
+  background: var(--bg);
+  color: var(--tx);
+  font-family: var(--font);
+  font-size: 13px;
+  line-height: 1.5;
+
+  /* Set once here and inherited, so every number on the page (metrics, tables, dates) lines up. */
+  font-variant-numeric: tabular-nums;
+}
+
+/* Header and sign-in */
+
+header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 14px 0 6px;
+}
+
+header h1 {
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.auth {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.auth input {
+  width: 160px;
+  padding: 4px 8px;
+  border: 1px solid var(--bd);
+  border-radius: 3px;
+  background: var(--bg);
+  color: var(--tx);
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+.auth input:focus {
+  outline: 2px solid var(--ac);
+  outline-offset: -1px;
+  border-color: var(--ac);
+}
+
+.btn {
+  padding: 4px 12px;
+  border: 1px solid var(--bd);
+  border-radius: 3px;
+  background: var(--bg2);
+  color: var(--tx);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.btn:hover {
+  background: var(--bd);
+}
+
+.subline {
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--bd);
+  color: var(--tx2);
+  font-size: 12px;
+}
+
+.config-line {
+  padding: 6px 0 0;
+  color: var(--tx2);
+  font-size: 11px;
+}
+
+/* Placeholder and error text. .err must stay after .empty and .subline so it wins on color. */
+
+.empty {
+  margin: 0;
+  padding: 12px 0;
+  color: var(--tx2);
+}
+
+.err {
+  color: var(--cr);
+}
+
+:focus-visible {
+  outline: 2px solid var(--ac);
+  outline-offset: 2px;
+}
+
+@media (width <= 640px) {
+  body {
+    padding-inline: 16px;
+  }
+
+  .auth input {
+    width: 110px;
+  }
+}
+
+/* Panels */
+
+.panel {
+  padding: 20px 0;
+  border-bottom: 1px solid var(--bd);
+}
+
+.panel:last-child {
+  border-bottom: none;
+}
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+h2 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+h2 .ct {
+  margin-left: 4px;
+  color: var(--tx2);
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.chart-box {
+  position: relative;
+  height: 220px;
+}
+
+.toggle {
+  display: inline-flex;
+  overflow: hidden;
+  border: 1px solid var(--bd);
+  border-radius: 3px;
+}
+
+.toggle button {
+  padding: 2px 10px;
+  border: none;
+  background: var(--bg);
+  color: var(--tx2);
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.toggle button + button {
+  border-left: 1px solid var(--bd);
+}
+
+.toggle button.on {
+  background: var(--bg2);
+  color: var(--tx);
+  font-weight: 600;
+}
+
+/* min-width: 0 lets the 1fr tracks shrink so a wide table scrolls inside .tbl-scroll instead of stretching the grid. */
+
+.cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.cols > div {
+  min-width: 0;
+}
+
+.cols > div:first-child {
+  padding-right: 20px;
+  border-right: 1px solid var(--bd);
+}
+
+.cols > div:last-child {
+  padding-left: 20px;
+}
+
+/* Tables */
+
+.tbl-scroll {
+  min-width: 0;
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--bd);
+  color: var(--tx2);
+  font-size: 11px;
+  font-weight: 600;
+  text-align: left;
+  white-space: nowrap;
+}
+
+td {
+  padding: 5px 8px;
+  border-bottom: 1px solid var(--bg2);
+  vertical-align: middle;
+}
+
+tr:last-child td {
+  border-bottom: none;
+}
+
+tr:hover td {
+  background: var(--bg2);
+}
+
+.num {
+  text-align: right;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+.mono {
+  font-family: var(--mono);
+}
+
+.sub {
+  color: var(--tx2);
+  font-size: 12px;
+}
+
+@media (width <= 640px) {
+  .cols {
+    grid-template-columns: 1fr;
+  }
+
+  .cols > div:first-child {
+    padding-right: 0;
+    padding-bottom: 20px;
+    border-right: none;
+    border-bottom: 1px solid var(--bd);
+  }
+
+  .cols > div:last-child {
+    padding-top: 20px;
+    padding-left: 0;
+  }
+}

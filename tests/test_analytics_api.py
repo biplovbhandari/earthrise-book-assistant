@@ -206,12 +206,16 @@ def test_citations_returns_rows(client, session):
             "display_label": "03 - U-Net",
             "cite_count": 17,
             "thumbs_up_pct": 0.75,
+            "last_cited_at": None,
+            "ranking_methods": None,
         },
         {
             "source_path": "book/01_Intro/index.qmd",
             "display_label": None,
             "cite_count": 4,
             "thumbs_up_pct": None,
+            "last_cited_at": None,
+            "ranking_methods": None,
         },
     ]
     assert "earthrise.v_citation_heatmap" in _executed_sql(session)
@@ -236,7 +240,7 @@ def test_gaps_returns_rows(client, session):
     resp = client.get("/analytics/gaps")
 
     assert resp.status_code == 200
-    assert resp.json() == rows
+    assert resp.json() == [{**r, "ranking_methods": None} for r in rows]
     assert "earthrise.v_retrieval_gaps" in _executed_sql(session)
 
 

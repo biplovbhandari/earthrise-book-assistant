@@ -18,10 +18,40 @@ from sqlalchemy.engine import RowMapping
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.dependencies import require_admin_token, require_db_session
+from earthrise_rag.config import get_settings
 
 router = APIRouter(
     prefix="/analytics", tags=["analytics"], dependencies=[Depends(require_admin_token)]
 )
+
+
+class PipelineConfig(BaseModel):
+    """Active retrieval and generation settings, read from the environment."""
+
+    retrieval_strategy: str
+    retrieval_top_k: int
+    reranker_provider: str
+    reranker_model_name: str
+    embedding_model_name: str
+    rrf_k: int
+    llm_provider: str
+    llm_model: str
+
+
+@router.get("/config", response_model=PipelineConfig)
+async def config():
+    """Return the active retrieval and generation configuration."""
+    s = get_settings()
+    return PipelineConfig(
+        retrieval_strategy=s.retrieval_strategy,
+        retrieval_top_k=s.retrieval_top_k,
+        reranker_provider=s.reranker_provider,
+        reranker_model_name=s.reranker_model_name,
+        embedding_model_name=s.embedding_model_name,
+        rrf_k=s.rrf_k,
+        llm_provider=s.llm_provider,
+        llm_model=s.llm_model,
+    )
 
 
 class OverviewStats(BaseModel):
@@ -95,10 +125,13 @@ class CitationStat(BaseModel):
     display_label: str | None
     cite_count: int
     thumbs_up_pct: float | None
+    last_cited_at: datetime | None = None
+    ranking_methods: str | None = None
 
 
 _CITATIONS_SQL = """
-    SELECT source_path, display_label, cite_count, thumbs_up_pct
+    SELECT source_path, display_label, cite_count, thumbs_up_pct,
+           last_cited_at, ranking_methods
     FROM earthrise.v_citation_heatmap
     ORDER BY cite_count DESC, source_path, display_label
     LIMIT :limit
@@ -125,10 +158,11 @@ class RetrievalGap(BaseModel):
     question: str
     avg_top_score: float | None
     thumbs_down_count: int
+    ranking_methods: str | None = None
 
 
 _GAPS_SQL = """
-    SELECT question, avg_top_score, thumbs_down_count
+    SELECT question, avg_top_score, thumbs_down_count, ranking_methods
     FROM earthrise.v_retrieval_gaps
     ORDER BY avg_top_score ASC NULLS FIRST, question
     LIMIT :limit

@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI
+from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 from api.dependencies import create_pipelines
@@ -129,7 +130,19 @@ app.include_router(search_router)
 app.include_router(feedback_router)
 app.include_router(analytics_router)
 
-# --- Static book HTML below (catch-all, must be last) ---
+# --- Static file mounts (catch-all book mount must be last) ---
+
+_dashboard_dir = Path(__file__).resolve().parent / "dashboard"
+_dashboard_dir.mkdir(exist_ok=True)
+
+
+@app.get("/dashboard", include_in_schema=False)
+async def _dashboard_redirect():
+    return RedirectResponse("/dashboard/", status_code=301)
+
+
+app.mount("/dashboard", StaticFiles(directory=_dashboard_dir, html=True), name="dashboard")
+
 _book_html_dir = Path(get_settings().book_html_dir)
 _book_html_dir.mkdir(parents=True, exist_ok=True)
 app.mount("/", StaticFiles(directory=_book_html_dir, html=True), name="book")
