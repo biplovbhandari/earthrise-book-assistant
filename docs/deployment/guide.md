@@ -10,6 +10,8 @@ For model selection and memory budgets, see [deployment-models.md](../../system-
 The app, indexer, and reranker use ML models (sentence-transformers, fastembed) that benefit from GPU acceleration.
 Docker containers on macOS cannot access the Metal GPU, so the app and indexer run natively on macOS.
 On Linux with NVIDIA GPU, everything runs in Docker with GPU passthrough.
+The `docker-compose.yml` uses profiles to enforce this: `docker compose up -d` starts only Qdrant and PostgreSQL.
+Services that need GPU (app, indexer) are behind the `gpu` or `build` profile and must be requested explicitly.
 
 | Component | macOS | Linux (NVIDIA) |
 |-----------|-------|----------------|
@@ -247,6 +249,7 @@ Check that:
 - `/chat` streams tokens via SSE
 
 The book with chat widget is at http://localhost:8000/.
+The analytics dashboard is at http://localhost:8000/dashboard/ (enter `ADMIN_TOKEN` to connect).
 The Qdrant dashboard is at http://localhost:6333/dashboard.
 
 ## 7. Public access with Cloudflare Tunnel

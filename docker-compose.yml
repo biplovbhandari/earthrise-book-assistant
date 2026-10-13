@@ -3,6 +3,7 @@ services:
     build:
       context: .
       dockerfile: infra/docker/Dockerfile.app
+    profiles: ["gpu"]
     ports:
       - "8000:8000"
     depends_on:

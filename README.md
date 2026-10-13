@@ -81,6 +81,8 @@ curl -s -X POST localhost:8000/feedback \
 curl -s -H "Authorization: Bearer <token>" localhost:8000/analytics/overview | python3 -m json.tool
 ```
 
+The analytics dashboard is at http://localhost:8000/dashboard/ (enter the `ADMIN_TOKEN` to connect).
+
 If the index is empty or Qdrant is unreachable, `/search`, `/ask`, and `/chat` return `503`.
 If Ollama is not running, `/search` still works but `/ask` and `/chat` return `503`.
 

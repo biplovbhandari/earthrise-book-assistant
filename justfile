@@ -123,17 +123,17 @@ services:
     @until docker exec earthrise-db psql -U earthrise -d earthrise -c "SELECT 1" >/dev/null 2>&1; do sleep 1; done
     @echo "PostgreSQL ready."
 
-# Start the full Docker stack (local build)
+# Start the full Docker stack (local build, Linux with NVIDIA GPU)
 up:
-    docker compose up -d
+    docker compose --profile gpu up -d
 
-# Start the full Docker stack using GHCR images
+# Start the full Docker stack using GHCR images (Linux with NVIDIA GPU)
 up-prod:
-    docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+    docker compose --profile gpu -f docker-compose.yml -f docker-compose.prod.yml up -d
 
-# Start the full Docker stack with hot-reload (dev override)
+# Start the full Docker stack with hot-reload (Linux dev)
 dev-docker:
-    docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+    docker compose --profile gpu -f docker-compose.yml -f docker-compose.dev.yml up
 
 # Stop all Docker services
 down:
