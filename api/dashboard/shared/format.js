@@ -8,6 +8,7 @@ const SAT_MID_MIN = 75;
 // 0 is the natural boundary: negative means the model considers the passage irrelevant.
 // For cosine similarity (0-1), set to ~0.25. For RRF sums (~0.03 max), set near 0.01.
 const SCORE_LOW_MAX = 0;
+const SCORE_HIGH_MIN = 1.5;
 
 const COUNT_FORMAT = new Intl.NumberFormat('en-US');
 const SHORT_DATE = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' });
@@ -106,12 +107,16 @@ export function formatScore(score) {
     return isNumber(score) ? score.toFixed(2) : 'n/a';
 }
 
-/** Picks the colour class for a score, judged on the same rounded value that is displayed. */
+/** Picks the colour class for a score: red (miss), yellow (borderline), green (good match). */
 export function scoreClass(score) {
     if (!isNumber(score)) {
         return 'score-na';
     }
-    return Number(score.toFixed(2)) <= SCORE_LOW_MAX ? 'score-lo' : 'score-md';
+    const rounded = Number(score.toFixed(2));
+    if (rounded <= SCORE_LOW_MAX) {
+        return 'score-lo';
+    }
+    return rounded >= SCORE_HIGH_MIN ? 'score-hi' : 'score-md';
 }
 
 /** Converts a 0-1 fraction to whole percent, so the label and the colour band always agree. */

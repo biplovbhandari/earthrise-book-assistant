@@ -92,6 +92,10 @@
   color: var(--wn);
 }
 
+.score-hi {
+  color: var(--gd);
+}
+
 .score-na {
   color: var(--tx2);
   font-style: italic;
