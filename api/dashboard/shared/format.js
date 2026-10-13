@@ -4,10 +4,10 @@ const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 const SAT_HIGH_MIN = 85;
 const SAT_MID_MIN = 75;
 
-// Retrieval scores at or below this read as a retrieval miss. The cut assumes similarity-style
-// scores (roughly 0 to 1). Cross-encoder reranker scores are unbounded logits and RRF sums stay
-// near 0.03, so revisit this value if the retrieval configuration changes.
-const SCORE_LOW_MAX = 0.25;
+// Retrieval scores at or below this are flagged as weak matches. For cross-encoder reranker logits,
+// 0 is the natural boundary: negative means the model considers the passage irrelevant.
+// For cosine similarity (0-1), set to ~0.25. For RRF sums (~0.03 max), set near 0.01.
+const SCORE_LOW_MAX = 0;
 
 const COUNT_FORMAT = new Intl.NumberFormat('en-US');
 const SHORT_DATE = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' });
