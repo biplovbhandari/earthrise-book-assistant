@@ -1,7 +1,10 @@
 # EarthRISE Book Assistant
 # Run `just --list` to see all available recipes.
 
-# ------------------ Daily development -----------------------------
+# === macOS: native app, Docker services only ====================
+# The app runs natively on macOS to access the Metal/MPS GPU.
+# Docker runs only Qdrant and PostgreSQL (the `services` recipe).
+# Workflow: just services -> just db-migrate -> just dev (or just serve)
 
 # Start backing services and the dev server with hot-reload
 dev: services
@@ -86,11 +89,11 @@ db-restore file:
 
 # ------------------ Content ---------------------------------------
 
-# Index book chapters, PDFs, and transcripts into Qdrant (local)
+# Index book chapters, PDFs, and transcripts into Qdrant (macOS: native, Metal GPU)
 index *args='':
     BOOK_COMMIT_SHA=$(git -C book rev-parse HEAD) uv run python scripts/index_book.py {{ args }}
 
-# Index using Docker indexer (production deployment, no uv needed)
+# Index using Docker indexer (Linux: CUDA GPU, uses GHCR image)
 index-prod *args='':
     BOOK_COMMIT_SHA=$(git -C book rev-parse HEAD) docker compose -f docker-compose.yml -f docker-compose.prod.yml --profile build run --rm indexer {{ args }}
 
@@ -114,9 +117,14 @@ render-book-prod:
     mkdir -p _book
     docker compose --profile build run --rm book-copy
 
-# ------------------ Docker services -------------------------------
+# === Linux: everything in Docker with NVIDIA GPU ================
+# The app runs in Docker with CUDA GPU passthrough.
+# Requires nvidia-container-toolkit. These recipes do NOT work on macOS.
+# Workflow: just up (or up-prod) -> just render-book-prod -> just index-prod
 
-# Start Qdrant and PostgreSQL in the background
+# === Docker services (shared) ====================================
+
+# Start Qdrant and PostgreSQL in the background (used by macOS recipes above)
 services:
     docker compose up qdrant postgres -d
     @echo "Waiting for PostgreSQL..."
