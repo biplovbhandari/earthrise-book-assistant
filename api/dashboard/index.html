@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <title>EarthRISE Analytics</title>
+    <link rel="stylesheet" href="styles/tokens.css">
+    <link rel="stylesheet" href="styles/layout.css">
+    <link rel="stylesheet" href="styles/analytics.css">
+</head>
+<body>
+    <p id="boot-error" class="empty err" role="alert" hidden></p>
+
+    <!--
+        Vue compiles the markup inside #app in the browser, so it has to stay valid HTML (no self-closing tags).
+        Questions, titles and labels come from public chat users, so render them only through {{ }} or a
+        :attribute binding, which escape their values. Never use v-html in this template.
+    -->
+    <div id="app" v-cloak>
+        <template v-if="!authenticated">
+            <header>
+                <h1>EarthRISE Analytics</h1>
+                <form class="auth" @submit.prevent="connect">
+                    <input type="password" v-model="tokenInput" placeholder="Admin token" autocomplete="off" aria-label="Admin token">
+                    <button type="submit" class="btn">Connect</button>
+                </form>
+            </header>
+            <p class="empty err" role="alert" v-if="authError">{{ authError }}</p>
+        </template>
+
+        <template v-else>
+            <header>
+                <h1>EarthRISE Analytics</h1>
+                <div class="auth">
+                    <button type="button" class="btn" @click="disconnect()">Disconnect</button>
+                </div>
+            </header>
+            <div class="subline" :class="{ err: errors.overview }">{{ sublineText }}</div>
+
+            <div class="metrics">
+                <div class="metric" v-for="m in metrics" :key="m.label">
+                    <div class="metric-val">{{ m.value }}</div>
+                    <div class="metric-lbl">{{ m.label }}</div>
+                </div>
+            </div>
+
+            <section class="panel">
+                <div class="panel-head">
+                    <h2>Daily usage</h2>
+                    <div class="toggle" role="group" aria-label="Date range">
+                        <button type="button" v-for="n in rangeOptions" :key="n" :class="{ on: days === n }" :aria-pressed="days === n" @click="setDays(n)">{{ n }}d</button>
+                    </div>
+                </div>
+                <div class="chart-box" v-show="hasDaily">
+                    <canvas id="dailyChart" ref="dailyCanvas" role="img" aria-label="Line chart of daily queries, thumbs up and thumbs down"></canvas>
+                </div>
+                <p class="empty" :class="{ err: errors.daily }" v-if="messages.daily">{{ messages.daily }}</p>
+            </section>
+
+            <section class="panel">
+                <div class="cols">
+                    <div>
+                        <div class="panel-head">
+                            <h2>Top cited sources <span class="ct" v-if="citations && citations.length">({{ citations.length }})</span></h2>
+                        </div>
+                        <div class="tbl-scroll" role="region" aria-label="Top cited sources" tabindex="0" v-if="citations && citations.length">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Source</th>
+                                        <th scope="col" class="bar-col" aria-label="Share of the most cited source"></th>
+                                        <th scope="col" class="num">Cites</th>
+                                        <th scope="col" class="num">Satisfaction</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="c in citations" :key="c.source_path + '|' + c.display_label">
+                                        <td><div class="src-col" :title="c.source_path">{{ c.display_label || c.source_path }}</div></td>
+                                        <td class="bar-col"><div class="bar-track" aria-hidden="true"><div class="bar-fill" :style="{ width: barWidth(c.cite_count) }"></div></div></td>
+                                        <td class="num mono">{{ c.cite_count }}</td>
+                                        <td class="num"><span class="sat" :class="satClass(c.thumbs_up_pct)">{{ formatSatisfaction(c.thumbs_up_pct) }}</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <p class="empty" :class="{ err: errors.citations }" v-if="messages.citations">{{ messages.citations }}</p>
+                    </div>
+
+                    <div>
+                        <div class="panel-head">
+                            <h2>Retrieval gaps <span class="ct" v-if="gaps && gaps.length">({{ gaps.length }})</span></h2>
+                        </div>
+                        <div class="tbl-scroll" role="region" aria-label="Retrieval gaps" tabindex="0" v-if="gaps && gaps.length">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Question</th>
+                                        <th scope="col">Top score</th>
+                                        <th scope="col" class="num" title="Thumbs-down count">Dn</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="g in gaps" :key="g.question">
+                                        <td><div class="q-col" :title="g.question">{{ g.question }}</div></td>
+                                        <td><span class="mono" :class="scoreClass(g.avg_top_score)">{{ formatScore(g.avg_top_score) }}</span></td>
+                                        <td class="num mono">{{ g.thumbs_down_count }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <p class="empty" :class="{ err: errors.gaps }" v-if="messages.gaps">{{ messages.gaps }}</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="panel">
+                <div class="panel-head">
+                    <h2>Recent conversations <span class="ct" v-if="conversations && conversations.length">({{ conversations.length }})</span></h2>
+                </div>
+                <div class="tbl-scroll" role="region" aria-label="Recent conversations" tabindex="0" v-if="conversations && conversations.length">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th scope="col">Conversation</th>
+                                <th scope="col">Turns</th>
+                                <th scope="col">Visitor</th>
+                                <th scope="col">Duration</th>
+                                <th scope="col">Started</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="c in conversations" :key="c.id">
+                                <td><div class="title-col" :class="{ untitled: !conversationTitle(c) }" :title="c.id">{{ conversationTitle(c) || 'Untitled' }}</div></td>
+                                <td class="mono">{{ c.interaction_count }}</td>
+                                <td class="vid" :title="c.visitor_id">{{ shortId(c.visitor_id) }}</td>
+                                <td class="mono sub">{{ formatDuration(c.duration_seconds) }}</td>
+                                <td class="sub nowrap">{{ formatDate(c.created_at) }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="empty" :class="{ err: errors.conversations }" v-if="messages.conversations">{{ messages.conversations }}</p>
+            </section>
+        </template>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.5.43/vue.global.prod.min.js" integrity="sha512-ex6QSF8dE/wQIo4mJArcGAx/m1E8T4hwkI/ecL/6AZhTcWDGaKXCSRrcHEzOeTnp0BHo5/kyg7g1ltVnTDwktQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.1/chart.umd.min.js" integrity="sha512-WoViKhKD4qI2WruSZqv9+kvM4WfFhUMQCLN4QlDTt5aU56fLQy2gYoxWIqlEnXqJy/+Ac5q/hk1oWfqnMDhwMA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script type="module" src="app.js"></script>
+</body>
+</html>

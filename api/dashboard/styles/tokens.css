@@ -1,0 +1,34 @@
+:root {
+  --bg: #fff;
+  --bg2: #f6f8fa;
+  --tx: #1f2328;
+  --tx2: #656d76;
+  --bd: #d0d7de;
+  --ac: #0969da;
+  --gd: #1a7f37;
+  --cr: #cf222e;
+  --wn: #9a6700;
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d1117; --bg2: #161b22; --tx: #e6edf3; --tx2: #8b949e;
+    --bd: #30363d; --ac: #58a6ff; --gd: #3fb950; --cr: #f85149; --wn: #d29922;
+
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #0d1117; --bg2: #161b22; --tx: #e6edf3; --tx2: #8b949e;
+  --bd: #30363d; --ac: #58a6ff; --gd: #3fb950; --cr: #f85149; --wn: #d29922;
+
+  color-scheme: dark;
+}
+
+/* Hides the not-yet-compiled Vue template so raw {{ }} text never flashes on load. */
+[v-cloak] {
+  display: none;
+}

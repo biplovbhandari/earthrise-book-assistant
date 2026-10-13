@@ -1,0 +1,130 @@
+/* global Vue */
+import {
+    formatLatency,
+    formatDuration,
+    formatDate,
+    formatScore,
+    formatSatisfaction,
+    satClass,
+    scoreClass,
+    shortId,
+    conversationTitle,
+} from './shared/format.js';
+
+import {
+    readStoredToken,
+    storeToken,
+    clearStoredToken,
+} from './shared/api.js';
+
+import { useAnalytics } from './views/analytics.js';
+
+if (typeof Vue === 'undefined') {
+    // #app stays hidden (v-cloak) until Vue mounts, so a failed CDN load would otherwise leave a blank page.
+    const bootError = document.getElementById('boot-error');
+    bootError.textContent = 'Vue could not be loaded from the CDN. Check the network connection and reload.';
+    bootError.hidden = false;
+    // A module cannot `return` at the top level, so throwing is what stops the rest of it from running.
+    throw new Error('Vue CDN unavailable');
+}
+
+const { createApp, ref, onMounted, onUnmounted } = Vue;
+
+const REFRESH_MS = 60000;
+
+createApp({
+    setup() {
+        const authenticated = ref(false);
+        const tokenInput = ref('');
+        const authError = ref('');
+        // Plain variables on purpose: the template never reads them. The analytics composable shares
+        // `session` by reference to read the token and to tell whether a response is stale.
+        const session = { token: '', id: 0 };
+        let refreshTimer = null;
+
+        const analytics = useAnalytics(session, disconnect);
+
+        /** Stops the 60-second auto-refresh. */
+        function stopRefresh() {
+            if (refreshTimer !== null) {
+                clearInterval(refreshTimer);
+                refreshTimer = null;
+            }
+        }
+
+        /** Shows the dashboard, loads everything, and keeps it fresh until the user disconnects. */
+        function startSession() {
+            session.id += 1;
+            authenticated.value = true;
+            analytics.fetchAll();
+            stopRefresh();
+            refreshTimer = setInterval(() => analytics.fetchAll(), REFRESH_MS);
+        }
+
+        /** Validates the typed token, saves it for this tab, and starts the session. */
+        function connect() {
+            const value = tokenInput.value.trim();
+            if (!value) {
+                authError.value = 'Enter the admin token.';
+                return;
+            }
+            // fetch() throws an unhelpful TypeError for header values outside printable ASCII, and a
+            // stray smart quote or zero-width space is easy to pick up when copying a token.
+            if (!/^[\x20-\x7e]+$/.test(value)) {
+                authError.value = 'The token contains characters that cannot be sent in an HTTP header.';
+                return;
+            }
+            session.token = value;
+            storeToken(value);
+            tokenInput.value = '';
+            authError.value = '';
+            startSession();
+        }
+
+        /**
+         * Ends the session: stops refreshing, forgets the token, clears every section and the chart.
+         * `reason` is shown on the sign-in form; it is only a string when the server rejected the token.
+         */
+        function disconnect(reason) {
+            session.id += 1;
+            stopRefresh();
+            analytics.cleanup();
+            clearStoredToken();
+            session.token = '';
+            analytics.reset();
+            authError.value = typeof reason === 'string' ? reason : '';
+            authenticated.value = false;
+        }
+
+        onMounted(() => {
+            const stored = readStoredToken();
+            if (stored) {
+                session.token = stored;
+                startSession();
+            }
+        });
+
+        onUnmounted(() => {
+            stopRefresh();
+            analytics.cleanup();
+        });
+
+        return {
+            ...analytics,
+            authenticated,
+            tokenInput,
+            authError,
+            connect,
+            disconnect,
+            satClass,
+            scoreClass,
+            formatLatency,
+            formatDuration,
+            formatDate,
+            formatScore,
+            formatSatisfaction,
+            shortId,
+            conversationTitle,
+        };
+    },
+}).mount('#app');
