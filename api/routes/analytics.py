@@ -125,10 +125,13 @@ class CitationStat(BaseModel):
     display_label: str | None
     cite_count: int
     thumbs_up_pct: float | None
+    last_cited_at: datetime | None = None
+    ranking_methods: str | None = None
 
 
 _CITATIONS_SQL = """
-    SELECT source_path, display_label, cite_count, thumbs_up_pct
+    SELECT source_path, display_label, cite_count, thumbs_up_pct,
+           last_cited_at, ranking_methods
     FROM earthrise.v_citation_heatmap
     ORDER BY cite_count DESC, source_path, display_label
     LIMIT :limit
@@ -155,10 +158,11 @@ class RetrievalGap(BaseModel):
     question: str
     avg_top_score: float | None
     thumbs_down_count: int
+    ranking_methods: str | None = None
 
 
 _GAPS_SQL = """
-    SELECT question, avg_top_score, thumbs_down_count
+    SELECT question, avg_top_score, thumbs_down_count, ranking_methods
     FROM earthrise.v_retrieval_gaps
     ORDER BY avg_top_score ASC NULLS FIRST, question
     LIMIT :limit

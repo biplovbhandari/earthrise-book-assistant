@@ -73,6 +73,7 @@
                                         <th scope="col" class="bar-col" aria-label="Share of the most cited source"></th>
                                         <th scope="col" class="num">Cites</th>
                                         <th scope="col" class="num">Satisfaction</th>
+                                        <th scope="col" class="nowrap">Last cited</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -81,6 +82,7 @@
                                         <td class="bar-col"><div class="bar-track" aria-hidden="true"><div class="bar-fill" :style="{ width: barWidth(c.cite_count) }"></div></div></td>
                                         <td class="num mono">{{ c.cite_count }}</td>
                                         <td class="num"><span class="sat" :class="satClass(c.thumbs_up_pct)">{{ formatSatisfaction(c.thumbs_up_pct) }}</span></td>
+                                        <td class="sub nowrap">{{ formatDate(c.last_cited_at) }}</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -98,6 +100,7 @@
                                     <tr>
                                         <th scope="col">Question</th>
                                         <th scope="col">Top score</th>
+                                        <th scope="col">Method</th>
                                         <th scope="col" class="num" title="Thumbs-down count">Dn</th>
                                     </tr>
                                 </thead>
@@ -105,6 +108,7 @@
                                     <tr v-for="g in gaps" :key="g.question">
                                         <td><div class="q-col" :title="g.question">{{ g.question }}</div></td>
                                         <td><span class="mono" :class="scoreClass(g.avg_top_score)">{{ formatScore(g.avg_top_score) }}</span></td>
+                                        <td class="sub">{{ g.ranking_methods || '-' }}</td>
                                         <td class="num mono">{{ g.thumbs_down_count }}</td>
                                     </tr>
                                 </tbody>
