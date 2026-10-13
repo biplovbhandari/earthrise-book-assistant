@@ -45,67 +45,73 @@ class TestRateLimitMiddleware:
             resp = client.get("/health")
             assert resp.status_code == 200
 
-    def test_rejects_requests_over_limit(self):
-        """The request exceeding the limit should get 429."""
+    def test_rejects_llm_requests_over_limit(self):
+        """LLM endpoints (/chat, /ask) hit the configured limit."""
         client = TestClient(_create_app(max_requests=3))
         for _ in range(3):
-            resp = client.get("/health")
-            assert resp.status_code == 200
+            assert client.post("/chat").status_code == 200
+
+        resp = client.post("/chat")
+        assert resp.status_code == 429
+        assert "Too many requests" in resp.json()["detail"]
+
+    def test_general_endpoints_get_higher_limit(self):
+        """Non-LLM API routes get 4x the configured limit."""
+        client = TestClient(_create_app(max_requests=2))
+        # General limit = 2 * 4 = 8
+        for _ in range(8):
+            assert client.get("/health").status_code == 200
 
         resp = client.get("/health")
         assert resp.status_code == 429
-        assert "Too many requests" in resp.json()["detail"]
 
     def test_static_routes_bypass_limit(self):
         """Non-API routes should not be rate-limited."""
         client = TestClient(_create_app(max_requests=2))
-        for _ in range(2):
-            client.get("/health")
-
-        resp = client.get("/health")
-        assert resp.status_code == 429
+        # Exhaust LLM bucket
+        client.post("/chat")
+        client.post("/chat")
+        assert client.post("/chat").status_code == 429
 
         resp = client.get("/static-page")
         assert resp.status_code == 200
 
-    def test_limit_applies_to_all_api_routes(self):
-        """Rate limit is shared across API routes for the same IP."""
-        client = TestClient(_create_app(max_requests=3))
-        client.get("/health")
+    def test_llm_and_general_have_separate_buckets(self):
+        """Exhausting the LLM bucket does not affect general endpoints."""
+        client = TestClient(_create_app(max_requests=2))
         client.post("/chat")
-        client.get("/health")
+        client.post("/chat")
+        assert client.post("/chat").status_code == 429
 
-        resp = client.post("/chat")
-        assert resp.status_code == 429
+        assert client.get("/health").status_code == 200
+        assert client.get("/analytics/overview").status_code == 200
 
-    def test_analytics_routes_are_rate_limited(self):
-        """Analytics endpoints are subject to the same rate limit as other API routes."""
-        client = TestClient(_create_app(max_requests=2))
-        client.get("/analytics/overview")
-        client.get("/analytics/overview")
+    def test_analytics_uses_general_bucket(self):
+        """Analytics endpoints share the general bucket with the 4x multiplier."""
+        client = TestClient(_create_app(max_requests=1))
+        # General limit = 1 * 4 = 4
+        for _ in range(4):
+            assert client.get("/analytics/overview").status_code == 200
 
-        resp = client.get("/analytics/overview")
-        assert resp.status_code == 429
+        assert client.get("/analytics/overview").status_code == 429
 
-    def test_feedback_route_is_rate_limited(self):
-        """The feedback endpoint is subject to the same rate limit as other API routes."""
-        client = TestClient(_create_app(max_requests=2))
-        client.post("/feedback")
-        client.post("/feedback")
+    def test_feedback_uses_general_bucket(self):
+        """Feedback shares the general bucket, separate from LLM."""
+        client = TestClient(_create_app(max_requests=1))
+        # General limit = 1 * 4 = 4
+        for _ in range(4):
+            assert client.post("/feedback").status_code == 200
 
-        resp = client.post("/feedback")
-        assert resp.status_code == 429
+        assert client.post("/feedback").status_code == 429
 
     def test_window_expiry_resets_count(self):
         """Requests outside the window should not count."""
         client = TestClient(_create_app(max_requests=2))
-        client.get("/health")
-        client.get("/health")
-
-        resp = client.get("/health")
-        assert resp.status_code == 429
+        client.post("/chat")
+        client.post("/chat")
+        assert client.post("/chat").status_code == 429
 
         with patch("api.middleware.time") as mock_time:
             mock_time.monotonic.return_value = 1e9
-            resp = client.get("/health")
+            resp = client.post("/chat")
             assert resp.status_code == 200
