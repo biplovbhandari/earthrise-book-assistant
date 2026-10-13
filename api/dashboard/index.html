@@ -37,6 +37,7 @@
                 </div>
             </header>
             <div class="subline" :class="{ err: errors.overview }">{{ sublineText }}</div>
+            <div class="config-line" v-if="config">Active: {{ config.retrieval_strategy }} · k={{ config.retrieval_top_k }} · {{ config.reranker_provider }}<template v-if="config.llm_model"> · {{ config.llm_model }}</template></div>
 
             <div class="metrics">
                 <div class="metric" v-for="m in metrics" :key="m.label">

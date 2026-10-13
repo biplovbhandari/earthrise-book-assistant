@@ -75,6 +75,12 @@ header h1 {
   font-size: 12px;
 }
 
+.config-line {
+  padding: 6px 0 0;
+  color: var(--tx2);
+  font-size: 11px;
+}
+
 /* Placeholder and error text. .err must stay after .empty and .subline so it wins on color. */
 
 .empty {

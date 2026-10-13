@@ -39,6 +39,7 @@ export function useAnalytics(session, onAuthError) {
     const citations = ref(null);
     const gaps = ref(null);
     const conversations = ref(null);
+    const config = ref(null);
     // One message per section, '' when its last load worked.
     const errors = reactive({ overview: '', daily: '', citations: '', gaps: '', conversations: '' });
     const dailyCanvas = ref(null);
@@ -215,9 +216,28 @@ export function useAnalytics(session, onAuthError) {
         );
     }
 
-    /** Loads all five sections in parallel; one failing request does not stop the others. */
+    /** Fetches the pipeline config once per session; skips on subsequent refreshes. */
+    async function loadConfig() {
+        if (config.value !== null) {
+            return;
+        }
+        const run = session.id;
+        try {
+            config.value = await apiGet('/analytics/config', session.token, isRecord);
+        } catch (err) {
+            if (run !== session.id) {
+                return;
+            }
+            if (isAuthError(err)) {
+                onAuthError(err.detail ? `Sign-in failed: ${err.detail}` : 'Sign-in failed.');
+            }
+        }
+    }
+
+    /** Loads all sections in parallel; one failing request does not stop the others. */
     function fetchAll() {
         return Promise.allSettled([
+            loadConfig(),
             loadSection('overview', '/analytics/overview', isRecord, assignTo(overview), neverOutdated),
             loadDaily(),
             loadSection(
@@ -265,6 +285,7 @@ export function useAnalytics(session, onAuthError) {
         citations.value = null;
         gaps.value = null;
         conversations.value = null;
+        config.value = null;
         Object.keys(errors).forEach((key) => {
             errors[key] = '';
         });
@@ -276,7 +297,7 @@ export function useAnalytics(session, onAuthError) {
     }
 
     return {
-        overview, daily, citations, gaps, conversations,
+        overview, daily, citations, gaps, conversations, config,
         errors, days, dailyCanvas,
         hasDaily, maxCiteCount, metrics, sublineText, messages,
         rangeOptions: RANGE_OPTIONS,
