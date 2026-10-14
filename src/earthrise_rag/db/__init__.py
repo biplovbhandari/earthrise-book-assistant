@@ -15,6 +15,13 @@ from earthrise_rag.db.models import (
     InteractionTrace,
     PromptVersion,
     SharedResponse,
+    VCitationHeatmap,
+    VConversationSummary,
+    VDailyStats,
+    VDeploymentMetrics,
+    VEvalRunSummary,
+    VInteractionSummary,
+    VRetrievalGaps,
 )
 
 __all__ = [
@@ -34,4 +41,11 @@ __all__ = [
     "InteractionTrace",
     "PromptVersion",
     "SharedResponse",
+    "VCitationHeatmap",
+    "VConversationSummary",
+    "VDailyStats",
+    "VDeploymentMetrics",
+    "VEvalRunSummary",
+    "VInteractionSummary",
+    "VRetrievalGaps",
 ]

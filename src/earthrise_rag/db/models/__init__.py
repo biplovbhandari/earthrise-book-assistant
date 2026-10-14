@@ -13,6 +13,15 @@ from earthrise_rag.db.models.interaction import (
     InteractionTrace,
 )
 from earthrise_rag.db.models.sharing import FeedbackRateLimit, SharedResponse
+from earthrise_rag.db.models.views import (
+    VCitationHeatmap,
+    VConversationSummary,
+    VDailyStats,
+    VDeploymentMetrics,
+    VEvalRunSummary,
+    VInteractionSummary,
+    VRetrievalGaps,
+)
 
 __all__ = [
     "ChunkRecord",
@@ -30,4 +39,11 @@ __all__ = [
     "InteractionTrace",
     "PromptVersion",
     "SharedResponse",
+    "VCitationHeatmap",
+    "VConversationSummary",
+    "VDailyStats",
+    "VDeploymentMetrics",
+    "VEvalRunSummary",
+    "VInteractionSummary",
+    "VRetrievalGaps",
 ]
