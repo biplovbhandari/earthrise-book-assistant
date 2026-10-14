@@ -115,3 +115,15 @@ class TestRateLimitMiddleware:
             mock_time.monotonic.return_value = 1e9
             resp = client.post("/chat")
             assert resp.status_code == 200
+
+    def test_cf_connecting_ip_used_when_present(self):
+        """Behind Cloudflare, the real visitor IP comes from the CF-Connecting-IP header."""
+        client = TestClient(_create_app(max_requests=2))
+        headers_a = {"CF-Connecting-IP": "1.2.3.4"}
+        headers_b = {"CF-Connecting-IP": "5.6.7.8"}
+
+        client.post("/chat", headers=headers_a)
+        client.post("/chat", headers=headers_a)
+        assert client.post("/chat", headers=headers_a).status_code == 429
+
+        assert client.post("/chat", headers=headers_b).status_code == 200
