@@ -1,9 +1,11 @@
 # Database Schema
 
 PostgreSQL 17 + pgvector.
-15 tables in the `earthrise` schema.
+15 tables and 7 views in the `earthrise` schema.
 Auto-generated from SQLAlchemy ORM models.
 Regenerate with `uv run python scripts/generate_schema_diagram.py`.
+
+## Tables
 
 ```mermaid
 erDiagram
@@ -150,4 +152,83 @@ erDiagram
     eval_runs ||--|{ eval_results : "deletes children"
     eval_questions ||--o{ eval_results : "nullifies FK"
     interactions ||--|{ shared_responses : "deletes children"
+```
+
+## Views
+
+Pre-aggregated analytics and evaluation summaries.
+Defined in Alembic migrations as raw SQL; mapped by read-only ORM models.
+
+```mermaid
+erDiagram
+    %% --- Analytics ---
+    v_interaction_summary {
+        UUID id
+        TEXT question
+        TEXT response_text
+        INT latency_ms
+        INT token_count
+        TIMESTAMPTZ created_at
+        TEXT rating
+        TEXT comment
+        TEXT admin_tags
+        INT citation_count
+        TEXT deployment_label
+        TEXT model_name
+        FLOAT temperature
+    }
+    v_daily_stats {
+        TIMESTAMPTZ day
+        INT total_queries
+        INT thumbs_up
+        INT thumbs_down
+        FLOAT avg_tokens
+        FLOAT avg_latency_ms
+    }
+    v_citation_heatmap {
+        TEXT source_path
+        TEXT display_label
+        INT cite_count
+        FLOAT thumbs_up_pct
+        TIMESTAMPTZ last_cited_at
+        TEXT ranking_methods
+    }
+    v_retrieval_gaps {
+        TEXT question
+        FLOAT avg_top_score
+        INT thumbs_down_count
+        TEXT ranking_methods
+    }
+    v_conversation_summary {
+        UUID id
+        TEXT title
+        TEXT topic
+        UUID visitor_id
+        TIMESTAMPTZ created_at
+        INT interaction_count
+        TIMESTAMPTZ last_activity
+        INTERVAL duration
+    }
+    v_deployment_metrics {
+        INT deployment_id
+        TEXT label
+        TEXT model_name
+        TEXT retrieval_strategy
+        INT interaction_count
+        FLOAT satisfaction_rate
+        FLOAT avg_latency_ms
+    }
+    %% --- Evaluation ---
+    v_eval_run_summary {
+        INT eval_run_id
+        INT eval_set_id
+        INT deployment_id
+        TIMESTAMPTZ created_at
+        TEXT deployment_label
+        INT questions_evaluated
+        FLOAT avg_retrieval_precision
+        FLOAT avg_retrieval_recall
+        FLOAT avg_answer_similarity
+        FLOAT avg_faithfulness
+    }
 ```
