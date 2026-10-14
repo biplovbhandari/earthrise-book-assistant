@@ -36,7 +36,9 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         if not path.startswith(self._API_PREFIXES):
             return await call_next(request)
 
-        client_ip = request.client.host if request.client else "unknown"
+        client_ip = request.headers.get(
+            "cf-connecting-ip", request.client.host if request.client else "unknown"
+        )
         llm = self._is_llm(path)
         bucket = f"{client_ip}:llm" if llm else f"{client_ip}:general"
         limit = self.max_requests if llm else self.max_requests * self._GENERAL_MULTIPLIER
