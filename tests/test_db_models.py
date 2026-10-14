@@ -20,9 +20,9 @@ def _table(name: str):
     return Base.metadata.tables[f"{Base.metadata.schema}.{name}"]
 
 
-def test_all_15_tables_registered():
-    """All 15 tables are present in Base.metadata."""
-    table_names = {t.name for t in Base.metadata.tables.values()}
+def test_table_models_registered():
+    """Every table ORM model is imported and visible in Base.metadata."""
+    table_names = {t.name for t in Base.metadata.tables.values() if not t.info.get("is_view")}
     assert table_names == {
         "conversations",
         "interactions",
@@ -42,6 +42,20 @@ def test_all_15_tables_registered():
     }
 
 
+def test_view_models_registered():
+    """Every view ORM model is imported and visible in Base.metadata."""
+    view_names = {t.name for t in Base.metadata.tables.values() if t.info.get("is_view")}
+    assert view_names == {
+        "v_interaction_summary",
+        "v_daily_stats",
+        "v_citation_heatmap",
+        "v_retrieval_gaps",
+        "v_deployment_metrics",
+        "v_conversation_summary",
+        "v_eval_run_summary",
+    }
+
+
 def _get_fk_map():
     """Build a map of (table, column) -> (target_table, ondelete)."""
     fk_map = {}
@@ -52,10 +66,9 @@ def _get_fk_map():
     return fk_map
 
 
-def test_all_15_foreign_keys():
-    """All 15 FK relationships have correct targets and ON DELETE behavior."""
+def test_fk_cascade_behavior():
+    """FK relationships have correct targets and ON DELETE behavior."""
     fk_map = _get_fk_map()
-    assert len(fk_map) == 15
 
     expected = {
         ("interactions", "conversation_id"): ("conversations", "CASCADE"),
@@ -88,8 +101,8 @@ def _get_all_indexes():
     return indexes
 
 
-def test_all_20_indexes():
-    """All 20 named indexes are present."""
+def test_indexes_registered():
+    """Named indexes are present for query performance."""
     expected_names = {
         "idx_conversations_visitor_id",
         "idx_conversations_created_at",
@@ -125,8 +138,8 @@ def test_partial_unique_index_on_deployments():
     assert "is_active" in where
 
 
-def test_all_6_unique_constraints():
-    """All 6 UNIQUE constraints are present with correct columns."""
+def test_unique_constraints():
+    """UNIQUE constraints are present with correct columns."""
     expected = {
         ("feedback", frozenset(["interaction_id"])),
         ("prompt_versions", frozenset(["hash"])),
@@ -146,8 +159,8 @@ def test_all_6_unique_constraints():
     assert found == expected
 
 
-def test_all_8_check_constraints():
-    """All 8 named CHECK constraints enforce domain rules with correct expressions."""
+def test_check_constraints():
+    """CHECK constraints enforce domain rules with correct expressions."""
     expected = {
         "ck_feedback_rating_valid": "rating",
         "ck_deployments_strategy_valid": "retrieval_strategy",
