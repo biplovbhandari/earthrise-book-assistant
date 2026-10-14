@@ -17,17 +17,17 @@ target_metadata = Base.metadata
 _SCHEMA = target_metadata.schema
 _SEARCH_PATH = f"{_SCHEMA},public"
 
+
 def _include_object(object, name, type_, reflected, compare_to):
     """Filter objects during autogenerate.
 
     Skips view ORM models (views are created by hand-written SQL)
     and the alembic_version table (managed by Alembic itself).
     """
-    if type_ == "table" and name == "alembic_version":
-        return False
-    if type_ == "table" and getattr(object, "info", {}).get("is_view"):
-        return False
-    return True
+    return not (
+        type_ == "table"
+        and (name == "alembic_version" or getattr(object, "info", {}).get("is_view"))
+    )
 
 
 _SHARED_CONFIGURE = {
