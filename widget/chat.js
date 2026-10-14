@@ -138,7 +138,9 @@
         // 6. Bold / italic
         html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
         html = html.replace(/(^|[^*])\*([^*]+)\*(?!\*)/g, '$1<em>$2</em>');
-        // 7. Lists (unified: supports nested - under \d+., tolerates indentation)
+        // 7a. Collapse blank lines between list items so the block regex captures them as one list
+        html = html.replace(/(\n[ \t]*(?:\d+\.|-)[ \t]+[^\n]+)\n{2,}(?=[ \t]*(?:\d+\.|-)[ \t])/g, '$1\n');
+        // 7b. Lists (unified: supports nested - under \d+., tolerates indentation)
         html = html.replace(/((?:^|\n)[ \t]*(?:\d+\. |- ).+(?:\n[ \t]*(?:\d+\. |- ).+)*)/g, function(block) {
             var lines = block.trim().split('\n');
             var hasNumbered = lines.some(function(l) { return /^\s*\d+\. /.test(l); });
@@ -349,16 +351,69 @@
         bubble.innerHTML = renderMarkdown(assistantText);
         linkCitations(bubble);
         renderSources(bubble, currentCitations);
-        if (currentInteractionId) renderFeedback(bubble, currentInteractionId);
+        renderActions(bubble, assistantText, currentCitations, currentInteractionId);
         statusEl.textContent = 'Assistant response complete.';
         state.isLoading = false;
         setControls(false);
         autoScroll();
     }
 
-    function renderFeedback(bubble, interactionId) {
+    function renderActions(bubble, rawText, citations, interactionId) {
         var container = document.createElement('div');
         container.className = 'er-feedback';
+        var copyText = rawText;
+        if (citations && citations.length) {
+            copyText += '\n\nSources\n' + formatSourcesText(citations);
+        }
+        renderCopyButton(container, copyText);
+        if (interactionId) renderFeedbackButtons(container, interactionId, bubble);
+        bubble.appendChild(container);
+    }
+
+    function formatSourcesText(citations) {
+        var seen = Object.create(null);
+        var lines = [];
+        citations.forEach(function(c, i) {
+            if (!c || typeof c !== 'object') return;
+            var label = c.display_label
+                || (c.chapter ? c.chapter + (c.section ? ' - ' + c.section : '') : c.section || 'Source');
+            var key = (c.source_path || '') + '\x00' + label;
+            if (seen[key]) {
+                seen[key].refs.push(i + 1);
+            } else {
+                seen[key] = { label: label, refs: [i + 1], url: c.url || '' };
+                lines.push(seen[key]);
+            }
+        });
+        return lines.map(function(g) {
+            var refs = g.refs.map(function(n) { return '[' + n + ']'; }).join('');
+            var line = refs + ' ' + g.label;
+            if (g.url) line += ' (' + g.url + ')';
+            return line;
+        }).join('\n');
+    }
+
+    function renderCopyButton(container, copyText) {
+        var copyIcon = '<svg viewBox="0 0 24 24" width="14" height="14"><path d="M16 1H4a2 2 0 0 0-2 2v14h2V3h12V1zm3 4H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H8V7h11v14z"/></svg>';
+        var checkIcon = '<svg viewBox="0 0 24 24" width="14" height="14"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>';
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'er-copy-btn';
+        btn.setAttribute('aria-label', 'Copy');
+        btn.innerHTML = copyIcon;
+        btn.addEventListener('click', function() {
+            try {
+                navigator.clipboard.writeText(copyText).then(function() {
+                    btn.innerHTML = checkIcon;
+                    btn.classList.add('copied');
+                    setTimeout(function() { btn.innerHTML = copyIcon; btn.classList.remove('copied'); }, 1500);
+                });
+            } catch (_e) {}
+        });
+        container.appendChild(btn);
+    }
+
+    function renderFeedbackButtons(container, interactionId, bubble) {
         var thumbsUp = document.createElement('button');
         thumbsUp.type = 'button';
         thumbsUp.className = 'er-feedback-btn';
@@ -371,7 +426,6 @@
         thumbsDown.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M22 4h-2v12h2V4zM2 15a2 2 0 0 0 2 2h6.31l-.95 4.57-.03.32a1.5 1.5 0 0 0 .44 1.06L10.83 24l6.58-6.59A2 2 0 0 0 18 16V6a2 2 0 0 0-2-2H7a2 2 0 0 0-1.84 1.22l-3.02 7.05A2 2 0 0 0 2 13v2z"/></svg>';
         container.appendChild(thumbsUp);
         container.appendChild(thumbsDown);
-        bubble.appendChild(container);
 
         var commentBox = null;
         var selectedRating = null;
@@ -437,6 +491,7 @@
         userHasScrolled = false;
         var userBubble = createBubble('user');
         userBubble.textContent = question;
+        renderCopyButton(userBubble, question);
         textarea.value = '';
         textarea.style.height = 'auto';
         var history = state.messages.slice(-10);
