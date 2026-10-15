@@ -14,6 +14,7 @@ from api.routes.analytics import router as analytics_router
 from api.routes.ask import router as ask_router
 from api.routes.chat import check_generation_ready, check_retrieval_ready
 from api.routes.chat import router as chat_router
+from api.routes.eval import router as eval_router
 from api.routes.feedback import router as feedback_router
 from api.routes.search import router as search_router
 from earthrise_rag import __version__
@@ -159,6 +160,7 @@ app.include_router(chat_router)
 app.include_router(search_router)
 app.include_router(feedback_router)
 app.include_router(analytics_router)
+app.include_router(eval_router, prefix="/eval")
 
 # --- Static file mounts (catch-all book mount must be last) ---
 

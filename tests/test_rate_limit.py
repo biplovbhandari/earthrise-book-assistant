@@ -37,6 +37,11 @@ def _create_app(max_requests: int = 5) -> FastAPI:
         """Stand-in for the feedback endpoint."""
         return {"ok": True}
 
+    @app.get("/eval/runs")
+    async def eval_runs():
+        """Stand-in for the eval runs endpoint."""
+        return []
+
     @app.get("/static-page")
     async def static_page():
         return {"page": "content"}
@@ -119,6 +124,18 @@ class TestRateLimitMiddleware:
             assert client.post("/feedback").status_code == 200
 
         assert client.post("/feedback").status_code == 429
+
+    def test_eval_uses_general_bucket(self):
+        """Eval endpoints are rate limited in the general bucket, not the LLM one.
+
+        The LLM work an eval run causes goes through /ask, which has its own bucket.
+        """
+        client = TestClient(_create_app(max_requests=1))
+        # General limit = 1 * 4 = 4
+        for _ in range(4):
+            assert client.get("/eval/runs").status_code == 200
+
+        assert client.get("/eval/runs").status_code == 429
 
     def test_window_expiry_resets_count(self):
         """Requests outside the window should not count."""

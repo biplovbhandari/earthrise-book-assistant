@@ -26,12 +26,21 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
     """Per-IP sliding window rate limiter with separate buckets for LLM and general endpoints.
 
     LLM endpoints (/ask, /chat) use the configured rate limit. Other API routes
-    (/search, /analytics, /config, /health, /feedback) use a higher limit (4x) because they
-    are cheap database reads or writes, not LLM calls. Static file requests pass through.
+    (/search, /analytics, /config, /eval, /health, /feedback) use a higher limit (4x) because
+    they are cheap database reads or writes, not LLM calls. Static file requests pass through.
     """
 
     _LLM_PREFIXES = ("/ask", "/chat")
-    _API_PREFIXES = ("/search", "/ask", "/chat", "/health", "/analytics", "/config", "/feedback")
+    _API_PREFIXES = (
+        "/search",
+        "/ask",
+        "/chat",
+        "/health",
+        "/analytics",
+        "/config",
+        "/feedback",
+        "/eval",
+    )
     _GENERAL_MULTIPLIER = 4
 
     def __init__(self, app, max_requests: int = 30, window_seconds: int = 60):

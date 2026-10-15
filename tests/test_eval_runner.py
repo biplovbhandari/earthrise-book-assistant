@@ -616,6 +616,53 @@ def test_run_fails_before_asking_anything_when_no_deployment_is_active(eval_file
     assert db.rows[EvalRun] == []
 
 
+def test_start_run_creates_the_run_row_and_asks_nothing(eval_file, http, db, llm, runner):
+    """start_run returns the run id with the row 'running' before any question is asked.
+
+    The API answers POST /eval/runs with this id and scores the questions afterwards.
+    """
+    started = asyncio.run(runner.start_run(eval_file, tags=["chapter-11"]))
+
+    (run,) = db.rows[EvalRun]
+    assert run.status == "running"
+    assert started.run_id == run.id
+    assert started.eval_set_name == "test-set"
+    assert started.set_size == 3, "the whole eval set is counted, not only the selected questions"
+    assert [q["id"] for q in started.questions] == ["q002"]
+    question_row = next(q for q in db.rows[EvalQuestion] if q.question_key == "q002")
+    assert started.questions[0]["db_id"] == question_row.id
+    assert [(method, url) for method, url, _ in http.calls] == [("GET", f"{BASE_URL}/config")]
+    assert llm.calls == [], "starting a run must not call the judge"
+    assert db.rows[EvalResult] == [], "no question has been scored yet"
+
+
+def test_execute_run_finishes_the_run_that_start_run_created(eval_file, http, db, runner):
+    """execute_run asks only the started questions and completes the same run row."""
+    seed_answers(http)
+    started = asyncio.run(runner.start_run(eval_file, question_id="q002"))
+
+    summary = asyncio.run(runner.execute_run(started))
+
+    (run,) = db.rows[EvalRun]
+    assert run.id == started.run_id
+    assert run.status == "completed"
+    assert [r.question_snapshot for r in db.rows[EvalResult]] == ["How is ethics applied?"]
+    assert summary["eval_run_id"] == started.run_id
+    assert summary["question_count"] == 1
+
+
+def test_start_run_rejects_unmatched_filters_before_any_side_effect(eval_file, http, db, runner):
+    """A filter typo fails before any row is written or request is sent.
+
+    The API reports this to the caller at once, so it must not leave a run row behind.
+    """
+    with pytest.raises(NoMatchingQuestionsError, match="q999"):
+        asyncio.run(runner.start_run(eval_file, question_id="q999"))
+
+    assert db.sessions_opened == 0
+    assert http.calls == []
+
+
 @pytest.mark.parametrize(
     ("failure", "message"),
     [

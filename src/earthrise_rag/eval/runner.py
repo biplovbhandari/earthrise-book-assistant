@@ -51,6 +51,9 @@ CONFIG_TIMEOUT_SECONDS = 30.0
 JUDGE_MAX_TOKENS = 4096
 # Judging must be repeatable from run to run, so sampling noise is switched off.
 JUDGE_TEMPERATURE = 0.0
+# How long one judge call may take, for whoever builds the judge client (the CLI and the API).
+# A reasoning model can think for minutes, so this is far above the server's own LLM timeout.
+JUDGE_TIMEOUT_SECONDS = 300.0
 
 _CHUNK_SEPARATOR = "\n\n---\n\n"
 
@@ -111,6 +114,24 @@ class _Scored:
     answer: dict[str, Any]
     trace: dict[str, Any]
     scores: dict[str, float]
+
+
+@dataclass(frozen=True)
+class StartedRun:
+    """A run whose eval_runs row exists with status 'running' but whose questions are unasked.
+
+    A started run must be passed to EvalRunner.execute_run, or its row stays 'running' for good.
+
+    run_id is the eval_runs row id.
+    eval_set_name is the name of the eval set.
+    set_size is the number of questions in the whole eval set, which can exceed len(questions).
+    questions are the questions to ask in file order, each with its eval_questions id as db_id.
+    """
+
+    run_id: int
+    eval_set_name: str
+    set_size: int
+    questions: list[dict[str, Any]]
 
 
 def load_eval_set(yaml_path: Path) -> dict[str, Any]:
@@ -551,6 +572,8 @@ class EvalRunner:
         filters are asked.
         Each result is committed as soon as its question is scored, so a failure part-way keeps
         the earlier results.
+        This is start_run followed by execute_run, which a caller can also call separately to
+        learn the run id before the questions are asked.
 
         Args:
             yaml_path: Eval set YAML file.
@@ -575,20 +598,77 @@ class EvalRunner:
         if dry_run:
             return preview_eval_set(yaml_path, tags, question_id)
 
+        started = await self.start_run(yaml_path, tags, question_id)
+        return await self.execute_run(started)
+
+    async def start_run(
+        self,
+        yaml_path: Path,
+        tags: list[str] | None = None,
+        question_id: str | None = None,
+    ) -> StartedRun:
+        """Check a run request and create the run's eval_runs row, without asking any question.
+
+        This is the part of run() that comes before the first question.
+        It is public so that a caller can see every precondition failure, and learn the run id,
+        before the slow part begins.
+        The whole YAML file is synced to the database, then only the questions that pass the
+        filters are selected.
+
+        Args:
+            yaml_path: Eval set YAML file.
+            tags: Select only questions that carry at least one of these tags.
+            question_id: Select only the question with this YAML id.
+
+        Returns:
+            The started run, whose row has status 'running'.
+            It must be passed to execute_run, or the row stays 'running'.
+
+        Raises:
+            FileNotFoundError: If yaml_path does not exist.
+            ValueError: If the file breaks the eval set format.
+            NoMatchingQuestionsError: If the filters select no question.
+            EvalRunnerError: If GET /config fails or no deployment is active.
+        """
         eval_set_data = load_eval_set(yaml_path)
         selected = select_questions(eval_set_data, tags, question_id)
         eval_set_id, synced = await self.sync_to_db(eval_set_data)
         db_ids = {question["id"]: question["db_id"] for question in synced}
         config = await asyncio.to_thread(self.get_config)
-        run_id = await self._start_run(eval_set_id, config)
+        run_id = await self._create_run_row(eval_set_id, config)
+        return StartedRun(
+            run_id=run_id,
+            eval_set_name=eval_set_data["name"],
+            set_size=len(eval_set_data["questions"]),
+            questions=[{**item, "db_id": db_ids[item["id"]]} for item in selected],
+        )
 
-        name = eval_set_data["name"]
-        total = len(eval_set_data["questions"])
-        print(f"Eval run {run_id}: {name}, {len(selected)} of {total} questions", flush=True)
+    async def execute_run(self, started: StartedRun) -> dict[str, Any]:
+        """Ask, score, and store each question of a started run, then mark the run completed.
+
+        Each result is committed as soon as its question is scored, so a failure part-way keeps
+        the earlier results.
+
+        Args:
+            started: A run returned by start_run.
+
+        Returns:
+            {"eval_run_id", "eval_set", "status", "question_count", "averages", "results"},
+            where each result holds the question id, its text, its scores, and the /ask round
+            trip in milliseconds.
+
+        Raises:
+            EvalRunnerError: If the API, the judge, or a database precondition fails.
+                The run row is left with status 'failed'.
+        """
+        run_id = started.run_id
+        name = started.eval_set_name
+        total = started.set_size
+        questions = started.questions
+        print(f"Eval run {run_id}: {name}, {len(questions)} of {total} questions", flush=True)
         results: list[dict[str, Any]] = []
         try:
-            for position, item in enumerate(selected, 1):
-                question = {**item, "db_id": db_ids[item["id"]]}
+            for position, question in enumerate(questions, 1):
                 scored = await self._score_question(question)
                 await self._store_result(run_id, question, scored)
                 results.append(
@@ -599,7 +679,7 @@ class EvalRunner:
                         "round_trip_ms": scored.answer["round_trip_ms"],
                     }
                 )
-                _print_progress(position, len(selected), results[-1])
+                _print_progress(position, len(questions), results[-1])
             await self._set_run_status(run_id, "completed")
         except BaseException:
             await self._mark_failed(run_id)
@@ -609,7 +689,7 @@ class EvalRunner:
         _print_summary(summary)
         return summary
 
-    async def _start_run(self, eval_set_id: int, config: dict[str, Any]) -> int:
+    async def _create_run_row(self, eval_set_id: int, config: dict[str, Any]) -> int:
         """Create the eval_runs row for the active deployment, with status 'running'.
 
         Raises:

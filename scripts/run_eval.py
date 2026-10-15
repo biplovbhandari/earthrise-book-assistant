@@ -31,6 +31,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from earthrise_rag.config import Settings, get_settings
 from earthrise_rag.db.engine import create_db_engine, create_session_factory
 from earthrise_rag.eval.runner import (
+    JUDGE_TIMEOUT_SECONDS,
     EvalRunner,
     EvalRunnerError,
     NoMatchingQuestionsError,
@@ -43,7 +44,6 @@ from earthrise_rag.generation.llm_client import OpenAICompatibleClient
 logger = logging.getLogger(__name__)
 
 EVAL_DIR = Path(__file__).resolve().parent.parent / "data" / "eval"
-JUDGE_TIMEOUT_SECONDS = 300.0
 
 
 def _build_parser() -> argparse.ArgumentParser:
