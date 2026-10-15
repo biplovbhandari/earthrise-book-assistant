@@ -12,7 +12,7 @@ dev: services
 
 # Run the app in production mode (no hot-reload, binds to all interfaces)
 serve: services
-    uv run uvicorn api.main:app --host 0.0.0.0 --port 8000
+    uv run uvicorn api.main:app --host 0.0.0.0 --port ${APP_PORT:-8000}
 
 # Run lint, type check, and tests
 check: lint typecheck test
