@@ -3,11 +3,12 @@ import threading
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
 
-from api.dependencies import create_pipelines
+from api.dependencies import create_pipelines, require_admin_token
 from api.middleware import RateLimitMiddleware
 from api.routes.analytics import router as analytics_router
 from api.routes.ask import router as ask_router
@@ -117,6 +118,35 @@ async def health():
         "chat": "ready" if chat_ok else "unavailable",
         "database": db_status,
     }
+
+
+class PipelineConfig(BaseModel):
+    """Active retrieval and generation settings, read from the environment."""
+
+    retrieval_strategy: str
+    retrieval_top_k: int
+    reranker_provider: str
+    reranker_model_name: str
+    embedding_model_name: str
+    rrf_k: int
+    llm_provider: str
+    llm_model: str
+
+
+@app.get("/config", response_model=PipelineConfig, dependencies=[Depends(require_admin_token)])
+async def pipeline_config():
+    """Return the active retrieval and generation configuration to an admin."""
+    s = get_settings()
+    return PipelineConfig(
+        retrieval_strategy=s.retrieval_strategy,
+        retrieval_top_k=s.retrieval_top_k,
+        reranker_provider=s.reranker_provider,
+        reranker_model_name=s.reranker_model_name,
+        embedding_model_name=s.embedding_model_name,
+        rrf_k=s.rrf_k,
+        llm_provider=s.llm_provider,
+        llm_model=s.llm_model,
+    )
 
 
 app.add_middleware(
