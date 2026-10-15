@@ -146,6 +146,7 @@ def test_unique_constraints():
         ("shared_responses", frozenset(["interaction_id"])),
         ("interaction_citations", frozenset(["interaction_id", "citation_index"])),
         ("interaction_traces", frozenset(["interaction_id", "stage"])),
+        ("eval_questions", frozenset(["eval_set_id", "question_key"])),
         ("eval_results", frozenset(["eval_run_id", "question_id"])),
     }
 
@@ -194,6 +195,12 @@ def test_eval_results_question_id_nullable():
     """question_id is nullable for ON DELETE SET NULL from eval_questions."""
     table = _table("eval_results")
     assert table.columns["question_id"].nullable
+
+
+def test_eval_questions_question_key_nullable():
+    """question_key is nullable so rows saved before the column existed stay valid."""
+    table = _table("eval_questions")
+    assert table.columns["question_key"].nullable
 
 
 def test_query_embedding_not_null():

@@ -29,11 +29,17 @@ class EvalQuestion(Base):
     """One test question with ground truth for evaluation."""
 
     __tablename__ = "eval_questions"
+    __table_args__ = (
+        UniqueConstraint("eval_set_id", "question_key", name="uq_eval_questions_set_key"),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
     eval_set_id: Mapped[int] = mapped_column(
         ForeignKey("eval_sets.id", ondelete="CASCADE"), index=True
     )
+    # The question's id in the eval set YAML (q001). Unlike the text, it survives rewording.
+    # NULL for rows saved before this column existed; NULLs never clash in the unique constraint.
+    question_key: Mapped[str | None] = mapped_column(Text, nullable=True)
     question: Mapped[str] = mapped_column(Text)
     expected_answer: Mapped[str | None] = mapped_column(Text)
     expected_sources: Mapped[Any] = mapped_column(JSONB)
