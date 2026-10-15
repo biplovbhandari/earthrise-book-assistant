@@ -7,6 +7,7 @@ import {
     formatSatisfaction,
     satClass,
     scoreClass,
+    evalScoreClass,
     shortId,
     conversationTitle,
 } from './shared/format.js';
@@ -18,6 +19,7 @@ import {
 } from './shared/api.js';
 
 import { useAnalytics } from './views/analytics.js';
+import { useEval } from './views/eval.js';
 
 if (typeof Vue === 'undefined') {
     // #app stays hidden (v-cloak) until Vue mounts, so a failed CDN load would otherwise leave a blank page.
@@ -28,7 +30,7 @@ if (typeof Vue === 'undefined') {
     throw new Error('Vue CDN unavailable');
 }
 
-const { createApp, ref, onMounted, onUnmounted } = Vue;
+const { createApp, ref, reactive, onMounted, onUnmounted } = Vue;
 
 const REFRESH_MS = 60000;
 
@@ -37,12 +39,14 @@ createApp({
         const authenticated = ref(false);
         const tokenInput = ref('');
         const authError = ref('');
-        // Plain variables on purpose: the template never reads them. The analytics composable shares
+        // Plain variables on purpose: the template never reads them. The view composables share
         // `session` by reference to read the token and to tell whether a response is stale.
         const session = { token: '', id: 0 };
         let refreshTimer = null;
 
+        const tab = ref('analytics');
         const analytics = useAnalytics(session, disconnect);
+        const evaluation = useEval(session, disconnect);
 
         /** Stops the 60-second auto-refresh. */
         function stopRefresh() {
@@ -52,11 +56,16 @@ createApp({
             }
         }
 
-        /** Shows the dashboard, loads everything, and keeps it fresh until the user disconnects. */
+        /**
+         * Shows the dashboard, loads everything, and keeps the analytics fresh until the user disconnects.
+         * The evaluation data loads once: runs and sets change only when someone starts a run, and the
+         * evaluation view refreshes itself after the run it started.
+         */
         function startSession() {
             session.id += 1;
             authenticated.value = true;
             analytics.fetchAll();
+            evaluation.fetchAll();
             stopRefresh();
             refreshTimer = setInterval(() => analytics.fetchAll(), REFRESH_MS);
         }
@@ -82,16 +91,20 @@ createApp({
         }
 
         /**
-         * Ends the session: stops refreshing, forgets the token, clears every section and the chart.
+         * Ends the session: stops refreshing and following any running evaluation, forgets the token,
+         * clears every section and the chart, and returns to the first tab.
          * `reason` is shown on the sign-in form; it is only a string when the server rejected the token.
          */
         function disconnect(reason) {
             session.id += 1;
             stopRefresh();
             analytics.cleanup();
+            evaluation.cleanup();
             clearStoredToken();
             session.token = '';
             analytics.reset();
+            evaluation.reset();
+            tab.value = 'analytics';
             authError.value = typeof reason === 'string' ? reason : '';
             authenticated.value = false;
         }
@@ -107,10 +120,20 @@ createApp({
         onUnmounted(() => {
             stopRefresh();
             analytics.cleanup();
+            evaluation.cleanup();
         });
 
         return {
-            ...analytics,
+            tab,
+            // reactive() unwraps each composable's refs, so the template reads `analytics.days` and
+            // `eval.runs` rather than `.value` on every binding.
+            analytics: reactive(analytics),
+            // The local is `evaluation` because a strict-mode module cannot bind the name `eval`. As a
+            // property name it is legal, and the template reads it as `eval`.
+            eval: reactive(evaluation),
+            // A string `ref` in the template is matched by name against the top level of this object,
+            // so the chart canvas cannot live inside the analytics namespace.
+            dailyCanvas: analytics.dailyCanvas,
             authenticated,
             tokenInput,
             authError,
@@ -118,6 +141,7 @@ createApp({
             disconnect,
             satClass,
             scoreClass,
+            evalScoreClass,
             formatLatency,
             formatDuration,
             formatDate,

@@ -8,14 +8,18 @@
     <link rel="stylesheet" href="styles/tokens.css">
     <link rel="stylesheet" href="styles/layout.css">
     <link rel="stylesheet" href="styles/analytics.css">
+    <link rel="stylesheet" href="styles/eval.css">
 </head>
 <body>
     <p id="boot-error" class="empty err" role="alert" hidden></p>
 
     <!--
         Vue compiles the markup inside #app in the browser, so it has to stay valid HTML (no self-closing tags).
-        Questions, titles and labels come from public chat users, so render them only through {{ }} or a
-        :attribute binding, which escape their values. Never use v-html in this template.
+        Questions, titles, labels, answers and source paths come from public chat users or from the model, so
+        render them only through {{ }} or a :attribute binding, which escape their values. Never use v-html in
+        this template.
+        Each view's state lives in a namespace: `analytics.*` and `eval.*`. Only the shared formatting helpers
+        and the sign-in state are top-level names.
     -->
     <div id="app" v-cloak>
         <template v-if="!authenticated">
@@ -36,117 +40,221 @@
                     <button type="button" class="btn" @click="disconnect()">Disconnect</button>
                 </div>
             </header>
-            <div class="subline" :class="{ err: errors.overview }">{{ sublineText }}</div>
-            <div class="config-line" v-if="config">Active: {{ config.retrieval_strategy }} · k={{ config.retrieval_top_k }} · {{ config.reranker_provider }}<template v-if="config.llm_model"> · {{ config.llm_model }}</template></div>
 
-            <div class="metrics">
-                <div class="metric" v-for="m in metrics" :key="m.label">
-                    <div class="metric-val">{{ m.value }}</div>
-                    <div class="metric-lbl">{{ m.label }}</div>
+            <nav class="tabs" aria-label="Dashboard sections">
+                <button type="button" class="tab" :class="{ on: tab === 'analytics' }" :aria-pressed="tab === 'analytics'" @click="tab = 'analytics'">Analytics</button>
+                <button type="button" class="tab" :class="{ on: tab === 'eval' }" :aria-pressed="tab === 'eval'" @click="tab = 'eval'">Evaluation</button>
+            </nav>
+
+            <div v-show="tab === 'analytics'">
+                <div class="subline" :class="{ err: analytics.errors.overview }">{{ analytics.sublineText }}</div>
+                <div class="config-line" v-if="analytics.config">Active: {{ analytics.config.retrieval_strategy }} · k={{ analytics.config.retrieval_top_k }} · {{ analytics.config.reranker_provider }}<template v-if="analytics.config.llm_model"> · {{ analytics.config.llm_model }}</template></div>
+
+                <div class="metrics">
+                    <div class="metric" v-for="m in analytics.metrics" :key="m.label">
+                        <div class="metric-val">{{ m.value }}</div>
+                        <div class="metric-lbl">{{ m.label }}</div>
+                    </div>
                 </div>
+
+                <section class="panel">
+                    <div class="panel-head">
+                        <h2>Daily usage</h2>
+                        <div class="toggle" role="group" aria-label="Date range">
+                            <button type="button" v-for="n in analytics.rangeOptions" :key="n" :class="{ on: analytics.days === n }" :aria-pressed="analytics.days === n" @click="analytics.setDays(n)">{{ n }}d</button>
+                        </div>
+                    </div>
+                    <div class="chart-box" v-show="analytics.hasDaily">
+                        <canvas id="dailyChart" ref="dailyCanvas" role="img" aria-label="Line chart of daily queries, thumbs up and thumbs down"></canvas>
+                    </div>
+                    <p class="empty" :class="{ err: analytics.errors.daily }" v-if="analytics.messages.daily">{{ analytics.messages.daily }}</p>
+                </section>
+
+                <section class="panel">
+                    <div class="cols">
+                        <div>
+                            <div class="panel-head">
+                                <h2>Top cited sources <span class="ct" v-if="analytics.citations && analytics.citations.length">({{ analytics.citations.length }})</span></h2>
+                            </div>
+                            <div class="tbl-scroll" role="region" aria-label="Top cited sources" tabindex="0" v-if="analytics.citations && analytics.citations.length">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Source</th>
+                                            <th scope="col" class="bar-col" aria-label="Share of the most cited source"></th>
+                                            <th scope="col" class="num">Cites</th>
+                                            <th scope="col" class="num">Satisfaction</th>
+                                            <th scope="col" class="nowrap">Last cited</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr v-for="c in analytics.citations" :key="c.source_path + '|' + c.display_label">
+                                            <td><div class="src-col" :title="c.source_path">{{ c.display_label || c.source_path }}</div></td>
+                                            <td class="bar-col"><div class="bar-track" aria-hidden="true"><div class="bar-fill" :style="{ width: analytics.barWidth(c.cite_count) }"></div></div></td>
+                                            <td class="num mono">{{ c.cite_count }}</td>
+                                            <td class="num"><span class="sat" :class="satClass(c.thumbs_up_pct)">{{ formatSatisfaction(c.thumbs_up_pct) }}</span></td>
+                                            <td class="sub nowrap">{{ formatDate(c.last_cited_at) }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <p class="empty" :class="{ err: analytics.errors.citations }" v-if="analytics.messages.citations">{{ analytics.messages.citations }}</p>
+                        </div>
+
+                        <div>
+                            <div class="panel-head">
+                                <h2>Retrieval gaps <span class="ct" v-if="analytics.gaps && analytics.gaps.length">({{ analytics.gaps.length }})</span></h2>
+                            </div>
+                            <div class="tbl-scroll" role="region" aria-label="Retrieval gaps" tabindex="0" v-if="analytics.gaps && analytics.gaps.length">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Question</th>
+                                            <th scope="col">Top score</th>
+                                            <th scope="col">Method</th>
+                                            <th scope="col" class="num" title="Thumbs-down count">Dn</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr v-for="g in analytics.gaps" :key="g.question">
+                                            <td><div class="q-col" :title="g.question">{{ g.question }}</div></td>
+                                            <td><span class="mono" :class="scoreClass(g.avg_top_score)">{{ formatScore(g.avg_top_score) }}</span></td>
+                                            <td class="sub">{{ g.ranking_methods || '-' }}</td>
+                                            <td class="num mono">{{ g.thumbs_down_count }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <p class="empty" :class="{ err: analytics.errors.gaps }" v-if="analytics.messages.gaps">{{ analytics.messages.gaps }}</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <div class="panel-head">
+                        <h2>Recent conversations <span class="ct" v-if="analytics.conversations && analytics.conversations.length">({{ analytics.conversations.length }})</span></h2>
+                    </div>
+                    <div class="tbl-scroll" role="region" aria-label="Recent conversations" tabindex="0" v-if="analytics.conversations && analytics.conversations.length">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th scope="col">Conversation</th>
+                                    <th scope="col">Turns</th>
+                                    <th scope="col">Visitor</th>
+                                    <th scope="col">Duration</th>
+                                    <th scope="col">Started</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="c in analytics.conversations" :key="c.id">
+                                    <td><div class="title-col" :class="{ untitled: !conversationTitle(c) }" :title="c.id">{{ conversationTitle(c) || 'Untitled' }}</div></td>
+                                    <td class="mono">{{ c.interaction_count }}</td>
+                                    <td class="vid" :title="c.visitor_id">{{ shortId(c.visitor_id) }}</td>
+                                    <td class="mono sub">{{ formatDuration(c.duration_seconds) }}</td>
+                                    <td class="sub nowrap">{{ formatDate(c.created_at) }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="empty" :class="{ err: analytics.errors.conversations }" v-if="analytics.messages.conversations">{{ analytics.messages.conversations }}</p>
+                </section>
             </div>
 
-            <section class="panel">
-                <div class="panel-head">
-                    <h2>Daily usage</h2>
-                    <div class="toggle" role="group" aria-label="Date range">
-                        <button type="button" v-for="n in rangeOptions" :key="n" :class="{ on: days === n }" :aria-pressed="days === n" @click="setDays(n)">{{ n }}d</button>
+            <div v-show="tab === 'eval'">
+                <div class="eval-bar">
+                    <label class="eval-field" v-if="eval.runs && eval.runs.length">
+                        <span>Run</span>
+                        <select v-model="eval.selectedRunId">
+                            <option v-for="r in eval.runs" :key="r.eval_run_id" :value="r.eval_run_id">{{ eval.runLabel(r) }}</option>
+                        </select>
+                    </label>
+                    <div class="eval-controls">
+                        <label class="eval-field" v-if="eval.sets && eval.sets.length">
+                            <span>Eval set</span>
+                            <select v-model="eval.selectedSetName" :disabled="eval.busy">
+                                <option v-for="s in eval.sets" :key="s.id" :value="s.name">{{ eval.setLabel(s) }}</option>
+                            </select>
+                        </label>
+                        <button type="button" class="btn" :disabled="eval.busy || !eval.selectedSetName" @click="eval.startRun(eval.selectedSetName)">{{ eval.busy ? 'Running...' : 'Run Evaluation' }}</button>
                     </div>
                 </div>
-                <div class="chart-box" v-show="hasDaily">
-                    <canvas id="dailyChart" ref="dailyCanvas" role="img" aria-label="Line chart of daily queries, thumbs up and thumbs down"></canvas>
-                </div>
-                <p class="empty" :class="{ err: errors.daily }" v-if="messages.daily">{{ messages.daily }}</p>
-            </section>
+                <p class="empty err" role="alert" v-if="eval.errors.run">{{ eval.errors.run }}</p>
+                <p class="empty" :class="{ err: eval.errors.sets }" v-if="eval.messages.sets">{{ eval.messages.sets }}</p>
+                <p class="empty" :class="{ err: eval.errors.runs }" v-if="eval.messages.runs">{{ eval.messages.runs }}</p>
 
-            <section class="panel">
-                <div class="cols">
-                    <div>
-                        <div class="panel-head">
-                            <h2>Top cited sources <span class="ct" v-if="citations && citations.length">({{ citations.length }})</span></h2>
-                        </div>
-                        <div class="tbl-scroll" role="region" aria-label="Top cited sources" tabindex="0" v-if="citations && citations.length">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th scope="col">Source</th>
-                                        <th scope="col" class="bar-col" aria-label="Share of the most cited source"></th>
-                                        <th scope="col" class="num">Cites</th>
-                                        <th scope="col" class="num">Satisfaction</th>
-                                        <th scope="col" class="nowrap">Last cited</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr v-for="c in citations" :key="c.source_path + '|' + c.display_label">
-                                        <td><div class="src-col" :title="c.source_path">{{ c.display_label || c.source_path }}</div></td>
-                                        <td class="bar-col"><div class="bar-track" aria-hidden="true"><div class="bar-fill" :style="{ width: barWidth(c.cite_count) }"></div></div></td>
-                                        <td class="num mono">{{ c.cite_count }}</td>
-                                        <td class="num"><span class="sat" :class="satClass(c.thumbs_up_pct)">{{ formatSatisfaction(c.thumbs_up_pct) }}</span></td>
-                                        <td class="sub nowrap">{{ formatDate(c.last_cited_at) }}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <p class="empty" :class="{ err: errors.citations }" v-if="messages.citations">{{ messages.citations }}</p>
-                    </div>
+                <div class="subline" :class="{ err: eval.statusFailed }" v-if="eval.runDetail">{{ eval.statusLine }}</div>
 
-                    <div>
-                        <div class="panel-head">
-                            <h2>Retrieval gaps <span class="ct" v-if="gaps && gaps.length">({{ gaps.length }})</span></h2>
-                        </div>
-                        <div class="tbl-scroll" role="region" aria-label="Retrieval gaps" tabindex="0" v-if="gaps && gaps.length">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th scope="col">Question</th>
-                                        <th scope="col">Top score</th>
-                                        <th scope="col">Method</th>
-                                        <th scope="col" class="num" title="Thumbs-down count">Dn</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr v-for="g in gaps" :key="g.question">
-                                        <td><div class="q-col" :title="g.question">{{ g.question }}</div></td>
-                                        <td><span class="mono" :class="scoreClass(g.avg_top_score)">{{ formatScore(g.avg_top_score) }}</span></td>
-                                        <td class="sub">{{ g.ranking_methods || '-' }}</td>
-                                        <td class="num mono">{{ g.thumbs_down_count }}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <p class="empty" :class="{ err: errors.gaps }" v-if="messages.gaps">{{ messages.gaps }}</p>
+                <div class="metrics eval-metrics" v-if="eval.runDetail">
+                    <div class="metric" v-for="m in eval.metrics" :key="m.label">
+                        <div class="metric-val">{{ m.value }}</div>
+                        <div class="metric-lbl">{{ m.label }}</div>
                     </div>
                 </div>
-            </section>
 
-            <section class="panel">
-                <div class="panel-head">
-                    <h2>Recent conversations <span class="ct" v-if="conversations && conversations.length">({{ conversations.length }})</span></h2>
-                </div>
-                <div class="tbl-scroll" role="region" aria-label="Recent conversations" tabindex="0" v-if="conversations && conversations.length">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th scope="col">Conversation</th>
-                                <th scope="col">Turns</th>
-                                <th scope="col">Visitor</th>
-                                <th scope="col">Duration</th>
-                                <th scope="col">Started</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-for="c in conversations" :key="c.id">
-                                <td><div class="title-col" :class="{ untitled: !conversationTitle(c) }" :title="c.id">{{ conversationTitle(c) || 'Untitled' }}</div></td>
-                                <td class="mono">{{ c.interaction_count }}</td>
-                                <td class="vid" :title="c.visitor_id">{{ shortId(c.visitor_id) }}</td>
-                                <td class="mono sub">{{ formatDuration(c.duration_seconds) }}</td>
-                                <td class="sub nowrap">{{ formatDate(c.created_at) }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <p class="empty" :class="{ err: errors.conversations }" v-if="messages.conversations">{{ messages.conversations }}</p>
-            </section>
+                <section class="panel" v-if="eval.runDetail || eval.messages.detail">
+                    <div class="panel-head" v-if="eval.runDetail">
+                        <h2>Results <span class="ct">({{ eval.rows.length }})</span></h2>
+                    </div>
+                    <div class="tbl-scroll" role="region" aria-label="Evaluation results" tabindex="0" v-if="eval.rows.length">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th scope="col">Question</th>
+                                    <th scope="col" class="num" v-for="col in eval.scoreColumns" :key="col.key" :title="col.hint">{{ col.label }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template v-for="row in eval.rows" :key="row.key">
+                                    <tr class="eval-row" :class="{ open: eval.isExpanded(row.key) }" @click="eval.toggleExpand(row.key)">
+                                        <td>
+                                            <button type="button" class="eval-toggle" :aria-expanded="eval.isExpanded(row.key)" :title="row.question">
+                                                <span class="eval-q">{{ row.question }}</span>
+                                            </button>
+                                        </td>
+                                        <td class="num mono" v-for="col in eval.scoreColumns" :key="col.key" :class="evalScoreClass(row.scores[col.key])">{{ formatScore(row.scores[col.key]) }}</td>
+                                    </tr>
+                                    <tr class="eval-detail" v-if="eval.isExpanded(row.key)">
+                                        <td :colspan="eval.scoreColumns.length + 1">
+                                            <div class="eval-panel">
+                                                <div class="eval-block">
+                                                    <div class="eval-lbl">Answer</div>
+                                                    <div class="eval-text" v-if="row.response">{{ row.response }}</div>
+                                                    <div class="sub" v-else>No answer was recorded.</div>
+                                                </div>
+                                                <div class="eval-block" v-if="row.expectedAnswer">
+                                                    <div class="eval-lbl">Expected answer</div>
+                                                    <div class="eval-text">{{ row.expectedAnswer }}</div>
+                                                </div>
+                                                <div class="eval-block">
+                                                    <div class="eval-lbl">Retrieved sources ({{ row.chunks.length }})</div>
+                                                    <table class="eval-chunks" v-if="row.chunks.length">
+                                                        <thead>
+                                                            <tr>
+                                                                <th scope="col">Source</th>
+                                                                <th scope="col" class="num">Score</th>
+                                                                <th scope="col">Method</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr v-for="(chunk, i) in row.chunks" :key="i">
+                                                                <td class="mono">{{ chunk.source_path || '-' }}</td>
+                                                                <td class="num mono">{{ formatScore(chunk.score) }}</td>
+                                                                <td class="sub">{{ chunk.ranking_method || '-' }}</td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                    <div class="sub" v-else>No chunks were recorded.</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="empty" :class="{ err: eval.errors.detail }" v-if="eval.messages.detail">{{ eval.messages.detail }}</p>
+                </section>
+            </div>
         </template>
     </div>
 

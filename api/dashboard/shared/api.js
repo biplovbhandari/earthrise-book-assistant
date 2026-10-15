@@ -56,13 +56,14 @@ export async function readErrorDetail(response) {
 }
 
 /**
- * GETs one analytics endpoint with the Bearer token and returns the parsed JSON.
- * Throws ApiError for a non-2xx status or a body that fails `isValid`. Validating the shape here
- * keeps a malformed response from reaching the templates, which assume arrays and objects.
+ * Sends one request with the Bearer token and returns the parsed JSON. apiGet and apiPost both go
+ * through here, so the timeout, the error handling and the shape check live in one place.
+ * `init` holds the fetch options that differ per method (method, body, extra headers).
  */
-export async function apiGet(url, token, isValid) {
+async function request(url, token, isValid, init) {
     const response = await fetch(url, {
-        headers: { Accept: 'application/json', Authorization: `Bearer ${token}` },
+        ...init,
+        headers: { Accept: 'application/json', Authorization: `Bearer ${token}`, ...init.headers },
         cache: 'no-store',
         signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     });
@@ -74,6 +75,27 @@ export async function apiGet(url, token, isValid) {
         throw new ApiError(response.status, 'Unexpected response shape');
     }
     return data;
+}
+
+/**
+ * GETs one analytics endpoint with the Bearer token and returns the parsed JSON.
+ * Throws ApiError for a non-2xx status or a body that fails `isValid`. Validating the shape here
+ * keeps a malformed response from reaching the templates, which assume arrays and objects.
+ */
+export function apiGet(url, token, isValid) {
+    return request(url, token, isValid, {});
+}
+
+/**
+ * POSTs `body` as JSON to one endpoint with the Bearer token and returns the parsed JSON reply.
+ * Fails the same way as apiGet. The caller must not retry on its own: a POST is not safe to repeat.
+ */
+export function apiPost(url, token, body, isValid) {
+    return request(url, token, isValid, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+    });
 }
 
 /** Turns a failed request into short text for the section that could not load. */

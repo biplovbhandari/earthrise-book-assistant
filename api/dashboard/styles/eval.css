@@ -1,0 +1,155 @@
+/* Evaluation tab. The summary cards and score colours (.metric*, .score-*) come from analytics.css; the table, panel and button rules come from layout.css. */
+
+/* Toolbar: the run picker on the left, the controls that start a run on the right */
+
+.eval-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  padding-bottom: 10px;
+}
+
+.eval-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-left: auto;
+}
+
+.eval-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  color: var(--tx2);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.eval-field select {
+  min-width: 0;
+  max-width: 100%;
+  padding: 4px 6px;
+  border: 1px solid var(--bd);
+  border-radius: 3px;
+  background: var(--bg);
+  color: var(--tx);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.eval-field select:disabled,
+.eval-controls .btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.eval-controls .btn:disabled:hover {
+  background: var(--bg2);
+}
+
+/* Five summary cards instead of analytics' four */
+
+.eval-metrics {
+  grid-template-columns: repeat(5, 1fr);
+}
+
+@media (width <= 640px) {
+  .eval-metrics {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .eval-metrics .metric:nth-child(5) {
+    padding-left: 0;
+    border-left: none;
+  }
+}
+
+/* Results table: one row per question. A click anywhere on the row opens it; the button in the first cell makes that reachable by keyboard. */
+
+.eval-row {
+  cursor: pointer;
+}
+
+.eval-toggle {
+  display: flex;
+  align-items: baseline;
+  max-width: 560px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+}
+
+.eval-toggle::before {
+  flex: none;
+  width: 14px;
+  color: var(--tx2);
+  content: "\25B8";
+}
+
+.eval-row.open .eval-toggle::before {
+  content: "\25BE";
+}
+
+/* Long questions are cut with an ellipsis; the full text is in the button's title attribute. */
+
+.eval-q {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Detail panel under an open row */
+
+.eval-panel {
+  padding: 10px 12px 14px 22px;
+}
+
+.eval-block + .eval-block {
+  margin-top: 10px;
+}
+
+.eval-lbl {
+  margin-bottom: 2px;
+  color: var(--tx2);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.eval-text {
+  max-width: 80ch;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.eval-chunks {
+  width: auto;
+}
+
+.eval-chunks th {
+  padding: 0 12px 2px 0;
+}
+
+/* Source paths have no spaces, so they may break anywhere rather than widen the table. */
+
+.eval-chunks td {
+  padding: 1px 12px 1px 0;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+}
+
+.eval-detail > td {
+  padding: 0;
+  border-bottom: 1px solid var(--bd);
+  background: var(--bg2);
+}

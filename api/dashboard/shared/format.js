@@ -10,6 +10,11 @@ const SAT_MID_MIN = 75;
 const SCORE_LOW_MAX = 0;
 const SCORE_HIGH_MIN = 1.5;
 
+// Eval scores are 0-1 fractions (source-match ratios and LLM-judge ratings). Below the first value is a
+// clear miss, and the second value or more is a good result.
+const EVAL_SCORE_LOW_BELOW = 0.3;
+const EVAL_SCORE_HIGH_MIN = 0.7;
+
 const COUNT_FORMAT = new Intl.NumberFormat('en-US');
 const SHORT_DATE = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' });
 const LONG_DATE = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -102,7 +107,10 @@ export function formatDay(day) {
     return `${MONTHS[Number(month) - 1]} ${Number(date)}`;
 }
 
-/** Formats a retrieval score to two decimals, or "n/a" when the answer cited no chunk. */
+/**
+ * Formats a score to two decimals, or "n/a" when there is none. For a retrieval score that means the
+ * answer cited no chunk; an eval score is missing when the runner could not compute it.
+ */
 export function formatScore(score) {
     return isNumber(score) ? score.toFixed(2) : 'n/a';
 }
@@ -117,6 +125,23 @@ export function scoreClass(score) {
         return 'score-lo';
     }
     return rounded >= SCORE_HIGH_MIN ? 'score-hi' : 'score-md';
+}
+
+/**
+ * Picks the colour class for a 0-1 eval score: red below 0.3, yellow from 0.3 up to 0.7, green from 0.7.
+ * It returns the same classes as scoreClass, which bands the retrieval-score scale instead, so the
+ * colours stay defined once in the CSS.
+ */
+export function evalScoreClass(score) {
+    if (!isNumber(score)) {
+        return 'score-na';
+    }
+    // Compare the two-decimal value formatScore shows, so the label and the colour band always agree.
+    const rounded = Number(score.toFixed(2));
+    if (rounded < EVAL_SCORE_LOW_BELOW) {
+        return 'score-lo';
+    }
+    return rounded >= EVAL_SCORE_HIGH_MIN ? 'score-hi' : 'score-md';
 }
 
 /** Converts a 0-1 fraction to whole percent, so the label and the colour band always agree. */
