@@ -1,11 +1,13 @@
-"""Tests for the rate limiting middleware."""
+"""Tests for the rate limiting middleware and the client IP it keys on."""
 
 from unittest.mock import patch
 
+import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from starlette.requests import Request
 
-from api.middleware import RateLimitMiddleware
+from api.middleware import RateLimitMiddleware, client_ip
 
 
 def _create_app(max_requests: int = 5) -> FastAPI:
@@ -24,6 +26,11 @@ def _create_app(max_requests: int = 5) -> FastAPI:
     @app.get("/analytics/overview")
     async def analytics():
         return {"total": 42}
+
+    @app.get("/config")
+    async def config():
+        """Stand-in for the pipeline config endpoint."""
+        return {"retrieval_strategy": "hybrid"}
 
     @app.post("/feedback")
     async def feedback():
@@ -95,6 +102,15 @@ class TestRateLimitMiddleware:
 
         assert client.get("/analytics/overview").status_code == 429
 
+    def test_config_uses_general_bucket(self):
+        """The admin config route sits outside /analytics but is still rate limited."""
+        client = TestClient(_create_app(max_requests=1))
+        # General limit = 1 * 4 = 4
+        for _ in range(4):
+            assert client.get("/config").status_code == 200
+
+        assert client.get("/config").status_code == 429
+
     def test_feedback_uses_general_bucket(self):
         """Feedback shares the general bucket, separate from LLM."""
         client = TestClient(_create_app(max_requests=1))
@@ -127,3 +143,30 @@ class TestRateLimitMiddleware:
         assert client.post("/chat", headers=headers_a).status_code == 429
 
         assert client.post("/chat", headers=headers_b).status_code == 200
+
+
+# Behind Cloudflare every connection comes from the tunnel, whoever the visitor is.
+_PROXY_PEER = ("10.0.0.1", 50000)
+
+
+def _request(*, cf_header: str | None, peer: tuple[str, int] | None) -> Request:
+    """Build a request from a bare ASGI scope so client_ip is tested without an HTTP stack."""
+    headers = [] if cf_header is None else [(b"cf-connecting-ip", cf_header.encode())]
+    return Request({"type": "http", "headers": headers, "client": peer})
+
+
+@pytest.mark.parametrize(
+    ("cf_header", "peer", "expected"),
+    [
+        pytest.param("1.2.3.4", _PROXY_PEER, "1.2.3.4", id="cf-header-wins-over-peer"),
+        pytest.param(None, _PROXY_PEER, "10.0.0.1", id="peer-when-header-absent"),
+        pytest.param("", _PROXY_PEER, "10.0.0.1", id="peer-when-header-empty"),
+        pytest.param(None, None, "unknown", id="unknown-when-no-peer"),
+    ],
+)
+def test_client_ip_prefers_cf_connecting_ip_then_the_peer_address(cf_header, peer, expected):
+    """The visitor IP is CF-Connecting-IP when set, otherwise the connection address.
+
+    A request with neither is attributed to "unknown" rather than raising.
+    """
+    assert client_ip(_request(cf_header=cf_header, peer=peer)) == expected

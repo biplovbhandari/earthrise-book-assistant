@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import secrets
 from collections.abc import AsyncGenerator
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -311,7 +312,10 @@ async def require_admin_token(request: Request) -> None:
     auth = request.headers.get("authorization", "")
     if not auth.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Missing Bearer token")
-    if auth[7:] != expected:
+    # compare_digest keeps the check constant-time. It needs bytes because it raises TypeError
+    # on a str with non-ASCII characters, and a client can send those in a header, which would
+    # turn a bad token into a 500 instead of a 401.
+    if not secrets.compare_digest(auth[7:].encode(), expected.encode()):
         raise HTTPException(status_code=401, detail="Invalid token")
 
 

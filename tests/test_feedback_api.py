@@ -204,6 +204,23 @@ def test_rate_limit_row_is_keyed_by_hashed_ip_and_window_start(client, session):
     assert params["window_start"] == _window_start(params["window_start"])
 
 
+def test_rate_limit_is_keyed_by_the_visitor_ip_behind_cloudflare(client, session):
+    """Behind Cloudflare the rate limit is keyed by the CF-Connecting-IP visitor address.
+
+    Every connection arrives from the tunnel, so keying on the connection address would put all
+    visitors in one rate-limit bucket.
+    """
+    visitor_ip = "203.0.113.7"
+    _script_db(session)
+
+    resp = client.post("/feedback", json=_VALID, headers={"CF-Connecting-IP": visitor_ip})
+
+    assert resp.status_code == 201
+    params = _scalar_params(session, _RATE_LIMIT_CALL)
+    assert params["ip_hash"] == hashlib.sha256(visitor_ip.encode()).hexdigest()
+    assert visitor_ip not in params.values(), "the raw IP must never be stored"
+
+
 @pytest.mark.parametrize("inserted", [True, False], ids=["insert", "update"])
 def test_client_supplied_admin_tags_are_ignored(client, session, inserted):
     """admin_tags is set only by admins, so a client's value is dropped on insert and update."""
