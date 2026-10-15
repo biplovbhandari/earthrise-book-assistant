@@ -101,7 +101,8 @@ class QueryPipeline:
             history: Optional conversation history as a list of role/content dicts.
 
         Returns:
-            Answer with generated text, source chunks, and citations.
+            Answer with generated text, source chunks, citations, and the
+            elapsed retrieval and generation times in milliseconds.
 
         Raises:
             RuntimeError: If generation adapters are not configured.
@@ -117,20 +118,32 @@ class QueryPipeline:
             )
 
         retrieval_query = self._build_retrieval_query(question, history)
+        t0 = time.monotonic()
         chunks = self._strategy.retrieve(retrieval_query, self._top_k, filters)
+        retrieval_ms = int((time.monotonic() - t0) * 1000)
 
         if not chunks:
             return Answer(
                 answer="No relevant information found in the book for this question.",
                 sources=[],
                 citations=[],
+                retrieval_ms=retrieval_ms,
+                generation_ms=0,
             )
 
         messages = self._context_builder.build(question, chunks, history=history)
+        t1 = time.monotonic()
         answer_text = self._llm_client.chat(messages)
+        generation_ms = int((time.monotonic() - t1) * 1000)
         citations = self._citation_builder.build(chunks)
 
-        return Answer(answer=answer_text, sources=chunks, citations=citations)
+        return Answer(
+            answer=answer_text,
+            sources=chunks,
+            citations=citations,
+            retrieval_ms=retrieval_ms,
+            generation_ms=generation_ms,
+        )
 
     def ask_stream(
         self,
