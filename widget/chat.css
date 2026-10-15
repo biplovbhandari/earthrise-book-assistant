@@ -1,10 +1,10 @@
-#earthrise-chat-widget {
-  --er-primary: #1a5276;
-  --er-bg: #fff;
-  --er-text: #1a1a1a;
-  --er-border: #e0e0e0;
-  --er-user-bg: #e8f0fe;
-  --er-error-bg: #fdecea;
+#geoai-chat-widget {
+  --gai-primary: #1a5276;
+  --gai-bg: #fff;
+  --gai-text: #1a1a1a;
+  --gai-border: #e0e0e0;
+  --gai-user-bg: #e8f0fe;
+  --gai-error-bg: #fdecea;
 
   position: fixed;
   bottom: 0;
@@ -13,16 +13,16 @@
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
-[data-bs-theme="dark"] #earthrise-chat-widget {
-  --er-primary: #2980b9;
-  --er-bg: #1e1e1e;
-  --er-text: #e0e0e0;
-  --er-border: #444;
-  --er-user-bg: #1a3a5c;
-  --er-error-bg: #4a1a1a;
+[data-bs-theme="dark"] #geoai-chat-widget {
+  --gai-primary: #2980b9;
+  --gai-bg: #1e1e1e;
+  --gai-text: #e0e0e0;
+  --gai-border: #444;
+  --gai-user-bg: #1a3a5c;
+  --gai-error-bg: #4a1a1a;
 }
 
-#earthrise-chat-toggle {
+#geoai-chat-toggle {
   position: fixed;
   bottom: 24px;
   right: 24px;
@@ -30,7 +30,7 @@
   height: 56px;
   border-radius: 50%;
   border: none;
-  background: var(--er-primary);
+  background: var(--gai-primary);
   color: #fff;
   cursor: pointer;
   box-shadow: 0 4px 12px rgb(0 0 0 / 25%);
@@ -41,25 +41,25 @@
   z-index: 1051;
 }
 
-#earthrise-chat-toggle:hover {
+#geoai-chat-toggle:hover {
   transform: scale(1.05);
   box-shadow: 0 6px 16px rgb(0 0 0 / 30%);
 }
 
-#earthrise-chat-toggle svg {
+#geoai-chat-toggle svg {
   width: 28px;
   height: 28px;
   fill: currentcolor;
 }
 
-#earthrise-chat-panel {
+#geoai-chat-panel {
   position: fixed;
   bottom: 92px;
   right: 24px;
   width: 380px;
   height: 520px;
-  background: var(--er-bg);
-  border: 1px solid var(--er-border);
+  background: var(--gai-bg);
+  border: 1px solid var(--gai-border);
   border-radius: 12px;
   box-shadow: 0 8px 30px rgb(0 0 0 / 15%);
   display: flex;
@@ -72,41 +72,41 @@
   transition: transform 0.25s ease, opacity 0.25s ease;
 }
 
-#earthrise-chat-panel.open {
+#geoai-chat-panel.open {
   transform: scale(1) translateY(0);
   opacity: 1;
   pointer-events: auto;
 }
 
-#earthrise-chat-panel header {
+#geoai-chat-panel header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
-  background: var(--er-primary);
+  background: var(--gai-primary);
   color: #fff;
   flex-shrink: 0;
 }
 
-#earthrise-chat-panel header h2 {
+#geoai-chat-panel header h2 {
   margin: 0;
   font-size: 1rem;
   font-weight: 600;
 }
 
-#earthrise-chat-suggestions button {
-  background: var(--er-bg);
-  border: 1px solid var(--er-border);
+#geoai-chat-suggestions button {
+  background: var(--gai-bg);
+  border: 1px solid var(--gai-border);
   border-radius: 16px;
   padding: 8px 14px;
-  color: var(--er-primary);
+  color: var(--gai-primary);
   cursor: pointer;
   font-size: 0.825rem;
   text-align: left;
   transition: background 0.15s;
 }
 
-#earthrise-chat-panel header button {
+#geoai-chat-panel header button {
   background: none;
   border: none;
   color: #fff;
@@ -116,29 +116,29 @@
   line-height: 1;
 }
 
-.earthrise-chat-header-actions {
+.geoai-chat-header-actions {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-#earthrise-chat-new {
+#geoai-chat-new {
   font-size: 0.75rem;
   opacity: 0.85;
   padding: 2px 8px;
   border-radius: 4px;
 }
 
-#earthrise-chat-new:hover {
+#geoai-chat-new:hover {
   opacity: 1;
   background: rgb(255 255 255 / 15%);
 }
 
-#earthrise-chat-suggestions button:hover {
-  background: var(--er-user-bg);
+#geoai-chat-suggestions button:hover {
+  background: var(--gai-user-bg);
 }
 
-#earthrise-chat-suggestions {
+#geoai-chat-suggestions {
   padding: 12px 16px;
   display: flex;
   flex-direction: column;
@@ -146,11 +146,11 @@
   flex-shrink: 0;
 }
 
-#earthrise-chat-suggestions.hidden {
+#geoai-chat-suggestions.hidden {
   display: none;
 }
 
-#earthrise-chat-messages {
+#geoai-chat-messages {
   flex: 1;
   overflow-y: auto;
   padding: 12px 16px;
@@ -159,58 +159,58 @@
   gap: 10px;
 }
 
-#earthrise-chat-widget .msg {
+#geoai-chat-widget .msg {
   max-width: 85%;
   padding: 10px 14px;
   border-radius: 12px;
   font-size: 0.875rem;
   line-height: 1.5;
-  color: var(--er-text);
+  color: var(--gai-text);
   overflow-wrap: break-word;
 }
 
-#earthrise-chat-widget .msg-user {
+#geoai-chat-widget .msg-user {
   align-self: flex-end;
-  background: var(--er-user-bg);
+  background: var(--gai-user-bg);
   border-bottom-right-radius: 4px;
 }
 
-#earthrise-chat-widget .msg-assistant {
+#geoai-chat-widget .msg-assistant {
   align-self: flex-start;
-  background: var(--er-bg);
-  border: 1px solid var(--er-border);
+  background: var(--gai-bg);
+  border: 1px solid var(--gai-border);
   border-bottom-left-radius: 4px;
 }
 
-#earthrise-chat-widget .msg-error {
+#geoai-chat-widget .msg-error {
   align-self: flex-start;
-  background: var(--er-error-bg);
-  border: 1px solid var(--er-border);
+  background: var(--gai-error-bg);
+  border: 1px solid var(--gai-border);
   border-bottom-left-radius: 4px;
   color: #c0392b;
 }
 
-#earthrise-chat-widget .msg-assistant p {
+#geoai-chat-widget .msg-assistant p {
   margin: 0 0 8px;
 }
 
-#earthrise-chat-widget .msg-assistant p:last-child {
+#geoai-chat-widget .msg-assistant p:last-child {
   margin-bottom: 0;
 }
 
-#earthrise-chat-widget .msg-assistant code {
+#geoai-chat-widget .msg-assistant code {
   background: #f0f0f0;
   padding: 1px 4px;
   border-radius: 3px;
   font-size: 0.8rem;
 }
 
-#earthrise-chat-widget .msg-assistant pre code {
+#geoai-chat-widget .msg-assistant pre code {
   background: none;
   padding: 0;
 }
 
-#earthrise-chat-widget .msg-assistant pre {
+#geoai-chat-widget .msg-assistant pre {
   background: #f5f5f5;
   padding: 8px;
   border-radius: 6px;
@@ -218,173 +218,173 @@
   font-size: 0.8rem;
 }
 
-[data-bs-theme="dark"] #earthrise-chat-widget .msg-assistant pre {
+[data-bs-theme="dark"] #geoai-chat-widget .msg-assistant pre {
   background: #2a2a2a;
 }
 
-[data-bs-theme="dark"] #earthrise-chat-widget .msg-assistant code {
+[data-bs-theme="dark"] #geoai-chat-widget .msg-assistant code {
   background: #333;
 }
 
-#earthrise-chat-widget .msg-assistant ul,
-#earthrise-chat-widget .msg-assistant ol {
+#geoai-chat-widget .msg-assistant ul,
+#geoai-chat-widget .msg-assistant ol {
   margin: 4px 0;
   padding-left: 20px;
 }
 
-#earthrise-chat-widget .msg-assistant h3 {
+#geoai-chat-widget .msg-assistant h3 {
   font-size: 1rem;
   font-weight: 600;
   margin: 10px 0 4px;
   line-height: 1.3;
 }
 
-#earthrise-chat-widget .msg-assistant h3:first-child {
+#geoai-chat-widget .msg-assistant h3:first-child {
   margin-top: 0;
 }
 
-#earthrise-chat-widget .msg-assistant h4 {
+#geoai-chat-widget .msg-assistant h4 {
   font-size: 0.925rem;
   font-weight: 600;
   margin: 8px 0 4px;
   line-height: 1.3;
 }
 
-#earthrise-chat-widget .msg-assistant h4:first-child {
+#geoai-chat-widget .msg-assistant h4:first-child {
   margin-top: 0;
 }
 
-#earthrise-chat-widget .msg-assistant h5 {
+#geoai-chat-widget .msg-assistant h5 {
   font-size: 0.875rem;
   font-weight: 600;
   margin: 6px 0 2px;
   line-height: 1.3;
 }
 
-#earthrise-chat-widget .msg-assistant h5:first-child {
+#geoai-chat-widget .msg-assistant h5:first-child {
   margin-top: 0;
 }
 
-#earthrise-chat-widget .msg-assistant .table-wrap {
+#geoai-chat-widget .msg-assistant .table-wrap {
   overflow-x: auto;
   margin: 8px 0;
 }
 
-#earthrise-chat-widget .msg-assistant table {
+#geoai-chat-widget .msg-assistant table {
   border-collapse: collapse;
   font-size: 0.85rem;
   min-width: 100%;
 }
 
-#earthrise-chat-widget .msg-assistant th,
-#earthrise-chat-widget .msg-assistant td {
-  border: 1px solid var(--er-border);
+#geoai-chat-widget .msg-assistant th,
+#geoai-chat-widget .msg-assistant td {
+  border: 1px solid var(--gai-border);
   padding: 5px 8px;
   text-align: left;
 }
 
-#earthrise-chat-widget .msg-assistant th {
-  background: var(--er-user-bg);
+#geoai-chat-widget .msg-assistant th {
+  background: var(--gai-user-bg);
   font-weight: 600;
 }
 
-#earthrise-chat-widget .msg-assistant hr {
+#geoai-chat-widget .msg-assistant hr {
   border: none;
-  border-top: 1px solid var(--er-border);
+  border-top: 1px solid var(--gai-border);
   margin: 8px 0;
 }
 
-#earthrise-chat-widget .msg-assistant .md-link {
-  color: var(--er-primary);
+#geoai-chat-widget .msg-assistant .md-link {
+  color: var(--gai-primary);
   text-decoration: underline;
 }
 
-#earthrise-chat-widget .msg-assistant .md-link:hover {
+#geoai-chat-widget .msg-assistant .md-link:hover {
   text-decoration: none;
 }
 
-#earthrise-chat-widget .citation-ref {
+#geoai-chat-widget .citation-ref {
   font-size: 0.75rem;
   vertical-align: super;
-  color: var(--er-primary);
+  color: var(--gai-primary);
   text-decoration: none;
   font-weight: 600;
   cursor: pointer;
 }
 
-#earthrise-chat-widget .citation-ref-plain {
+#geoai-chat-widget .citation-ref-plain {
   font-size: 0.75rem;
   vertical-align: super;
-  color: var(--er-primary);
+  color: var(--gai-primary);
   font-weight: 600;
 }
 
-#earthrise-chat-widget details.sources {
+#geoai-chat-widget details.sources {
   margin-top: 8px;
   font-size: 0.8rem;
-  border-top: 1px solid var(--er-border);
+  border-top: 1px solid var(--gai-border);
   padding-top: 6px;
 }
 
-#earthrise-chat-widget details.sources summary {
+#geoai-chat-widget details.sources summary {
   cursor: pointer;
-  color: var(--er-primary);
+  color: var(--gai-primary);
   font-weight: 600;
 }
 
-#earthrise-chat-widget details.sources ul {
+#geoai-chat-widget details.sources ul {
   margin: 4px 0 0;
   padding-left: 16px;
   list-style: none;
 }
 
-#earthrise-chat-widget details.sources li {
+#geoai-chat-widget details.sources li {
   margin: 2px 0;
 }
 
-#earthrise-chat-widget details.sources a {
-  color: var(--er-primary);
+#geoai-chat-widget details.sources a {
+  color: var(--gai-primary);
   text-decoration: none;
 }
 
-#earthrise-chat-widget details.sources a:hover {
+#geoai-chat-widget details.sources a:hover {
   text-decoration: underline;
 }
 
-#earthrise-chat-widget details.sources .source-ref {
-  color: var(--er-primary);
+#geoai-chat-widget details.sources .source-ref {
+  color: var(--gai-primary);
   text-decoration: none;
   font-weight: 600;
 }
 
-#earthrise-chat-widget details.sources .source-ref:hover {
+#geoai-chat-widget details.sources .source-ref:hover {
   text-decoration: underline;
 }
 
-#earthrise-chat-widget details.sources .source-ref-plain {
-  color: var(--er-primary);
+#geoai-chat-widget details.sources .source-ref-plain {
+  color: var(--gai-primary);
   font-weight: 600;
 }
 
-#earthrise-chat-widget .loading-dots {
+#geoai-chat-widget .loading-dots {
   display: flex;
   gap: 4px;
   padding: 4px 0;
 }
 
-#earthrise-chat-widget .loading-dots span {
+#geoai-chat-widget .loading-dots span {
   width: 8px;
   height: 8px;
-  background: var(--er-primary);
+  background: var(--gai-primary);
   border-radius: 50%;
   animation: er-pulse 1.2s ease-in-out infinite;
 }
 
-#earthrise-chat-widget .loading-dots span:nth-child(2) {
+#geoai-chat-widget .loading-dots span:nth-child(2) {
   animation-delay: 0.2s;
 }
 
-#earthrise-chat-widget .loading-dots span:nth-child(3) {
+#geoai-chat-widget .loading-dots span:nth-child(3) {
   animation-delay: 0.4s;
 }
 
@@ -402,18 +402,18 @@
   }
 }
 
-#earthrise-chat-form {
+#geoai-chat-form {
   display: flex;
   padding: 10px 12px;
   gap: 8px;
-  border-top: 1px solid var(--er-border);
-  background: var(--er-bg);
+  border-top: 1px solid var(--gai-border);
+  background: var(--gai-bg);
   flex-shrink: 0;
 }
 
-#earthrise-chat-form textarea {
+#geoai-chat-form textarea {
   flex: 1;
-  border: 1px solid var(--er-border);
+  border: 1px solid var(--gai-border);
   border-radius: 8px;
   padding: 8px 12px;
   font-size: 0.875rem;
@@ -422,18 +422,18 @@
   max-height: 120px;
   font-family: inherit;
   line-height: 1.4;
-  background: var(--er-bg);
-  color: var(--er-text);
+  background: var(--gai-bg);
+  color: var(--gai-text);
 }
 
-#earthrise-chat-form textarea:focus {
-  outline: 2px solid var(--er-primary);
+#geoai-chat-form textarea:focus {
+  outline: 2px solid var(--gai-primary);
   outline-offset: -1px;
 }
 
-#earthrise-chat-form button[type="submit"] {
+#geoai-chat-form button[type="submit"] {
   align-self: flex-end;
-  background: var(--er-primary);
+  background: var(--gai-primary);
   color: #fff;
   border: none;
   border-radius: 8px;
@@ -444,12 +444,12 @@
   transition: opacity 0.15s;
 }
 
-#earthrise-chat-form button[type="submit"]:disabled {
+#geoai-chat-form button[type="submit"]:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-#earthrise-chat-status {
+#geoai-chat-status {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -457,99 +457,99 @@
   clip-path: inset(50%);
 }
 
-#earthrise-chat-widget .er-copy-btn {
+#geoai-chat-widget .gai-copy-btn {
   background: none;
   border: none;
   padding: 2px;
   cursor: pointer;
-  color: var(--er-text);
+  color: var(--gai-text);
   opacity: 0.3;
   transition: opacity 0.15s;
   display: flex;
   align-items: center;
 }
 
-#earthrise-chat-widget .er-copy-btn:hover {
+#geoai-chat-widget .gai-copy-btn:hover {
   opacity: 0.7;
 }
 
-#earthrise-chat-widget .er-copy-btn.copied {
+#geoai-chat-widget .gai-copy-btn.copied {
   opacity: 1;
-  color: var(--er-primary);
+  color: var(--gai-primary);
 }
 
-#earthrise-chat-widget .er-copy-btn svg {
+#geoai-chat-widget .gai-copy-btn svg {
   fill: currentcolor;
 }
 
-#earthrise-chat-widget .msg-user .er-copy-btn {
+#geoai-chat-widget .msg-user .gai-copy-btn {
   float: right;
   margin: -2px -4px 0 4px;
 }
 
-#earthrise-chat-widget .er-feedback {
+#geoai-chat-widget .gai-feedback {
   display: flex;
   gap: 4px;
   margin-top: 8px;
   padding-top: 6px;
-  border-top: 1px solid var(--er-border);
+  border-top: 1px solid var(--gai-border);
 }
 
-#earthrise-chat-widget .er-feedback-btn {
+#geoai-chat-widget .gai-feedback-btn {
   background: none;
-  border: 1px solid var(--er-border);
+  border: 1px solid var(--gai-border);
   border-radius: 6px;
   padding: 4px 8px;
   cursor: pointer;
-  color: var(--er-text);
+  color: var(--gai-text);
   opacity: 0.5;
   transition: opacity 0.15s, background 0.15s;
   display: flex;
   align-items: center;
 }
 
-#earthrise-chat-widget .er-feedback-btn:hover {
+#geoai-chat-widget .gai-feedback-btn:hover {
   opacity: 0.8;
-  background: var(--er-user-bg);
+  background: var(--gai-user-bg);
 }
 
-#earthrise-chat-widget .er-feedback-btn.active {
+#geoai-chat-widget .gai-feedback-btn.active {
   opacity: 1;
-  background: var(--er-user-bg);
-  border-color: var(--er-primary);
+  background: var(--gai-user-bg);
+  border-color: var(--gai-primary);
 }
 
-#earthrise-chat-widget .er-feedback-btn svg {
+#geoai-chat-widget .gai-feedback-btn svg {
   fill: currentcolor;
 }
 
-#earthrise-chat-widget .er-feedback-comment {
+#geoai-chat-widget .gai-feedback-comment {
   margin-top: 6px;
   display: flex;
   gap: 6px;
   align-items: flex-start;
 }
 
-#earthrise-chat-widget .er-feedback-comment textarea {
+#geoai-chat-widget .gai-feedback-comment textarea {
   flex: 1;
-  border: 1px solid var(--er-border);
+  border: 1px solid var(--gai-border);
   border-radius: 6px;
   padding: 6px 8px;
   font-size: 0.8rem;
   font-family: inherit;
   resize: none;
-  background: var(--er-bg);
-  color: var(--er-text);
+  background: var(--gai-bg);
+  color: var(--gai-text);
   line-height: 1.4;
 }
 
-#earthrise-chat-widget .er-feedback-comment textarea:focus {
-  outline: 2px solid var(--er-primary);
+#geoai-chat-widget .gai-feedback-comment textarea:focus {
+  outline: 2px solid var(--gai-primary);
   outline-offset: -1px;
 }
 
-#earthrise-chat-widget .er-feedback-comment button {
-  background: var(--er-primary);
+#geoai-chat-widget .gai-feedback-comment button {
+  background: var(--gai-primary);
   color: #fff;
   border: none;
   border-radius: 6px;
@@ -561,10 +561,20 @@
 }
 
 @media (width <= 640px) {
-  #earthrise-chat-panel {
+  #geoai-chat-panel {
     width: calc(100vw - 16px);
     height: 80vh;
     right: 8px;
     bottom: 84px;
   }
+}
+
+#geoai-chat-disclaimer {
+  padding: 4px 16px 8px;
+  margin: 0;
+  font-size: 0.7rem;
+  color: var(--gai-text);
+  opacity: 0.5;
+  text-align: center;
+  flex-shrink: 0;
 }
