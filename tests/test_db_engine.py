@@ -2,7 +2,7 @@
 
 import pytest
 
-from earthrise_rag.db.engine import create_db_engine, create_session_factory
+from geoai_rag.db.engine import create_db_engine, create_session_factory
 
 _DUMMY_URL = "postgresql+asyncpg://user:pass@localhost/db"
 

@@ -28,7 +28,7 @@ from pathlib import Path
 
 import yaml
 
-from earthrise_rag.script_logging import setup_script_logging
+from geoai_rag.script_logging import setup_script_logging
 
 TRANSCRIPT_DIR = Path("data/transcripts")
 CORRECTIONS_FILE = Path("data/transcript_corrections.yml")

@@ -1,4 +1,4 @@
-"""Unit tests for the pure helper functions in earthrise_rag.db.bootstrap.
+"""Unit tests for the pure helper functions in geoai_rag.db.bootstrap.
 
 ensure_active_deployment itself opens a real PostgreSQL session and is out
 of scope here; only the database-free config-snapshot and prompt-hashing
@@ -7,8 +7,8 @@ logic is covered.
 
 from pydantic import SecretStr
 
-from earthrise_rag.config import Settings
-from earthrise_rag.db.bootstrap import _build_config_snapshot, _read_prompt
+from geoai_rag.config import Settings
+from geoai_rag.db.bootstrap import _build_config_snapshot, _read_prompt
 
 
 class TestBuildConfigSnapshot:

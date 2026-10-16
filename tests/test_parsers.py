@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 import nbformat
 import pytest
 
-from earthrise_rag.indexing.parsers import (
+from geoai_rag.indexing.parsers import (
     MarkdownParser,
     NotebookParser,
     PdfParser,

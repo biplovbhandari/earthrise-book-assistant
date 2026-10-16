@@ -28,9 +28,9 @@ from typing import Any
 
 from sqlalchemy.exc import SQLAlchemyError
 
-from earthrise_rag.config import Settings, get_settings
-from earthrise_rag.db.engine import create_db_engine, create_session_factory
-from earthrise_rag.eval.runner import (
+from geoai_rag.config import Settings, get_settings
+from geoai_rag.db.engine import create_db_engine, create_session_factory
+from geoai_rag.eval.runner import (
     JUDGE_TIMEOUT_SECONDS,
     EvalRunner,
     EvalRunnerError,
@@ -39,7 +39,7 @@ from earthrise_rag.eval.runner import (
     format_scores,
     preview_eval_set,
 )
-from earthrise_rag.generation.llm_client import OpenAICompatibleClient
+from geoai_rag.generation.llm_client import OpenAICompatibleClient
 
 logger = logging.getLogger(__name__)
 

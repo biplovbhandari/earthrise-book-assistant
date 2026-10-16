@@ -1,7 +1,7 @@
 from conftest import create_test_client, make_scored_chunk
 
-from earthrise_rag.models.answer import Answer
-from earthrise_rag.models.citation import Citation
+from geoai_rag.models.answer import Answer
+from geoai_rag.models.citation import Citation
 
 
 def _make_answer(chunks=None):

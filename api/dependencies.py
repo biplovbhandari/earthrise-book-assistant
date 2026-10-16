@@ -10,7 +10,7 @@ from fastapi import Depends, HTTPException, Request
 from qdrant_client.http.exceptions import UnexpectedResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from earthrise_rag.factories import Pipelines  # noqa: F401 -- re-exported for test imports
+from geoai_rag.factories import Pipelines  # noqa: F401 -- re-exported for test imports
 
 logger = logging.getLogger(__name__)
 
@@ -91,7 +91,7 @@ async def require_admin_token(request: Request) -> None:
     Raises 401 if the token is missing or wrong, and 403 if ADMIN_TOKEN
     is not configured (prevents silent open access on misconfiguration).
     """
-    from earthrise_rag.config import get_settings
+    from geoai_rag.config import get_settings
 
     expected = get_settings().admin_token.get_secret_value()
     if not expected:

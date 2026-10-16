@@ -12,7 +12,7 @@ FK, and index tests.
 
 from sqlalchemy import CheckConstraint, UniqueConstraint
 
-from earthrise_rag.db import Base
+from geoai_rag.db import Base
 
 
 def _table(name: str):

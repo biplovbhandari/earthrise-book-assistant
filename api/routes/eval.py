@@ -22,9 +22,9 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from starlette.datastructures import State
 
 from api.dependencies import DbSession, require_admin_token, require_db_session
-from earthrise_rag.config import Settings
-from earthrise_rag.db.models import EvalQuestion, EvalResult, EvalRun, EvalSet, VEvalRunSummary
-from earthrise_rag.eval.runner import (
+from geoai_rag.config import Settings
+from geoai_rag.db.models import EvalQuestion, EvalResult, EvalRun, EvalSet, VEvalRunSummary
+from geoai_rag.eval.runner import (
     JUDGE_TIMEOUT_SECONDS,
     EvalRunner,
     EvalRunnerError,
@@ -32,7 +32,7 @@ from earthrise_rag.eval.runner import (
     StartedRun,
     load_eval_set,
 )
-from earthrise_rag.generation.llm_client import OpenAICompatibleClient
+from geoai_rag.generation.llm_client import OpenAICompatibleClient
 
 logger = logging.getLogger(__name__)
 

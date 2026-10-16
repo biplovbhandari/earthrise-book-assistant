@@ -18,9 +18,9 @@ from pathlib import Path
 
 import yaml
 
-from earthrise_rag.config import get_settings
-from earthrise_rag.models.index_result import IndexResult
-from earthrise_rag.script_logging import setup_script_logging
+from geoai_rag.config import get_settings
+from geoai_rag.models.index_result import IndexResult
+from geoai_rag.script_logging import setup_script_logging
 
 logger = logging.getLogger(__name__)
 
@@ -189,7 +189,7 @@ def main() -> int:
         # before deleting the real collection (destructive). If any step fails
         # the old dense index stays intact.
         try:
-            from earthrise_rag.factories import _create_sparse_embedder
+            from geoai_rag.factories import _create_sparse_embedder
 
             sparse_embedder = _create_sparse_embedder(settings)
             test_emb = sparse_embedder.embed(["preflight test"])[0]
@@ -240,7 +240,7 @@ def main() -> int:
                 "Collection '%s' does not exist, nothing to delete", settings.qdrant_collection
             )
 
-    from earthrise_rag.factories import create_indexing_pipeline
+    from geoai_rag.factories import create_indexing_pipeline
 
     pipeline = create_indexing_pipeline(settings)
 

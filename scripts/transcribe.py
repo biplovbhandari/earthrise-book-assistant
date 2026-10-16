@@ -16,7 +16,7 @@ import os
 import sys
 from pathlib import Path
 
-from earthrise_rag.script_logging import setup_script_logging
+from geoai_rag.script_logging import setup_script_logging
 
 logger = logging.getLogger(__name__)
 

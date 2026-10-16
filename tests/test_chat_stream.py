@@ -1,6 +1,6 @@
 from conftest import FakeCitationBuilder, FakeContextBuilder, FakeStrategy, make_scored_chunk
 
-from earthrise_rag.query import QueryPipeline
+from geoai_rag.query import QueryPipeline
 
 
 class FakeStreamingLLMClient:
@@ -134,7 +134,7 @@ class TestOpenAIStreamingAdapter:
         """Verify the real adapter calls stream=True and filters empty deltas."""
         from unittest.mock import MagicMock
 
-        from earthrise_rag.generation.llm_client import OpenAICompatibleClient
+        from geoai_rag.generation.llm_client import OpenAICompatibleClient
 
         chunk_with_content = MagicMock()
         chunk_with_content.choices = [MagicMock()]

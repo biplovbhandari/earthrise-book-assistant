@@ -21,7 +21,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.dependencies import DbSession
 from api.middleware import client_ip
-from earthrise_rag.db.models import Feedback, FeedbackRateLimit, Interaction
+from geoai_rag.db.models import Feedback, FeedbackRateLimit, Interaction
 
 router = APIRouter(tags=["feedback"])
 

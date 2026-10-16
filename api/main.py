@@ -22,13 +22,13 @@ from api.routes.chat import router as chat_router
 from api.routes.eval import router as eval_router
 from api.routes.feedback import router as feedback_router
 from api.routes.search import router as search_router
-from earthrise_rag import __version__
-from earthrise_rag.config import get_settings
-from earthrise_rag.db.bootstrap import ensure_active_deployment
-from earthrise_rag.db.engine import check_db_schema_status, create_db_engine, create_session_factory
-from earthrise_rag.db.models import EvalRun
-from earthrise_rag.factories import create_pipelines
-from earthrise_rag.logging_config import configure_logging
+from geoai_rag import __version__
+from geoai_rag.config import get_settings
+from geoai_rag.db.bootstrap import ensure_active_deployment
+from geoai_rag.db.engine import check_db_schema_status, create_db_engine, create_session_factory
+from geoai_rag.db.models import EvalRun
+from geoai_rag.factories import create_pipelines
+from geoai_rag.logging_config import configure_logging
 
 logger = logging.getLogger(__name__)
 
@@ -121,7 +121,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="EarthRISE Book Assistant",
+    title="Geo-AI Book Assistant",
     version=__version__,
     lifespan=lifespan,
 )

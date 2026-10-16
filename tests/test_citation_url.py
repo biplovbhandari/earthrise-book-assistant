@@ -1,11 +1,11 @@
 from typing import Literal
 
-from earthrise_rag.citations.citation_builder import (
+from geoai_rag.citations.citation_builder import (
     DefaultCitationBuilder,
     source_path_to_book_url,
 )
-from earthrise_rag.models.chunk import Chunk
-from earthrise_rag.models.scored_chunk import ScoredChunk
+from geoai_rag.models.chunk import Chunk
+from geoai_rag.models.scored_chunk import ScoredChunk
 
 _url = source_path_to_book_url
 _humanize = DefaultCitationBuilder._humanize_dir_name

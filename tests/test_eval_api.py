@@ -18,9 +18,9 @@ from pydantic import SecretStr
 
 from api.dependencies import Pipelines, require_admin_token, require_db_session
 from api.routes import eval as eval_routes
-from earthrise_rag.config import Settings
-from earthrise_rag.db.models import EvalQuestion, EvalResult, EvalRun, EvalSet, VEvalRunSummary
-from earthrise_rag.eval.runner import (
+from geoai_rag.config import Settings
+from geoai_rag.db.models import EvalQuestion, EvalResult, EvalRun, EvalSet, VEvalRunSummary
+from geoai_rag.eval.runner import (
     JUDGE_TIMEOUT_SECONDS,
     EvalRunnerError,
     NoMatchingQuestionsError,
@@ -307,8 +307,8 @@ def test_runs_returns_summaries_newest_first(client, session):
         "avg_faithfulness": None,
     }
     sql = str(session.statements[0])
-    assert "FROM earthrise.v_eval_run_summary" in sql
-    assert "ORDER BY earthrise.v_eval_run_summary.created_at DESC" in sql
+    assert "FROM geoai.v_eval_run_summary" in sql
+    assert "ORDER BY geoai.v_eval_run_summary.created_at DESC" in sql
 
 
 def test_runs_limit_defaults_to_50_and_accepts_a_caller_value(client, session):
@@ -378,7 +378,7 @@ def test_run_detail_returns_each_result_with_its_question_key(client, session):
         ],
     }
     statement = session.statements[0]
-    assert "LEFT OUTER JOIN earthrise.eval_questions" in str(statement)
+    assert "LEFT OUTER JOIN geoai.eval_questions" in str(statement)
     assert 7 in statement.compile().params.values(), "only this run's results are selected"
 
 
@@ -421,8 +421,8 @@ def test_sets_returns_each_set_with_its_question_count(client, session):
     }
     assert second == {"id": 2, "name": "scratch", "description": None, "question_count": 0}
     sql = str(session.statements[0])
-    assert "LEFT OUTER JOIN earthrise.eval_questions" in sql
-    assert "GROUP BY earthrise.eval_sets.id" in sql
+    assert "LEFT OUTER JOIN geoai.eval_questions" in sql
+    assert "GROUP BY geoai.eval_sets.id" in sql
 
 
 # --- GET /eval/sets/{set_id}/questions ---
@@ -478,7 +478,7 @@ def test_set_questions_returns_questions_with_missing_tags_as_empty(client, sess
     assert session.gets == [(EvalSet, 1)]
     statement = session.statements[0]
     assert 1 in statement.compile().params.values(), "only this set's questions are selected"
-    assert "ORDER BY earthrise.eval_questions.id" in str(statement)
+    assert "ORDER BY geoai.eval_questions.id" in str(statement)
 
 
 def test_set_questions_for_an_unknown_set_is_404(client, session):

@@ -8,9 +8,9 @@ from typing import Any
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from earthrise_rag.citations.citation_builder import source_path_to_book_url
-from earthrise_rag.db.models.infrastructure import ChunkRecord
-from earthrise_rag.db.models.interaction import (
+from geoai_rag.citations.citation_builder import source_path_to_book_url
+from geoai_rag.db.models.infrastructure import ChunkRecord
+from geoai_rag.db.models.interaction import (
     Conversation,
     Interaction,
     InteractionCitation,

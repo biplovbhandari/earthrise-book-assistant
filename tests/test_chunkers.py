@@ -1,10 +1,10 @@
-from earthrise_rag.indexing.chunkers import (
+from geoai_rag.indexing.chunkers import (
     NotebookChunker,
     PdfChunker,
     SectionChunker,
     VideoChunker,
 )
-from earthrise_rag.models import Document
+from geoai_rag.models import Document
 
 
 def _long_content(words: int = 800) -> str:

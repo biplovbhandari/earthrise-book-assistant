@@ -176,7 +176,7 @@ def test_daily_returns_rows(client, session):
             "avg_latency_ms": 900.0,
         },
     ]
-    assert "earthrise.v_daily_stats" in _executed_sql(session)
+    assert "geoai.v_daily_stats" in _executed_sql(session)
 
 
 def test_citations_returns_rows(client, session):
@@ -218,7 +218,7 @@ def test_citations_returns_rows(client, session):
             "ranking_methods": None,
         },
     ]
-    assert "earthrise.v_citation_heatmap" in _executed_sql(session)
+    assert "geoai.v_citation_heatmap" in _executed_sql(session)
 
 
 def test_gaps_returns_rows(client, session):
@@ -241,7 +241,7 @@ def test_gaps_returns_rows(client, session):
 
     assert resp.status_code == 200
     assert resp.json() == [{**r, "ranking_methods": None} for r in rows]
-    assert "earthrise.v_retrieval_gaps" in _executed_sql(session)
+    assert "geoai.v_retrieval_gaps" in _executed_sql(session)
 
 
 def test_conversations_returns_rows(client, session):
@@ -291,7 +291,7 @@ def test_conversations_returns_rows(client, session):
     assert second["interaction_count"] == 0
     assert second["last_activity"] is None
     assert second["duration_seconds"] is None
-    assert "earthrise.v_conversation_summary" in _executed_sql(session)
+    assert "geoai.v_conversation_summary" in _executed_sql(session)
 
 
 @pytest.mark.parametrize("path", _LIST_PATHS)

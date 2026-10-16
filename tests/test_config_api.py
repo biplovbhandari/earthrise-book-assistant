@@ -6,7 +6,7 @@ import pytest
 from conftest import create_test_client
 
 from api.dependencies import Pipelines
-from earthrise_rag.config import get_settings
+from geoai_rag.config import get_settings
 
 ADMIN_TOKEN = "correct-token"
 
