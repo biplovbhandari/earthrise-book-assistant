@@ -5,8 +5,8 @@ from sqlalchemy import pool, text
 from sqlalchemy.ext.asyncio import create_async_engine
 
 from alembic import context
-from earthrise_rag.config import get_settings
-from earthrise_rag.db import Base
+from geoai_rag.config import get_settings
+from geoai_rag.db import Base
 
 config = context.config
 

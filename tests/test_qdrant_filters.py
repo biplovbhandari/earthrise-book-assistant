@@ -56,7 +56,7 @@ def test_filter_key_mapping():
         mock_client = _mock_collection_with_sparse()
         MockClient.return_value = mock_client
 
-        from earthrise_rag.indexing.qdrant_store import QdrantStore
+        from geoai_rag.indexing.qdrant_store import QdrantStore
 
         store = QdrantStore("http://fake:6333", "test_collection", 10)
 
@@ -80,7 +80,7 @@ def test_search_sparse_builds_filter():
         mock_client = _mock_collection_with_sparse()
         MockClient.return_value = mock_client
 
-        from earthrise_rag.indexing.qdrant_store import QdrantStore
+        from geoai_rag.indexing.qdrant_store import QdrantStore
 
         store = QdrantStore(
             "http://fake:6333", "test_collection", 10, sparse_embedder=FakeSparseEmbedder()
@@ -103,8 +103,8 @@ def test_upsert_includes_sparse_vectors():
         mock_client = _mock_collection_with_sparse()
         MockClient.return_value = mock_client
 
-        from earthrise_rag.indexing.qdrant_store import QdrantStore
-        from earthrise_rag.models import Chunk
+        from geoai_rag.indexing.qdrant_store import QdrantStore
+        from geoai_rag.models import Chunk
 
         store = QdrantStore(
             "http://fake:6333", "test_collection", 10, sparse_embedder=FakeSparseEmbedder()
@@ -133,7 +133,7 @@ def test_ensure_collection_rejects_missing_sparse_on_indexer_path():
     with patch("qdrant_client.QdrantClient") as MockClient:
         MockClient.return_value = _mock_collection_dense_only()
 
-        from earthrise_rag.indexing.qdrant_store import QdrantStore
+        from geoai_rag.indexing.qdrant_store import QdrantStore
 
         with pytest.raises(ValueError, match="--recreate-collection"):
             QdrantStore("http://fake:6333", "test_collection", 10, create_if_missing=True)
@@ -143,7 +143,7 @@ def test_app_path_dense_only_collection_warns():
     with patch("qdrant_client.QdrantClient") as MockClient:
         MockClient.return_value = _mock_collection_dense_only()
 
-        from earthrise_rag.indexing.qdrant_store import QdrantStore
+        from geoai_rag.indexing.qdrant_store import QdrantStore
 
         store = QdrantStore("http://fake:6333", "test_collection", 10, create_if_missing=False)
 
@@ -156,7 +156,7 @@ def test_app_path_missing_collection_no_crash():
         MockClient.return_value = mock_client
         mock_client.get_collections.return_value.collections = []
 
-        from earthrise_rag.indexing.qdrant_store import QdrantStore
+        from geoai_rag.indexing.qdrant_store import QdrantStore
 
         store = QdrantStore("http://fake:6333", "test_collection", 10, create_if_missing=False)
 
@@ -169,7 +169,7 @@ def test_search_sparse_returns_empty_when_no_sparse():
         MockClient.return_value = mock_client
         mock_client.get_collections.return_value.collections = []
 
-        from earthrise_rag.indexing.qdrant_store import QdrantStore
+        from geoai_rag.indexing.qdrant_store import QdrantStore
 
         store = QdrantStore("http://fake:6333", "test_collection", 10, create_if_missing=False)
 
@@ -184,7 +184,7 @@ def test_create_collection_uses_idf_modifier_when_required():
         MockClient.return_value = mock_client
         mock_client.get_collections.return_value.collections = []
 
-        from earthrise_rag.indexing.qdrant_store import QdrantStore
+        from geoai_rag.indexing.qdrant_store import QdrantStore
 
         idf_embedder = FakeSparseEmbedder()
         idf_embedder.requires_idf = True

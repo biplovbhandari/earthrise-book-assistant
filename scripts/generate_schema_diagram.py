@@ -8,7 +8,7 @@ Usage:
 import argparse
 from pathlib import Path
 
-from earthrise_rag.db import Base
+from geoai_rag.db import Base
 
 DOMAIN_GROUPS = {
     "User Interaction": [

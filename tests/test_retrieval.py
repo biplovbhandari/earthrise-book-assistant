@@ -1,7 +1,7 @@
 import pytest
 from conftest import make_scored_chunk
 
-from earthrise_rag.retrieval import DenseStrategy, HybridStrategy, NoOpReranker
+from geoai_rag.retrieval import DenseStrategy, HybridStrategy, NoOpReranker
 
 
 class FakeEmbedder:
@@ -144,7 +144,7 @@ def test_cross_encoder_reranker_reorders():
         mock_model.predict.return_value = [0.2, 0.9, 0.5]
         MockCE.return_value = mock_model
 
-        from earthrise_rag.retrieval.rerankers import LocalCrossEncoderReranker
+        from geoai_rag.retrieval.rerankers import LocalCrossEncoderReranker
 
         reranker = LocalCrossEncoderReranker("fake-model", "/tmp")
 
@@ -171,7 +171,7 @@ def test_cross_encoder_reranker_empty_candidates():
         mock_model.num_labels = 1
         MockCE.return_value = mock_model
 
-        from earthrise_rag.retrieval.rerankers import LocalCrossEncoderReranker
+        from geoai_rag.retrieval.rerankers import LocalCrossEncoderReranker
 
         reranker = LocalCrossEncoderReranker("fake-model", "/tmp")
         results = reranker.rerank("query", [], top_k=5)
@@ -190,7 +190,7 @@ def test_cross_encoder_reranker_replaces_nonfinite_scores():
         mock_model.predict.return_value = np.array([float("nan"), float("inf"), float("-inf"), 0.5])
         MockCE.return_value = mock_model
 
-        from earthrise_rag.retrieval.rerankers import (
+        from geoai_rag.retrieval.rerankers import (
             _NON_FINITE_SENTINEL,
             LocalCrossEncoderReranker,
         )
@@ -286,7 +286,7 @@ def test_cross_encoder_reranker_rejects_bad_score_shape():
         mock_model.predict.return_value = np.array([0.1, 0.2, 0.3])  # 3 scores, 2 candidates
         MockCE.return_value = mock_model
 
-        from earthrise_rag.retrieval.rerankers import LocalCrossEncoderReranker
+        from geoai_rag.retrieval.rerankers import LocalCrossEncoderReranker
 
         reranker = LocalCrossEncoderReranker("fake-model", "/tmp")
         candidates = [make_scored_chunk("A", 0.1), make_scored_chunk("B", 0.1)]
@@ -303,7 +303,7 @@ def test_cross_encoder_reranker_truncates_to_top_k():
         mock_model.predict.return_value = [0.1, 0.9, 0.5, 0.7]
         MockCE.return_value = mock_model
 
-        from earthrise_rag.retrieval.rerankers import LocalCrossEncoderReranker
+        from geoai_rag.retrieval.rerankers import LocalCrossEncoderReranker
 
         reranker = LocalCrossEncoderReranker("fake-model", "/tmp")
         candidates = [make_scored_chunk(c, 0.1) for c in ("A", "B", "C", "D")]

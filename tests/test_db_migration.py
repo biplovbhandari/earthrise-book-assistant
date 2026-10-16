@@ -16,7 +16,7 @@ from urllib.parse import urlparse
 import asyncpg
 import pytest
 
-from earthrise_rag.db.base import Base
+from geoai_rag.db.base import Base
 
 pytestmark = pytest.mark.integration
 
@@ -43,8 +43,8 @@ def _parse_server_url(url: str) -> tuple[str, str, str, int]:
     """Extract user, password, host, port from a PostgreSQL URL."""
     parsed = urlparse(url.replace("postgresql+asyncpg://", "postgresql://"))
     return (
-        parsed.username or "earthrise",
-        parsed.password or "earthrise",
+        parsed.username or "geoai",
+        parsed.password or "geoai",
         parsed.hostname or "localhost",
         parsed.port or 5432,
     )
@@ -99,7 +99,7 @@ def temp_db():
     if not TEST_DATABASE_URL:
         pytest.skip("TEST_DATABASE_URL not set")
 
-    db_name = f"test_earthrise_{uuid.uuid4().hex[:8]}"
+    db_name = f"test_geoai_{uuid.uuid4().hex[:8]}"
     user, password, host, port = _parse_server_url(TEST_DATABASE_URL)
     db_url = f"postgresql+asyncpg://{user}:{password}@{host}:{port}/{db_name}"
 

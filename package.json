@@ -1,5 +1,5 @@
 {
-  "name": "earthrise-book-assistant",
+  "name": "geoai-book-assistant",
   "version": "1.0.0",
   "description": "Book viewer and retrieval-augmented generation (RAG) assistant for the [EarthRISE Applied AI and Deep Learning Book](https://nasa-earthrise.github.io/EarthRISE-Applied-Artificial-Intelligence-and-Deep-Learning-Book/). Serves Quarto-rendered chapters alongside a search and generation API.",
   "main": "index.js",
@@ -11,10 +11,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/biplovbhandari/earthrise-book-assistant.git"
+    "url": "git+https://github.com/biplovbhandari/geoai-book-assistant.git"
   },
   "keywords": [
-    "earthrise",
+    "geoai",
     "nasa",
     "rag",
     "retrieval-augmented-generation",
@@ -28,9 +28,9 @@
   "license": "Apache-2.0",
   "type": "commonjs",
   "bugs": {
-    "url": "https://github.com/biplovbhandari/earthrise-book-assistant/issues"
+    "url": "https://github.com/biplovbhandari/geoai-book-assistant/issues"
   },
-  "homepage": "https://github.com/biplovbhandari/earthrise-book-assistant#readme",
+  "homepage": "https://github.com/biplovbhandari/geoai-book-assistant#readme",
   "devDependencies": {
     "eslint": "^10.6.0",
     "globals": "^17.7.0",

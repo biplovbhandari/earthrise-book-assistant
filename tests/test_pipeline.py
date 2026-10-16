@@ -1,5 +1,5 @@
-from earthrise_rag.indexing.pipeline import IndexingPipeline
-from earthrise_rag.models import Chunk, Document
+from geoai_rag.indexing.pipeline import IndexingPipeline
+from geoai_rag.models import Chunk, Document
 
 
 class FakeParser:

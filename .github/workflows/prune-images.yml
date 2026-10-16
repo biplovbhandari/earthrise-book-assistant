@@ -23,9 +23,9 @@ jobs:
     strategy:
       matrix:
         package:
-          - earthrise-book-assistant/api
-          - earthrise-book-assistant/indexer
-          - earthrise-book-assistant/book-builder
+          - geoai-book-assistant/api
+          - geoai-book-assistant/indexer
+          - geoai-book-assistant/book-builder
     steps:
       - uses: dataaxiom/ghcr-cleanup-action@v1
         with:

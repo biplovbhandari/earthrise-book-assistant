@@ -1,6 +1,6 @@
 import pytest
 
-from earthrise_rag.eval.scorer import (
+from geoai_rag.eval.scorer import (
     build_faithfulness_prompt,
     build_similarity_prompt,
     parse_judge_score,

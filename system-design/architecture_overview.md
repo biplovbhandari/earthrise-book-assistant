@@ -1,4 +1,4 @@
-# EarthRISE Book RAG Assistant — Architecture Overview
+# Geo-AI Book RAG Assistant - Architecture Overview
 
 **Book:** [nasa-earthrise.github.io/EarthRISE-Applied-Artificial-Intelligence-and-Deep-Learning-Book](https://nasa-earthrise.github.io/EarthRISE-Applied-Artificial-Intelligence-and-Deep-Learning-Book/) \
 **Videos:** [YouTube Playlist](https://www.youtube.com/playlist?list=PLKlxghiZuIM5YyM92lDtsJT7p0Aln3R_k)
@@ -194,7 +194,7 @@ Additional endpoints:
 
 ## Pipeline Factories and Readiness
 
-`earthrise_rag.factories` provides pipeline factory functions (`create_pipelines()`, `create_indexing_pipeline()`, and per-component factories).
+`geoai_rag.factories` provides pipeline factory functions (`create_pipelines()`, `create_indexing_pipeline()`, and per-component factories).
 The API layer and CLI scripts both import from this module, keeping pipeline construction in one place.
 
 Routes declare readiness requirements via FastAPI `dependencies=[...]`.

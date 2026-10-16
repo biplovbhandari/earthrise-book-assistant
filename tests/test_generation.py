@@ -1,7 +1,7 @@
 from conftest import FakeCitationBuilder, FakeContextBuilder, FakeStrategy, make_scored_chunk
 
-from earthrise_rag.models import Answer
-from earthrise_rag.query import QueryPipeline
+from geoai_rag.models import Answer
+from geoai_rag.query import QueryPipeline
 
 
 class FakeLLMClient:
@@ -120,7 +120,7 @@ def test_answer_accepts_timings():
 def test_ask_reports_retrieval_and_generation_ms(monkeypatch):
     """Each stage timer wraps only its own call, so the two durations never mix."""
     clock = FakeClock()
-    monkeypatch.setattr("earthrise_rag.query.pipeline.time", clock)
+    monkeypatch.setattr("geoai_rag.query.pipeline.time", clock)
     pipeline = QueryPipeline(
         strategy=TimedFakeStrategy([make_scored_chunk()], clock, seconds=0.25),
         context_builder=FakeContextBuilder(),
@@ -138,7 +138,7 @@ def test_ask_reports_retrieval_and_generation_ms(monkeypatch):
 def test_ask_zero_chunks_reports_retrieval_ms_and_no_generation(monkeypatch):
     """The no-results early return keeps the real retrieval time and reports no generation."""
     clock = FakeClock()
-    monkeypatch.setattr("earthrise_rag.query.pipeline.time", clock)
+    monkeypatch.setattr("geoai_rag.query.pipeline.time", clock)
     pipeline = QueryPipeline(
         strategy=TimedFakeStrategy([], clock, seconds=0.25),
         context_builder=FakeContextBuilder(),

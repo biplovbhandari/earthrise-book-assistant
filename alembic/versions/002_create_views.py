@@ -21,7 +21,7 @@ depends_on: str | Sequence[str] | None = None
 
 def upgrade() -> None:
     """Create all analytics and evaluation views."""
-    op.execute("SET search_path TO earthrise, public")
+    op.execute("SET search_path TO geoai, public")
 
     # --- Analytics views ---
 
@@ -134,7 +134,7 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     """Drop all views."""
-    op.execute("SET search_path TO earthrise, public")
+    op.execute("SET search_path TO geoai, public")
 
     op.execute("DROP VIEW IF EXISTS v_eval_run_summary")
     op.execute("DROP VIEW IF EXISTS v_conversation_summary")

@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from api.dependencies import acquire_llm_slot, require_generation_ready, require_retrieval_ready
 from api.metrics import llm_generation_seconds, retrieval_seconds
 from api.routes.validators import QuestionFiltersMixin
-from earthrise_rag.models.answer import Answer
+from geoai_rag.models.answer import Answer
 
 logger = logging.getLogger(__name__)
 

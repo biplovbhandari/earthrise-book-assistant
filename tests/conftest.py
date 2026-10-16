@@ -5,8 +5,8 @@ from __future__ import annotations
 import pytest
 from fastapi.testclient import TestClient
 
-from earthrise_rag.models import Chunk, ScoredChunk
-from earthrise_rag.models.citation import Citation
+from geoai_rag.models import Chunk, ScoredChunk
+from geoai_rag.models.citation import Citation
 
 
 @pytest.fixture(autouse=True)
@@ -100,7 +100,7 @@ def create_test_client(monkeypatch, pipelines=None):
     """Create a TestClient with mocked pipelines and DB disabled."""
     monkeypatch.setenv("DATABASE_URL", "")
 
-    from earthrise_rag.config import get_settings
+    from geoai_rag.config import get_settings
 
     get_settings.cache_clear()
 

@@ -11,7 +11,7 @@ from __future__ import annotations
 import argparse
 import sys
 
-from earthrise_rag.config import TOP_K_MAX, TOP_K_MIN, get_settings
+from geoai_rag.config import TOP_K_MAX, TOP_K_MIN, get_settings
 
 
 def _parse_filters(raw: list[str] | None) -> dict[str, str] | None:
@@ -62,7 +62,7 @@ def main() -> int:
         )
         return 1
 
-    from earthrise_rag.factories import create_pipelines
+    from geoai_rag.factories import create_pipelines
 
     pipelines = create_pipelines(settings)
 

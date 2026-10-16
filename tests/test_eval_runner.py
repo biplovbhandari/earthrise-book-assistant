@@ -23,8 +23,8 @@ from conftest import FakeCitationBuilder
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from earthrise_rag.db.models import Deployment, EvalQuestion, EvalResult, EvalRun, EvalSet
-from earthrise_rag.eval.runner import (
+from geoai_rag.db.models import Deployment, EvalQuestion, EvalResult, EvalRun, EvalSet
+from geoai_rag.eval.runner import (
     JUDGE_MAX_TOKENS,
     EvalRunner,
     EvalRunnerError,
@@ -32,8 +32,8 @@ from earthrise_rag.eval.runner import (
     load_eval_set,
     select_questions,
 )
-from earthrise_rag.interfaces import LLMClient
-from earthrise_rag.models import Answer, Chunk, ScoredChunk
+from geoai_rag.interfaces import LLMClient
+from geoai_rag.models import Answer, Chunk, ScoredChunk
 
 BASE_URL = "http://api.test"
 ADMIN_TOKEN = "admin-secret"
@@ -328,7 +328,7 @@ def http(monkeypatch: pytest.MonkeyPatch) -> FakeHttp:
     fake = FakeHttp(clock)
     monkeypatch.setattr(requests, "get", fake.get)
     monkeypatch.setattr(requests, "post", fake.post)
-    monkeypatch.setattr("earthrise_rag.eval.runner.time", clock)
+    monkeypatch.setattr("geoai_rag.eval.runner.time", clock)
     return fake
 
 

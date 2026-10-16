@@ -1,4 +1,4 @@
-# EarthRISE Book Assistant
+# Geo-AI Book Assistant
 # Run `just --list` to see all available recipes.
 
 # === macOS: native app, Docker services only ====================
@@ -50,13 +50,13 @@ db-revision msg:
 db-backup: (_db-backup-prune)
     #!/usr/bin/env bash
     set -euo pipefail
-    if ! docker exec earthrise-db pg_isready -U earthrise -d earthrise >/dev/null 2>&1; then
+    if ! docker exec geoai-db pg_isready -U geoai -d geoai >/dev/null 2>&1; then
         echo "Error: PostgreSQL is not running" >&2
         exit 1
     fi
     mkdir -p backups
-    outfile="backups/earthrise_$(date +%Y%m%d_%H%M%S).sql.gz"
-    docker exec earthrise-db pg_dump -U earthrise earthrise | gzip > "$outfile"
+    outfile="backups/geoai_$(date +%Y%m%d_%H%M%S).sql.gz"
+    docker exec geoai-db pg_dump -U geoai geoai | gzip > "$outfile"
     echo "Backup: $outfile ($(du -h "$outfile" | cut -f1))"
 
 # Remove old backups, keeping the 30 most recent
@@ -64,9 +64,9 @@ _db-backup-prune:
     #!/usr/bin/env bash
     set -euo pipefail
     [[ -d backups ]] || exit 0
-    count=$(ls -1 backups/earthrise_*.sql.gz 2>/dev/null | wc -l)
+    count=$(ls -1 backups/geoai_*.sql.gz 2>/dev/null | wc -l)
     if (( count > 30 )); then
-        ls -1t backups/earthrise_*.sql.gz | tail -n +"31" | xargs rm -f
+        ls -1t backups/geoai_*.sql.gz | tail -n +"31" | xargs rm -f
         echo "Pruned $((count - 30)) old backup(s)"
     fi
 
@@ -78,12 +78,12 @@ db-restore file:
         echo "File not found: {{ file }}" >&2
         exit 1
     fi
-    echo "WARNING: This will replace all data in the earthrise database."
+    echo "WARNING: This will replace all data in the geoai database."
     read -p "Continue? [y/N] " -n 1 -r; echo
     [[ $REPLY =~ ^[Yy]$ ]] || { echo "Cancelled."; exit 1; }
-    docker exec earthrise-db dropdb -U earthrise --force --if-exists earthrise
-    docker exec earthrise-db createdb -U earthrise earthrise
-    gunzip -c "{{ file }}" | docker exec -i earthrise-db psql -U earthrise -d earthrise --quiet
+    docker exec geoai-db dropdb -U geoai --force --if-exists geoai
+    docker exec geoai-db createdb -U geoai geoai
+    gunzip -c "{{ file }}" | docker exec -i geoai-db psql -U geoai -d geoai --quiet
     echo "Restored from: {{ file }}"
     echo "Run 'just db-migrate' if the backup predates a schema change."
 
@@ -128,7 +128,7 @@ render-book-prod:
 services:
     docker compose up qdrant postgres prometheus grafana -d
     @echo "Waiting for PostgreSQL..."
-    @until docker exec earthrise-db psql -U earthrise -d earthrise -c "SELECT 1" >/dev/null 2>&1; do sleep 1; done
+    @until docker exec geoai-db psql -U geoai -d geoai -c "SELECT 1" >/dev/null 2>&1; do sleep 1; done
     @echo "PostgreSQL ready."
 
 # Start the full Docker stack (local build, Linux with NVIDIA GPU)
@@ -153,15 +153,15 @@ db-reset:
     rm -rf .data/postgres
     docker compose up postgres -d
     @echo "Waiting for PostgreSQL..."
-    @until docker exec earthrise-db psql -U earthrise -d earthrise -c "SELECT 1" >/dev/null 2>&1; do sleep 1; done
+    @until docker exec geoai-db psql -U geoai -d geoai -c "SELECT 1" >/dev/null 2>&1; do sleep 1; done
     @echo "PostgreSQL ready."
     uv run alembic upgrade head
 
 # Stop services, remove volumes and data for a fresh start
 clean:
     docker compose down -v --remove-orphans
-    -docker rm -f $(docker ps -aq --filter "label=com.docker.compose.project=earthrise-book-assistant") 2>/dev/null
-    -docker volume ls -q --filter "name=earthrise-book-assistant" | xargs -r docker volume rm 2>/dev/null
+    -docker rm -f $(docker ps -aq --filter "label=com.docker.compose.project=geoai-book-assistant") 2>/dev/null
+    -docker volume ls -q --filter "name=geoai-book-assistant" | xargs -r docker volume rm 2>/dev/null
     rm -rf .data/qdrant .data/postgres _book
 
 # Rebuild Docker images

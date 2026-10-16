@@ -8,7 +8,7 @@ from fastapi.testclient import TestClient
 def client_no_db(monkeypatch):
     """TestClient with DATABASE_URL empty (DB disabled), lifespan executed."""
     monkeypatch.setenv("DATABASE_URL", "")
-    from earthrise_rag.config import get_settings
+    from geoai_rag.config import get_settings
 
     get_settings.cache_clear()
     from api.main import app

@@ -8,8 +8,8 @@ from pydantic import BaseModel, Field
 from api.dependencies import require_retrieval_ready
 from api.metrics import retrieval_chunk_count, search_request_count
 from api.routes.validators import QuestionFiltersMixin
-from earthrise_rag.config import TOP_K_MAX, TOP_K_MIN
-from earthrise_rag.models.scored_chunk import ScoredChunk
+from geoai_rag.config import TOP_K_MAX, TOP_K_MIN
+from geoai_rag.models.scored_chunk import ScoredChunk
 
 logger = logging.getLogger(__name__)
 

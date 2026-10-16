@@ -36,12 +36,12 @@ class OverviewStats(BaseModel):
 
 _OVERVIEW_SQL = """
     SELECT
-        (SELECT COUNT(*) FROM earthrise.interactions) AS total_interactions,
-        (SELECT COUNT(*) FROM earthrise.conversations) AS total_conversations,
-        (SELECT COUNT(DISTINCT visitor_id) FROM earthrise.conversations) AS unique_visitors,
-        (SELECT MIN(created_at) FROM earthrise.interactions) AS first_interaction_at,
-        (SELECT MAX(created_at) FROM earthrise.interactions) AS last_interaction_at,
-        (SELECT AVG(latency_ms) FROM earthrise.interactions) AS avg_latency_ms
+        (SELECT COUNT(*) FROM geoai.interactions) AS total_interactions,
+        (SELECT COUNT(*) FROM geoai.conversations) AS total_conversations,
+        (SELECT COUNT(DISTINCT visitor_id) FROM geoai.conversations) AS unique_visitors,
+        (SELECT MIN(created_at) FROM geoai.interactions) AS first_interaction_at,
+        (SELECT MAX(created_at) FROM geoai.interactions) AS last_interaction_at,
+        (SELECT AVG(latency_ms) FROM geoai.interactions) AS avg_latency_ms
 """
 
 
@@ -67,7 +67,7 @@ class DailyStat(BaseModel):
 # guessing the type of an untyped parameter.
 _DAILY_SQL = """
     SELECT day, total_queries, thumbs_up, thumbs_down, avg_tokens, avg_latency_ms
-    FROM earthrise.v_daily_stats
+    FROM geoai.v_daily_stats
     WHERE day > CURRENT_DATE - CAST(:days AS integer)
     ORDER BY day DESC
 """
@@ -101,7 +101,7 @@ class CitationStat(BaseModel):
 _CITATIONS_SQL = """
     SELECT source_path, display_label, cite_count, thumbs_up_pct,
            last_cited_at, ranking_methods
-    FROM earthrise.v_citation_heatmap
+    FROM geoai.v_citation_heatmap
     ORDER BY cite_count DESC, source_path, display_label
     LIMIT :limit
 """
@@ -132,7 +132,7 @@ class RetrievalGap(BaseModel):
 
 _GAPS_SQL = """
     SELECT question, avg_top_score, thumbs_down_count, ranking_methods
-    FROM earthrise.v_retrieval_gaps
+    FROM geoai.v_retrieval_gaps
     ORDER BY avg_top_score ASC NULLS FIRST, question
     LIMIT :limit
 """
@@ -167,7 +167,7 @@ class ConversationSummary(BaseModel):
 
 _CONVERSATIONS_SQL = """
     SELECT id, title, topic, visitor_id, created_at, interaction_count, last_activity, duration
-    FROM earthrise.v_conversation_summary
+    FROM geoai.v_conversation_summary
     ORDER BY created_at DESC, id DESC
     LIMIT :limit
 """

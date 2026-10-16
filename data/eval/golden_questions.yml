@@ -5,7 +5,7 @@
 # List a source only if the expected answer relies on it, so retrieval precision and recall stay meaningful.
 
 name: golden-qa-v1
-description: Core Q&A set for EarthRISE book assistant evaluation
+description: Core Q&A set for Geo-AI book assistant evaluation
 
 questions:
   - id: q001
