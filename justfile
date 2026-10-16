@@ -8,11 +8,11 @@
 
 # Start backing services and the dev server with hot-reload
 dev: services
-    uv run uvicorn api.main:app --reload
+    uv run uvicorn api.main:app --reload --timeout-graceful-shutdown 30
 
 # Run the app in production mode (no hot-reload, binds to all interfaces)
 serve: services
-    uv run uvicorn api.main:app --host 0.0.0.0 --port ${APP_PORT:-8000}
+    uv run uvicorn api.main:app --host 0.0.0.0 --port ${APP_PORT:-8000} --timeout-graceful-shutdown 30
 
 # Run lint, type check, and tests
 check: lint typecheck test
@@ -126,7 +126,7 @@ render-book-prod:
 
 # Start Qdrant and PostgreSQL in the background (used by macOS recipes above)
 services:
-    docker compose up qdrant postgres -d
+    docker compose up qdrant postgres prometheus grafana -d
     @echo "Waiting for PostgreSQL..."
     @until docker exec earthrise-db psql -U earthrise -d earthrise -c "SELECT 1" >/dev/null 2>&1; do sleep 1; done
     @echo "PostgreSQL ready."
