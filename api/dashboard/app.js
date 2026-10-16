@@ -57,9 +57,11 @@ createApp({
         }
 
         /**
-         * Shows the dashboard, loads everything, and keeps the analytics fresh until the user disconnects.
-         * The evaluation data loads once: runs and sets change only when someone starts a run, and the
-         * evaluation view refreshes itself after the run it started.
+         * Shows the dashboard, loads everything, and keeps the analytics and the evaluation run list
+         * fresh until the user disconnects. The run list reloads whichever tab is open, so a run started
+         * elsewhere (the CLI, or another browser) appears within a minute and, if it is still going, is
+         * followed. The eval sets are not reloaded on the timer: they change only when a run starts, and
+         * the refresh button on the evaluation tab reloads them.
          */
         function startSession() {
             session.id += 1;
@@ -67,7 +69,10 @@ createApp({
             analytics.fetchAll();
             evaluation.fetchAll();
             stopRefresh();
-            refreshTimer = setInterval(() => analytics.fetchAll(), REFRESH_MS);
+            refreshTimer = setInterval(() => {
+                analytics.fetchAll();
+                evaluation.fetchRuns();
+            }, REFRESH_MS);
         }
 
         /** Validates the typed token, saves it for this tab, and starts the session. */
