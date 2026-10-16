@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-import posixpath
 import uuid
 from dataclasses import dataclass, field
 from typing import Any
@@ -9,6 +8,7 @@ from typing import Any
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from earthrise_rag.citations.citation_builder import source_path_to_book_url
 from earthrise_rag.db.models.infrastructure import ChunkRecord
 from earthrise_rag.db.models.interaction import (
     Conversation,
@@ -52,20 +52,6 @@ def _filename_stem(source_path: str) -> str:
     return stem or filename
 
 
-def _source_path_to_book_url(source_path: str) -> str | None:
-    """Convert a book-relative source path to an absolute book HTML URL.
-
-    Only paths rooted at ``book/`` map to a rendered page. Everything else
-    (video transcripts, unresolved sources) returns ``None`` so the caller
-    can fall back to another URL source, such as a video watch link.
-    """
-    if not source_path.startswith("book/"):
-        return None
-    relative = source_path[len("book/") :]
-    stem, _ext = posixpath.splitext(relative)
-    return f"/{stem}.html"
-
-
 def _derive_chunk_display(source_type: str, metadata: dict[str, Any]) -> tuple[str, str | None]:
     """Derive a chunk's display label and URL from its retrieval metadata.
 
@@ -98,7 +84,7 @@ def _derive_chunk_display(source_type: str, metadata: dict[str, Any]) -> tuple[s
     if source_type == "video_transcript" and watch_link:
         url = watch_link
     else:
-        url = _source_path_to_book_url(source_path)
+        url = source_path_to_book_url(source_path) or None
 
     return display_label, url
 
