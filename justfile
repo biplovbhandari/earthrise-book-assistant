@@ -70,6 +70,28 @@ _db-backup-prune:
         echo "Pruned $((count - 30)) old backup(s)"
     fi
 
+# Rotate launchd log files using copytruncate (no sudo, no restart needed)
+log-rotate:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    max_bytes=$((10 * 1024 * 1024))  # 10 MB
+    keep=7
+    for logfile in logs/app/stdout.log logs/app/stderr.log logs/tunnel/tunnel.log logs/tunnel/tunnel.error.log; do
+        [[ -f "$logfile" ]] || continue
+        size=$(stat -f%z "$logfile" 2>/dev/null || echo 0)
+        if (( size > max_bytes )); then
+            rotated="${logfile}.$(date +%Y%m%d_%H%M%S)"
+            cp "$logfile" "$rotated"
+            : > "$logfile"
+            gzip "$rotated"
+            echo "Rotated $logfile ($((size / 1024 / 1024)) MB)"
+        fi
+    done
+    # Prune old rotated copies
+    for logfile in logs/app/stdout.log logs/app/stderr.log logs/tunnel/tunnel.log logs/tunnel/tunnel.error.log; do
+        ls -1t "${logfile}".*.gz 2>/dev/null | tail -n +"$((keep + 1))" | xargs rm -f 2>/dev/null
+    done
+
 # Restore PostgreSQL from a backup file (replaces current data)
 db-restore file:
     #!/usr/bin/env bash
