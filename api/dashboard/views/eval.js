@@ -23,6 +23,13 @@ const POLL_MS = 10000;
 const ACTIVE_STATUSES = ['pending', 'running'];
 const STATUS_FAILED = 'failed';
 
+// The symbol that opens each run's label in the picker. An <option> cannot hold a coloured dot, so the
+// state is shown by the character itself: an hourglass (U+23F3) while the run is going, a check mark
+// (U+2714) when it finished and a cross (U+2718) when it failed.
+const RUN_MARKS = { active: '⏳', completed: '✔', failed: '✘' };
+
+// How many characters of a question the question picker shows. The results table has the whole text.
+
 // The four scores the runner records for every question. `label` heads the table column, `avgLabel`
 // names the summary card, and `hint` is the column header's tooltip.
 const SCORE_COLUMNS = [
@@ -71,6 +78,17 @@ function isRunStarted(value) {
     return isRecord(value) && value.eval_run_id !== null && value.eval_run_id !== undefined;
 }
 
+/**
+ * True for the questions of one eval set: a list of objects that each have their text as a string and
+ * a key that is a string or null. The key is null for a question saved before keys existed.
+ */
+function isQuestionList(value) {
+    return isRecordArray(value) && value.every(
+        (question) => typeof question.question === 'string'
+            && (question.question_key === null || typeof question.question_key === 'string')
+    );
+}
+
 /** Mean of the numeric entries, or null when there are none. A missing score is skipped, not counted as 0. */
 function average(values) {
     const numbers = values.filter(isNumber);
@@ -98,6 +116,11 @@ function capitalize(text) {
 /** URL of one run's detail endpoint. The id is encoded so an unexpected value cannot change the path. */
 function runUrl(id) {
     return `/eval/runs/${encodeURIComponent(id)}`;
+}
+
+/** URL of one eval set's question list. The id is encoded so an unexpected value cannot change the path. */
+function setQuestionsUrl(setId) {
+    return `/eval/sets/${encodeURIComponent(setId)}/questions`;
 }
 
 /** Reduces one API result to what its table row and detail panel show. */
@@ -130,17 +153,24 @@ export function useEval(session, onAuthError) {
     const runs = ref(null);
     const sets = ref(null);
     const selectedSetName = ref('');
+    // The selected eval set's questions that can be run on their own, or null until they have loaded.
+    const questions = ref(null);
+    // Keys of the questions to run, which are their ids in the eval set file. An empty list runs every
+    // question.
+    const selectedQuestionIds = ref([]);
     const selectedRunId = ref(null);
     const runDetail = ref(null);
-    // Id of a run started from this page that has not finished yet. It drives the progress polling and
-    // the busy button. A run found already running (after a reload, or started from the CLI) is not
-    // tracked on purpose: one orphaned by a server restart would otherwise lock the button for good.
+    // Id of the run being followed: one started from this page, or one the API already reports as in
+    // progress when the run list loads (started from the CLI, or before a reload). It drives the
+    // progress polling and the busy button. A run cut short by a server crash or restart keeps the
+    // status 'running' in the database, so it is followed, and keeps the button busy, until that row
+    // is corrected.
     const runningId = ref(null);
     // True while the request that starts a run is in flight, so a double click cannot start two runs.
     const starting = ref(false);
     // One message per kind of request, '' when the last one worked. `run` covers starting a run and
     // checking on it.
-    const errors = reactive({ runs: '', sets: '', detail: '', run: '' });
+    const errors = reactive({ runs: '', sets: '', questions: '', detail: '', run: '' });
     // Rows the user has opened, by question key. Keys rather than positions keep a row open while the
     // table refreshes during a run.
     const expandedKeys = reactive(new Set());
@@ -149,6 +179,13 @@ export function useEval(session, onAuthError) {
     let pollTimer = null;
 
     const busy = computed(() => starting.value || runningId.value !== null);
+
+    // Database id of the selected eval set, which the questions endpoint needs. It is null until the
+    // sets have loaded, and it changes only when another set is picked, not when the list is reloaded.
+    const selectedSetId = computed(() => {
+        const evalSet = (sets.value || []).find((candidate) => candidate.name === selectedSetName.value);
+        return evalSet ? evalSet.id : null;
+    });
 
     const rows = computed(() => (runDetail.value ? runDetail.value.results.map(toRow) : []));
 
@@ -219,19 +256,30 @@ export function useEval(session, onAuthError) {
         detail: detailMessage(),
     }));
 
-    /** Text for one run in the picker. The run being followed says "running" instead of a stale count. */
+    /**
+     * Text for one run in the picker: a symbol for its state, when it started, how it stands, and where
+     * it was started from ("cli" or "api"). A run that is still going says "running" instead of a count
+     * that is out of date. A failed run says how many questions it scored first. The API does not record
+     * how many the run was meant to score, so the label cannot say "of N".
+     */
     function runLabel(run) {
         const when = formatDate(run.created_at);
-        if (run.eval_run_id === runningId.value) {
-            return `${when} - running`;
+        const questionCount = countLabel(run.questions_evaluated, 'question');
+        const source = run.source ? ` (${run.source})` : '';
+        if (isActive(run.status) || run.eval_run_id === runningId.value) {
+            return `${RUN_MARKS.active} ${when} - running${source}`;
         }
-        return `${when} - ${countLabel(run.questions_evaluated, 'question')}`;
+        if (run.status === STATUS_FAILED) {
+            return `${RUN_MARKS.failed} ${when} - failed after ${questionCount}${source}`;
+        }
+        return `${RUN_MARKS.completed} ${when} - ${questionCount}${source}`;
     }
 
     /** Text for one entry of the eval-set picker. */
     function setLabel(evalSet) {
         return `${evalSet.name} (${countLabel(evalSet.question_count, 'question')})`;
     }
+
 
     /** True when the row for this question key is open. */
     function isExpanded(key) {
@@ -296,7 +344,24 @@ export function useEval(session, onAuthError) {
         }
     }
 
-    /** Loads the run list. The first load also opens the latest run, which the API lists first. */
+    /** Loads the questions of one eval set into `questions`, unless another set has been selected since. */
+    async function loadQuestions(setId) {
+        const data = await call(
+            'questions',
+            'Could not load questions',
+            () => apiGet(setQuestionsUrl(setId), session.token, isQuestionList),
+            () => selectedSetId.value !== setId
+        );
+        if (data !== undefined) {
+            // A question saved before keys existed has no id to limit a run to, so it is not offered.
+            questions.value = data.filter((question) => question.question_key);
+        }
+    }
+
+    /**
+     * Loads the run list. The first load also opens the latest run, which the API lists first. A run
+     * the API reports as still going is followed, so its progress shows even when it was started elsewhere.
+     */
     async function fetchRuns() {
         const data = await call(
             'runs',
@@ -307,6 +372,12 @@ export function useEval(session, onAuthError) {
             return;
         }
         runs.value = data;
+        // Follow a run that is already in progress (started from the CLI, or before this page loaded).
+        // A run this page is already following is left alone.
+        const active = data.find((run) => isActive(run.status));
+        if (active && runningId.value === null) {
+            runningId.value = active.eval_run_id;
+        }
         // Later refreshes keep whatever run the user is looking at.
         if (selectedRunId.value === null && runs.value.length > 0) {
             selectRun(runs.value[0].eval_run_id);
@@ -339,6 +410,18 @@ export function useEval(session, onAuthError) {
         errors.detail = '';
         if (id !== null) {
             loadDetail(id);
+        }
+    });
+
+    // The eval set selection is likewise the single trigger for loading its questions. The previous set's
+    // questions and the ones picked from them are dropped first, so an id that belongs to another
+    // set is never sent with this one.
+    watch(selectedSetId, (id) => {
+        questions.value = null;
+        selectedQuestionIds.value = [];
+        errors.questions = '';
+        if (id !== null) {
+            loadQuestions(id);
         }
     });
 
@@ -406,11 +489,12 @@ export function useEval(session, onAuthError) {
 
     /**
      * Starts an evaluation of the named set through POST /eval/runs and follows it until it finishes.
-     * `tags` optionally narrows the run to questions with those tags. Does nothing while a run is
-     * already being started or followed. The server runs the questions in the background, so the reply
-     * only says that the run began.
+     * `tags` optionally narrows the run to questions with those tags, and `questionIds` to the questions
+     * with those ids in the eval set file. An empty or missing list means no filter. Does nothing while
+     * a run is already being started or followed. The server runs the questions in the background, so
+     * the reply only says that the run began.
      */
-    async function startRun(evalSetName, tags) {
+    async function startRun(evalSetName, tags, questionIds) {
         if (busy.value || !evalSetName) {
             return;
         }
@@ -421,6 +505,10 @@ export function useEval(session, onAuthError) {
             const body = { eval_set_name: evalSetName };
             if (Array.isArray(tags) && tags.length > 0) {
                 body.tags = tags;
+            }
+            // No selection means every question, so the field is left out rather than sent empty.
+            if (Array.isArray(questionIds) && questionIds.length > 0) {
+                body.question_ids = questionIds;
             }
             const started = await call(
                 'run',
@@ -449,6 +537,8 @@ export function useEval(session, onAuthError) {
         runs.value = null;
         sets.value = null;
         selectedSetName.value = '';
+        questions.value = null;
+        selectedQuestionIds.value = [];
         selectedRunId.value = null;
         runDetail.value = null;
         runningId.value = null;
@@ -467,7 +557,7 @@ export function useEval(session, onAuthError) {
     }
 
     return {
-        runs, sets, selectedSetName, selectedRunId, runDetail, runningId,
+        runs, sets, selectedSetName, questions, selectedQuestionIds, selectedRunId, runDetail, runningId,
         errors, busy, rows, metrics, statusLine, statusFailed, messages,
         scoreColumns: SCORE_COLUMNS,
         fetchAll, fetchRuns, fetchSets, selectRun, startRun,

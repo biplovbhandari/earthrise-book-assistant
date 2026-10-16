@@ -63,7 +63,10 @@ class EvalRunnerError(RuntimeError):
 
 
 class NoMatchingQuestionsError(ValueError):
-    """The tag or question filters selected no question from an eval set."""
+    """The question filters cannot be met by an eval set.
+
+    Either no question passes them, or a requested question id is not in the eval set.
+    """
 
 
 _NonEmptyStr = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]
@@ -169,43 +172,52 @@ def load_eval_set(yaml_path: Path) -> dict[str, Any]:
 def select_questions(
     eval_set_data: dict[str, Any],
     tags: list[str] | None = None,
-    question_id: str | None = None,
+    question_ids: list[str] | None = None,
 ) -> list[dict[str, Any]]:
     """Pick the questions to run, in file order.
 
     A tag filter keeps the questions that carry at least one of the given tags.
+    An id filter keeps the questions whose YAML id is in the given list.
     When both filters are given, a question must pass both.
+    Every id in the id filter must exist in the eval set, whatever the tag filter does with it.
+    A mistyped id therefore fails the selection instead of quietly running fewer questions.
 
     Args:
         eval_set_data: An eval set as returned by load_eval_set.
         tags: Keep only questions with at least one of these tags. None or empty keeps all.
-        question_id: Keep only the question with this YAML id. None keeps all.
+        question_ids: Keep only the questions with these YAML ids. None keeps all.
+            An empty list is not the same as None: it selects nothing, so it raises.
 
     Raises:
-        NoMatchingQuestionsError: If no question passes the filters.
+        NoMatchingQuestionsError: If an id in question_ids is not in the eval set, or if no
+            question passes the filters.
     """
+    name = eval_set_data["name"]
     selected = list(eval_set_data["questions"])
-    if question_id is not None:
-        selected = [q for q in selected if q["id"] == question_id]
+    if question_ids is not None:
+        wanted_ids = set(question_ids)
+        unknown_ids = sorted(wanted_ids - {q["id"] for q in selected})
+        if unknown_ids:
+            listed = ", ".join(map(repr, unknown_ids))
+            raise NoMatchingQuestionsError(f"Question id(s) not found in '{name}': {listed}")
+        selected = [q for q in selected if q["id"] in wanted_ids]
     if tags:
-        wanted = set(tags)
-        selected = [q for q in selected if wanted.intersection(q["tags"])]
+        wanted_tags = set(tags)
+        selected = [q for q in selected if wanted_tags.intersection(q["tags"])]
     if not selected:
         filters = []
-        if question_id is not None:
-            filters.append(f"question id '{question_id}'")
+        if question_ids is not None:
+            filters.append(f"question ids {', '.join(map(repr, question_ids)) or '(none)'}")
         if tags:
             filters.append(f"tags {', '.join(tags)}")
-        raise NoMatchingQuestionsError(
-            f"No question in '{eval_set_data['name']}' matches {' and '.join(filters)}"
-        )
+        raise NoMatchingQuestionsError(f"No question in '{name}' matches {' and '.join(filters)}")
     return selected
 
 
 def preview_eval_set(
     yaml_path: Path,
     tags: list[str] | None = None,
-    question_id: str | None = None,
+    question_ids: list[str] | None = None,
 ) -> dict[str, Any]:
     """Print the questions a run would evaluate, without any API, judge, or database call.
 
@@ -215,10 +227,11 @@ def preview_eval_set(
     Raises:
         FileNotFoundError: If yaml_path does not exist.
         ValueError: If the file breaks the eval set format.
-        NoMatchingQuestionsError: If the filters select no question.
+        NoMatchingQuestionsError: If the filters select no question, or an id in question_ids
+            is not in the eval set.
     """
     eval_set_data = load_eval_set(yaml_path)
-    selected = select_questions(eval_set_data, tags, question_id)
+    selected = select_questions(eval_set_data, tags, question_ids)
     total = len(eval_set_data["questions"])
     print(f"Dry run: {eval_set_data['name']}, {len(selected)} of {total} questions would run")
     for question in selected:
@@ -563,7 +576,7 @@ class EvalRunner:
         self,
         yaml_path: Path,
         tags: list[str] | None = None,
-        question_id: str | None = None,
+        question_ids: list[str] | None = None,
         dry_run: bool = False,
     ) -> dict[str, Any]:
         """Evaluate an eval set and store the scored results.
@@ -578,7 +591,8 @@ class EvalRunner:
         Args:
             yaml_path: Eval set YAML file.
             tags: Run only questions that carry at least one of these tags.
-            question_id: Run only the question with this YAML id.
+            question_ids: Run only the questions with these YAML ids. Each id must be in the
+                eval set; see select_questions.
             dry_run: Print the questions that would run, then return without calling the API,
                 the judge, or the database.
 
@@ -591,21 +605,22 @@ class EvalRunner:
         Raises:
             FileNotFoundError: If yaml_path does not exist.
             ValueError: If the file breaks the eval set format.
-            NoMatchingQuestionsError: If the filters select no question.
+            NoMatchingQuestionsError: If the filters select no question, or an id in
+                question_ids is not in the eval set.
             EvalRunnerError: If the API, the judge, or a database precondition fails.
                 A run row that was already created is left with status 'failed'.
         """
         if dry_run:
-            return preview_eval_set(yaml_path, tags, question_id)
+            return preview_eval_set(yaml_path, tags, question_ids)
 
-        started = await self.start_run(yaml_path, tags, question_id)
+        started = await self.start_run(yaml_path, tags, question_ids)
         return await self.execute_run(started)
 
     async def start_run(
         self,
         yaml_path: Path,
         tags: list[str] | None = None,
-        question_id: str | None = None,
+        question_ids: list[str] | None = None,
         source: str = "cli",
     ) -> StartedRun:
         """Check a run request and create the run's eval_runs row, without asking any question.
@@ -619,7 +634,8 @@ class EvalRunner:
         Args:
             yaml_path: Eval set YAML file.
             tags: Select only questions that carry at least one of these tags.
-            question_id: Select only the question with this YAML id.
+            question_ids: Select only the questions with these YAML ids. Each id must be in the
+                eval set; see select_questions.
 
         Returns:
             The started run, whose row has status 'running'.
@@ -628,11 +644,12 @@ class EvalRunner:
         Raises:
             FileNotFoundError: If yaml_path does not exist.
             ValueError: If the file breaks the eval set format.
-            NoMatchingQuestionsError: If the filters select no question.
+            NoMatchingQuestionsError: If the filters select no question, or an id in
+                question_ids is not in the eval set.
             EvalRunnerError: If GET /config fails or no deployment is active.
         """
         eval_set_data = load_eval_set(yaml_path)
-        selected = select_questions(eval_set_data, tags, question_id)
+        selected = select_questions(eval_set_data, tags, question_ids)
         eval_set_id, synced = await self.sync_to_db(eval_set_data)
         db_ids = {question["id"]: question["db_id"] for question in synced}
         config = await asyncio.to_thread(self.get_config)

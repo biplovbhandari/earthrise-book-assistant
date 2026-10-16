@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex, nofollow">
-    <title>EarthRISE Analytics</title>
+    <title>Geo-AI Dashboard</title>
     <link rel="stylesheet" href="styles/tokens.css">
     <link rel="stylesheet" href="styles/layout.css">
     <link rel="stylesheet" href="styles/analytics.css">
@@ -24,7 +24,7 @@
     <div id="app" v-cloak>
         <template v-if="!authenticated">
             <header>
-                <h1>EarthRISE Analytics</h1>
+                <h1>Geo-AI Dashboard</h1>
                 <form class="auth" @submit.prevent="connect">
                     <input type="password" v-model="tokenInput" placeholder="Admin token" autocomplete="off" aria-label="Admin token">
                     <button type="submit" class="btn">Connect</button>
@@ -35,7 +35,7 @@
 
         <template v-else>
             <header>
-                <h1>EarthRISE Analytics</h1>
+                <h1>Geo-AI Dashboard</h1>
                 <div class="auth">
                     <button type="button" class="btn" @click="disconnect()">Disconnect</button>
                 </div>
@@ -162,12 +162,15 @@
 
             <div v-show="tab === 'eval'">
                 <div class="eval-bar">
-                    <label class="eval-field" v-if="eval.runs && eval.runs.length">
-                        <span>Run</span>
-                        <select v-model="eval.selectedRunId">
-                            <option v-for="r in eval.runs" :key="r.eval_run_id" :value="r.eval_run_id">{{ eval.runLabel(r) }}</option>
-                        </select>
-                    </label>
+                    <div class="eval-runs">
+                        <label class="eval-field" v-if="eval.runs && eval.runs.length">
+                            <span>Run</span>
+                            <select v-model="eval.selectedRunId">
+                                <option v-for="r in eval.runs" :key="r.eval_run_id" :value="r.eval_run_id">{{ eval.runLabel(r) }}</option>
+                            </select>
+                        </label>
+                        <button type="button" class="eval-refresh" title="Refresh runs" aria-label="Refresh runs" @click="eval.fetchAll()">&#x21BB;</button>
+                    </div>
                     <div class="eval-controls">
                         <label class="eval-field" v-if="eval.sets && eval.sets.length">
                             <span>Eval set</span>
@@ -175,10 +178,21 @@
                                 <option v-for="s in eval.sets" :key="s.id" :value="s.name">{{ eval.setLabel(s) }}</option>
                             </select>
                         </label>
-                        <button type="button" class="btn" :disabled="eval.busy || !eval.selectedSetName" @click="eval.startRun(eval.selectedSetName)">{{ eval.busy ? 'Running...' : 'Run Evaluation' }}</button>
+                        <div class="eval-field eval-question">
+                            <span class="eval-question-label">Questions <span class="eval-hint">(none = all)</span></span>
+                            <div class="eval-checkbox-list" :class="{ disabled: eval.busy }">
+                                <label v-for="q in eval.questions" :key="q.question_key" class="eval-checkbox-item">
+                                    <input type="checkbox" :value="q.question_key" v-model="eval.selectedQuestionIds" :disabled="eval.busy">
+                                    <span>{{ q.question_key }} - {{ q.question }}</span>
+                                </label>
+                                <span v-if="!eval.questions || eval.questions.length === 0" class="eval-hint">No questions loaded</span>
+                            </div>
+                        </div>
+                        <button type="button" class="btn" :disabled="eval.busy || !eval.selectedSetName" @click="eval.startRun(eval.selectedSetName, null, eval.selectedQuestionIds)">{{ eval.busy ? 'Running...' : 'Run Evaluation' }}</button>
                     </div>
                 </div>
                 <p class="empty err" role="alert" v-if="eval.errors.run">{{ eval.errors.run }}</p>
+                <p class="empty err" v-if="eval.errors.questions">{{ eval.errors.questions }}</p>
                 <p class="empty" :class="{ err: eval.errors.sets }" v-if="eval.messages.sets">{{ eval.messages.sets }}</p>
                 <p class="empty" :class="{ err: eval.errors.runs }" v-if="eval.messages.runs">{{ eval.messages.runs }}</p>
 

@@ -424,25 +424,63 @@ def test_select_questions_by_tag_keeps_questions_with_any_listed_tag(eval_file):
     assert [q["id"] for q in selected] == ["q001", "q002"]
 
 
-def test_select_questions_by_id_returns_only_that_question(eval_file):
-    """--question picks exactly one question."""
-    selected = select_questions(load_eval_set(eval_file), question_id="q003")
+@pytest.mark.parametrize(
+    ("question_ids", "expected"),
+    [
+        pytest.param(["q003"], ["q003"], id="one-id"),
+        pytest.param(["q003", "q001"], ["q001", "q003"], id="several-ids-in-file-order"),
+        pytest.param(["q002", "q002"], ["q002"], id="repeated-id-selects-once"),
+    ],
+)
+def test_select_questions_by_ids_returns_only_those_questions(eval_file, question_ids, expected):
+    """--question picks the listed questions, each once, in the file's order and not as typed.
 
-    assert [q["id"] for q in selected] == ["q003"]
+    A repeated id must not select its question twice, because a run stores one result per
+    question.
+    """
+    selected = select_questions(load_eval_set(eval_file), question_ids=question_ids)
+
+    assert [q["id"] for q in selected] == expected
+
+
+def test_select_questions_applies_the_tag_filter_to_the_listed_ids(eval_file):
+    """Ids and tags both narrow the run: a listed question without the tag is left out.
+
+    That is not an error, because the id exists in the eval set; only a missing id is.
+    """
+    selected = select_questions(
+        load_eval_set(eval_file), tags=["chapter-11"], question_ids=["q001", "q002"]
+    )
+
+    assert [q["id"] for q in selected] == ["q002"]
+
+
+def test_select_questions_fails_when_any_listed_id_is_unknown(eval_file):
+    """One mistyped id rejects the whole selection instead of quietly running fewer questions.
+
+    The message names each id that is not in the eval set, and no id that is.
+    """
+    with pytest.raises(NoMatchingQuestionsError, match="test-set") as raised:
+        select_questions(load_eval_set(eval_file), question_ids=["q999", "q001", "q998"])
+
+    message = str(raised.value)
+    assert "q998" in message and "q999" in message, "every unknown id is listed"
+    assert "q001" not in message, "an id that exists is not reported as unmatched"
 
 
 @pytest.mark.parametrize(
-    ("question_id", "tags"),
+    ("question_ids", "tags"),
     [
-        pytest.param("q999", None, id="unknown-id"),
+        pytest.param(["q999"], None, id="unknown-id"),
         pytest.param(None, ["no-such-tag"], id="unknown-tag"),
-        pytest.param("q001", ["chapter-11"], id="both-filters-must-pass"),
+        pytest.param(["q001"], ["chapter-11"], id="both-filters-must-pass"),
+        pytest.param([], None, id="empty-id-list-selects-nothing"),
     ],
 )
-def test_select_questions_raises_when_nothing_matches(eval_file, question_id, tags):
+def test_select_questions_raises_when_nothing_matches(eval_file, question_ids, tags):
     """A typo in --tags or --question fails loudly instead of running an empty evaluation."""
     with pytest.raises(NoMatchingQuestionsError, match="test-set"):
-        select_questions(load_eval_set(eval_file), tags=tags, question_id=question_id)
+        select_questions(load_eval_set(eval_file), tags=tags, question_ids=question_ids)
 
 
 def test_dry_run_lists_the_selected_questions_and_touches_nothing(
@@ -518,7 +556,7 @@ def test_run_scores_and_stores_each_selected_question(eval_file, http, db, runne
     """The selected question is asked, scored, and stored with exact scores, trace, snapshots."""
     seed_answers(http)
 
-    summary = asyncio.run(runner.run(eval_file, question_id="q001"))
+    summary = asyncio.run(runner.run(eval_file, question_ids=["q001"]))
 
     (run,) = db.rows[EvalRun]
     assert run.status == "completed"
@@ -567,7 +605,7 @@ def test_judge_calls_go_straight_to_the_llm_with_the_right_evidence(eval_file, h
     """Judge prompts skip POST /ask; similarity sees the reference, faithfulness the chunks."""
     seed_answers(http)
 
-    asyncio.run(runner.run(eval_file, question_id="q001"))
+    asyncio.run(runner.run(eval_file, question_ids=["q001"]))
 
     assert [(method, url) for method, url, _ in http.calls] == [
         ("GET", f"{BASE_URL}/config"),
@@ -639,25 +677,29 @@ def test_start_run_creates_the_run_row_and_asks_nothing(eval_file, http, db, llm
 def test_execute_run_finishes_the_run_that_start_run_created(eval_file, http, db, runner):
     """execute_run asks only the started questions and completes the same run row."""
     seed_answers(http)
-    started = asyncio.run(runner.start_run(eval_file, question_id="q002"))
+    started = asyncio.run(runner.start_run(eval_file, question_ids=["q002", "q003"]))
 
     summary = asyncio.run(runner.execute_run(started))
 
     (run,) = db.rows[EvalRun]
     assert run.id == started.run_id
     assert run.status == "completed"
-    assert [r.question_snapshot for r in db.rows[EvalResult]] == ["How is ethics applied?"]
+    assert [r.question_snapshot for r in db.rows[EvalResult]] == [
+        "How is ethics applied?",
+        "Who is the book for?",
+    ]
     assert summary["eval_run_id"] == started.run_id
-    assert summary["question_count"] == 1
+    assert summary["question_count"] == 2
 
 
 def test_start_run_rejects_unmatched_filters_before_any_side_effect(eval_file, http, db, runner):
     """A filter typo fails before any row is written or request is sent.
 
     The API reports this to the caller at once, so it must not leave a run row behind.
+    A mistyped id among valid ones counts too: the valid question must not start a run either.
     """
     with pytest.raises(NoMatchingQuestionsError, match="q999"):
-        asyncio.run(runner.start_run(eval_file, question_id="q999"))
+        asyncio.run(runner.start_run(eval_file, question_ids=["q001", "q999"]))
 
     assert db.sessions_opened == 0
     assert http.calls == []
