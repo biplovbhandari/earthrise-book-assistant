@@ -7,6 +7,8 @@ from fastapi import Depends, FastAPI
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
+from sqlalchemy import update
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from api.dependencies import create_pipelines, require_admin_token
 from api.middleware import RateLimitMiddleware
@@ -21,8 +23,30 @@ from earthrise_rag import __version__
 from earthrise_rag.config import get_settings
 from earthrise_rag.db.bootstrap import ensure_active_deployment
 from earthrise_rag.db.engine import check_db_schema_status, create_db_engine, create_session_factory
+from earthrise_rag.db.models import EvalRun
 
 logger = logging.getLogger(__name__)
+
+
+async def _sweep_orphaned_api_runs(
+    session_factory: async_sessionmaker[AsyncSession],
+) -> None:
+    """Mark API-triggered eval runs left in 'running' or 'pending' as failed.
+
+    API runs only exist in the server process.
+    Any still active at startup are orphans from a crash or restart.
+    CLI runs are left alone because the CLI process may still be alive.
+    """
+    async with session_factory() as session:
+        cursor = await session.execute(
+            update(EvalRun)
+            .where(EvalRun.source == "api", EvalRun.status.in_(["pending", "running"]))
+            .values(status="failed")
+        )
+        count = cursor.rowcount  # type: ignore[union-attr]
+        if count:
+            logger.info("Marked %d orphaned API eval run(s) as failed", count)
+        await session.commit()
 
 
 @asynccontextmanager
@@ -77,6 +101,9 @@ async def lifespan(app: FastAPI):
                 result = await ensure_active_deployment(session, app.state.settings)
                 if result is not None:
                     app.state.active_deployment_id, app.state.active_index_run_id = result
+
+    if app.state.db_session_factory is not None and status == "ready":
+        await _sweep_orphaned_api_runs(app.state.db_session_factory)
 
     try:
         yield
