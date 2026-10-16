@@ -42,6 +42,15 @@ class QueryPipeline:
         self._citation_builder = citation_builder
         self._top_k = top_k
 
+    @property
+    def generation_ready(self) -> bool:
+        """Whether all generation adapters are configured."""
+        return (
+            self._context_builder is not None
+            and self._llm_client is not None
+            and self._citation_builder is not None
+        )
+
     def search(
         self,
         question: str,
@@ -107,15 +116,14 @@ class QueryPipeline:
         Raises:
             RuntimeError: If generation adapters are not configured.
         """
-        if (
-            self._context_builder is None
-            or self._llm_client is None
-            or self._citation_builder is None
-        ):
+        if not self.generation_ready:
             raise RuntimeError(
                 "Generation not configured"
                 " - context_builder, llm_client, and citation_builder are required"
             )
+        assert self._context_builder is not None
+        assert self._llm_client is not None
+        assert self._citation_builder is not None
 
         retrieval_query = self._build_retrieval_query(question, history)
         t0 = time.monotonic()
@@ -177,15 +185,14 @@ class QueryPipeline:
         Raises:
             RuntimeError: If generation adapters are not configured.
         """
-        if (
-            self._context_builder is None
-            or self._llm_client is None
-            or self._citation_builder is None
-        ):
+        if not self.generation_ready:
             raise RuntimeError(
                 "Generation not configured"
                 " - context_builder, llm_client, and citation_builder are required"
             )
+        assert self._context_builder is not None
+        assert self._llm_client is not None
+        assert self._citation_builder is not None
 
         retrieval_query = self._build_retrieval_query(question, history)
         t0 = time.monotonic()

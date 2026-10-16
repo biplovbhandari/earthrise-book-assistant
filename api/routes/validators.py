@@ -1,10 +1,13 @@
 from __future__ import annotations
 
-from pydantic import field_validator
+from pydantic import BaseModel, Field, field_validator
 
 
-class QuestionFiltersMixin:
-    """Shared validators for question and filters fields."""
+class QuestionFiltersMixin(BaseModel):
+    """Base model with shared question and filters fields."""
+
+    question: str = Field(..., min_length=1, max_length=2000)
+    filters: dict[str, str | int | bool] | None = None
 
     @field_validator("question", mode="before")
     @classmethod

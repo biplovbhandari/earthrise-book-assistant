@@ -9,6 +9,8 @@ from api.routes.chat import MAX_HISTORY_CONTENT
 class FakeStreamingQueryPipeline:
     """Explicit fake with all required adapters for readiness checks."""
 
+    generation_ready = True
+
     def __init__(self):
         self._context_builder = object()
         self._llm_client = self  # self has chat_stream
@@ -28,6 +30,8 @@ class FakeStreamingQueryPipeline:
 class FakeNonStreamingQueryPipeline:
     """Fake WITHOUT chat_stream -- must produce 503."""
 
+    generation_ready = True
+
     def __init__(self):
         self._context_builder = object()
         self._llm_client = _NoStreamLLM()
@@ -41,6 +45,8 @@ class _NoStreamLLM:
 
 class FakeNonCallableStreamQueryPipeline:
     """Fake with chat_stream as a non-callable attribute -- must produce 503."""
+
+    generation_ready = True
 
     def __init__(self):
         self._context_builder = object()
@@ -57,6 +63,8 @@ class _NonCallableStreamLLM:
 
 class FakeIncompleteQueryPipeline:
     """Fake with _context_builder=None -- must produce 503."""
+
+    generation_ready = False
 
     def __init__(self):
         self._context_builder = None
@@ -173,6 +181,8 @@ class TestChatEndpoint:
         """A mid-stream pipeline exception is surfaced as an SSE error event, not a 500."""
 
         class _RaisingPipeline:
+            generation_ready = True
+
             def __init__(self):
                 self._context_builder = object()
                 self._llm_client = self

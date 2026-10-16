@@ -15,9 +15,8 @@ from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
 from sqlalchemy import text
 from sqlalchemy.engine import RowMapping
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.dependencies import require_admin_token, require_db_session
+from api.dependencies import DbSession, require_admin_token
 
 router = APIRouter(
     prefix="/analytics", tags=["analytics"], dependencies=[Depends(require_admin_token)]
@@ -47,7 +46,7 @@ _OVERVIEW_SQL = """
 
 
 @router.get("/overview", response_model=OverviewStats)
-async def overview(session: Annotated[AsyncSession, Depends(require_db_session)]):
+async def overview(session: DbSession):
     """Return all-time totals, the interaction date range, and mean latency."""
     result = await session.execute(text(_OVERVIEW_SQL))
     return OverviewStats.model_validate(dict(result.mappings().one()))
@@ -76,7 +75,7 @@ _DAILY_SQL = """
 
 @router.get("/daily", response_model=list[DailyStat])
 async def daily(
-    session: Annotated[AsyncSession, Depends(require_db_session)],
+    session: DbSession,
     days: Annotated[int, Query(ge=1, le=365)] = 30,
 ):
     """Return per-day usage for the last `days` calendar days, today included, newest first."""
@@ -110,7 +109,7 @@ _CITATIONS_SQL = """
 
 @router.get("/citations", response_model=list[CitationStat])
 async def citations(
-    session: Annotated[AsyncSession, Depends(require_db_session)],
+    session: DbSession,
     limit: Annotated[int, Query(ge=1, le=100)] = 20,
 ):
     """Return the most cited source sections, most cited first."""
@@ -141,7 +140,7 @@ _GAPS_SQL = """
 
 @router.get("/gaps", response_model=list[RetrievalGap])
 async def gaps(
-    session: Annotated[AsyncSession, Depends(require_db_session)],
+    session: DbSession,
     limit: Annotated[int, Query(ge=1, le=100)] = 20,
 ):
     """Return thumbs-down questions, lowest retrieval score first."""
@@ -192,7 +191,7 @@ def _conversation_from_row(row: RowMapping) -> ConversationSummary:
 
 @router.get("/conversations", response_model=list[ConversationSummary])
 async def conversations(
-    session: Annotated[AsyncSession, Depends(require_db_session)],
+    session: DbSession,
     limit: Annotated[int, Query(ge=1, le=200)] = 50,
 ):
     """Return the most recently started conversations, newest first."""

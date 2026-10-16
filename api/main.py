@@ -10,11 +10,10 @@ from pydantic import BaseModel
 from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from api.dependencies import create_pipelines, require_admin_token
+from api.dependencies import check_generation_ready, check_retrieval_ready, require_admin_token
 from api.middleware import RateLimitMiddleware
 from api.routes.analytics import router as analytics_router
 from api.routes.ask import router as ask_router
-from api.routes.chat import check_generation_ready, check_retrieval_ready
 from api.routes.chat import router as chat_router
 from api.routes.eval import router as eval_router
 from api.routes.feedback import router as feedback_router
@@ -24,6 +23,7 @@ from earthrise_rag.config import get_settings
 from earthrise_rag.db.bootstrap import ensure_active_deployment
 from earthrise_rag.db.engine import check_db_schema_status, create_db_engine, create_session_factory
 from earthrise_rag.db.models import EvalRun
+from earthrise_rag.factories import create_pipelines
 
 logger = logging.getLogger(__name__)
 

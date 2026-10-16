@@ -3,6 +3,9 @@ from functools import lru_cache
 from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+TOP_K_MIN = 1
+TOP_K_MAX = 50
+
 
 class Settings(BaseSettings):
     """Application settings loaded from environment variables and .env files."""
@@ -19,7 +22,7 @@ class Settings(BaseSettings):
     qdrant_collection: str = "earthrise_book"
 
     retrieval_strategy: str = "hybrid"
-    retrieval_top_k: int = Field(default=8, ge=1, le=50)
+    retrieval_top_k: int = Field(default=8, ge=TOP_K_MIN, le=TOP_K_MAX)
     reranker_provider: str = "noop"
     reranker_model_name: str = "cross-encoder/ms-marco-MiniLM-L6-v2"
     sparse_model_name: str = "prithivida/Splade_PP_en_v1"

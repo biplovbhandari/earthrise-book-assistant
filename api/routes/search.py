@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 
-from api.routes.chat import check_retrieval_ready
+from api.dependencies import require_retrieval_ready
 from api.routes.validators import QuestionFiltersMixin
+from earthrise_rag.config import TOP_K_MAX, TOP_K_MIN
 from earthrise_rag.models.scored_chunk import ScoredChunk
 
 logger = logging.getLogger(__name__)
@@ -14,12 +15,10 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-class SearchRequest(QuestionFiltersMixin, BaseModel):
+class SearchRequest(QuestionFiltersMixin):
     """Incoming search query with optional top_k and metadata filters."""
 
-    question: str = Field(..., min_length=1)
-    top_k: int | None = Field(None, ge=1, le=50)
-    filters: dict[str, str | int | bool] | None = None
+    top_k: int | None = Field(None, ge=TOP_K_MIN, le=TOP_K_MAX)
 
 
 class SearchResponse(BaseModel):
@@ -28,14 +27,11 @@ class SearchResponse(BaseModel):
     chunks: list[ScoredChunk]
 
 
-@router.post("/search", response_model=SearchResponse)
+@router.post(
+    "/search", response_model=SearchResponse, dependencies=[Depends(require_retrieval_ready)]
+)
 def search(request: Request, body: SearchRequest):
-    pipelines = getattr(request.app.state, "pipelines", None)
-    ready, reason = check_retrieval_ready(pipelines)
-    if not ready:
-        raise HTTPException(status_code=503, detail=reason)
-    if pipelines is None or pipelines.query is None:
-        raise HTTPException(status_code=503, detail="retrieval not ready")
+    pipelines = request.app.state.pipelines
 
     top_k = body.top_k if body.top_k is not None else request.app.state.settings.retrieval_top_k
 

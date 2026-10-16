@@ -21,7 +21,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from starlette.datastructures import State
 
-from api.dependencies import require_admin_token, require_db_session
+from api.dependencies import DbSession, require_admin_token, require_db_session
 from earthrise_rag.config import Settings
 from earthrise_rag.db.models import EvalQuestion, EvalResult, EvalRun, EvalSet, VEvalRunSummary
 from earthrise_rag.eval.runner import (
@@ -171,7 +171,7 @@ class StartRunResponse(BaseModel):
 
 @router.get("/runs", response_model=list[EvalRunSummary])
 async def list_runs(
-    session: Annotated[AsyncSession, Depends(require_db_session)],
+    session: DbSession,
     limit: Annotated[int, Query(ge=1, le=200)] = 50,
 ):
     """Return eval runs with their average scores, newest first."""
@@ -190,7 +190,7 @@ async def list_runs(
 )
 async def get_run(
     run_id: _Id,
-    session: Annotated[AsyncSession, Depends(require_db_session)],
+    session: DbSession,
 ):
     """Return one run with the result of every question stored so far.
 
@@ -227,7 +227,7 @@ async def get_run(
 
 
 @router.get("/sets", response_model=list[EvalSetSummary])
-async def list_sets(session: Annotated[AsyncSession, Depends(require_db_session)]):
+async def list_sets(session: DbSession):
     """Return every eval set with its question count, oldest first."""
     result = await session.execute(
         select(EvalSet, func.count(EvalQuestion.id))
@@ -255,7 +255,7 @@ async def list_sets(session: Annotated[AsyncSession, Depends(require_db_session)
 )
 async def list_set_questions(
     set_id: _Id,
-    session: Annotated[AsyncSession, Depends(require_db_session)],
+    session: DbSession,
 ):
     """Return the questions of one eval set in the order they were added."""
     if await session.get(EvalSet, set_id) is None:

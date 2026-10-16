@@ -10,16 +10,16 @@ from __future__ import annotations
 
 import hashlib
 from datetime import UTC, datetime
-from typing import Annotated, Literal
+from typing import Literal
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Request, Response
+from fastapi import APIRouter, HTTPException, Request, Response
 from pydantic import BaseModel, Field
 from sqlalchemy import select, update
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.dependencies import require_db_session
+from api.dependencies import DbSession
 from api.middleware import client_ip
 from earthrise_rag.db.models import Feedback, FeedbackRateLimit, Interaction
 
@@ -119,7 +119,7 @@ async def submit_feedback(
     body: FeedbackRequest,
     request: Request,
     response: Response,
-    session: Annotated[AsyncSession, Depends(require_db_session)],
+    session: DbSession,
 ):
     """Record a reader's rating of an answer, replacing any earlier rating of the same answer.
 
