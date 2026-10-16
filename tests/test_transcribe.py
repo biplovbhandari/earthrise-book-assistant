@@ -38,7 +38,7 @@ def test_incremental_skip(tmp_path, monkeypatch):
 
     monkeypatch.setattr("scripts.transcribe.TRANSCRIPT_DIR", transcript_dir)
     monkeypatch.setattr("scripts.transcribe.AUDIO_DIR", audio_dir)
-    monkeypatch.setattr("scripts.transcribe._setup_logging", lambda: None)
+    monkeypatch.setattr("scripts.transcribe.setup_script_logging", lambda prefix: None)
     monkeypatch.setattr(
         "scripts.transcribe._get_playlist_videos",
         lambda url: [{"id": "vid1", "title": "Video 1", "duration": 100.0, "url": "http://yt.com"}],
@@ -64,7 +64,7 @@ def test_force_reprocesses(tmp_path, monkeypatch):
 
     monkeypatch.setattr("scripts.transcribe.TRANSCRIPT_DIR", transcript_dir)
     monkeypatch.setattr("scripts.transcribe.AUDIO_DIR", audio_dir)
-    monkeypatch.setattr("scripts.transcribe._setup_logging", lambda: None)
+    monkeypatch.setattr("scripts.transcribe.setup_script_logging", lambda prefix: None)
     monkeypatch.setattr(
         "scripts.transcribe._get_playlist_videos",
         lambda url: [{"id": "vid1", "title": "Video 1", "duration": 100.0, "url": "http://yt.com"}],
@@ -92,7 +92,7 @@ def test_error_isolation(tmp_path, monkeypatch):
 
     monkeypatch.setattr("scripts.transcribe.TRANSCRIPT_DIR", transcript_dir)
     monkeypatch.setattr("scripts.transcribe.AUDIO_DIR", audio_dir)
-    monkeypatch.setattr("scripts.transcribe._setup_logging", lambda: None)
+    monkeypatch.setattr("scripts.transcribe.setup_script_logging", lambda prefix: None)
     monkeypatch.setattr(
         "scripts.transcribe._get_playlist_videos",
         lambda url: [

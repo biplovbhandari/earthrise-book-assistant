@@ -14,32 +14,18 @@ import json
 import logging
 import os
 import sys
-from datetime import UTC, datetime
 from pathlib import Path
 
-# Ensure repo root is on sys.path so the repo is importable
-_repo_root = str(Path(__file__).resolve().parent.parent)
-if _repo_root not in sys.path:
-    sys.path.insert(0, _repo_root)
+from earthrise_rag.script_logging import setup_script_logging
 
 logger = logging.getLogger(__name__)
 
 PLAYLIST_URL = "https://www.youtube.com/playlist?list=PLKlxghiZuIM5YyM92lDtsJT7p0Aln3R_k"
 TRANSCRIPT_DIR = Path("data/transcripts")
 AUDIO_DIR = Path("data/audio")
-LOG_DIR = Path("logs")
 CORRECTIONS_FILE = Path("data/transcript_corrections.yml")
 DEFAULT_WHISPER_MODEL = "large-v3"
 _YOUTUBE_WATCH_URL = "https://www.youtube.com/watch?v="
-
-
-def _setup_logging() -> None:
-    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
-    LOG_DIR.mkdir(exist_ok=True)
-    timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
-    file_handler = logging.FileHandler(LOG_DIR / f"transcription_{timestamp}.log")
-    file_handler.setFormatter(logging.Formatter("%(asctime)s %(name)s %(levelname)s: %(message)s"))
-    logging.getLogger().addHandler(file_handler)
 
 
 def _get_playlist_videos(playlist_url: str) -> list[dict]:
@@ -235,7 +221,7 @@ def _apply_corrections(transcript_dir: Path, corrections_file: Path) -> int:
 
 
 def main() -> int:
-    _setup_logging()
+    setup_script_logging("transcription")
 
     default_model = os.environ.get("WHISPER_MODEL", DEFAULT_WHISPER_MODEL)
 

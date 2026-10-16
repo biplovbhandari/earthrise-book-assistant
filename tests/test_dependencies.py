@@ -35,7 +35,7 @@ class FakeSparseEmbedder:
 
 def _patch_adapters(monkeypatch, reranker_factory=None):
     monkeypatch.setattr(
-        "api.dependencies._create_embedder",
+        "earthrise_rag.factories._create_embedder",
         lambda config: FakeEmbedder(),
     )
 
@@ -45,21 +45,21 @@ def _patch_adapters(monkeypatch, reranker_factory=None):
         return store
 
     monkeypatch.setattr(
-        "api.dependencies._create_vector_store",
+        "earthrise_rag.factories._create_vector_store",
         fake_store_factory,
     )
     monkeypatch.setattr(
-        "api.dependencies._create_llm_client",
+        "earthrise_rag.factories._create_llm_client",
         lambda config: FakeLLMClient(),
     )
     monkeypatch.setattr(
-        "api.dependencies._create_sparse_embedder",
+        "earthrise_rag.factories._create_sparse_embedder",
         lambda config: FakeSparseEmbedder(),
     )
     from earthrise_rag.retrieval.rerankers import NoOpReranker
 
     monkeypatch.setattr(
-        "api.dependencies._create_reranker",
+        "earthrise_rag.factories._create_reranker",
         reranker_factory if reranker_factory is not None else lambda config: NoOpReranker(),
     )
 
@@ -71,8 +71,8 @@ def test_create_pipelines_wires_dense_strategy(monkeypatch):
         qdrant_url="http://fake:6333",
     )
 
-    from api.dependencies import create_pipelines
     from earthrise_rag.citations import DefaultCitationBuilder
+    from earthrise_rag.factories import create_pipelines
     from earthrise_rag.generation import DefaultContextBuilder
     from earthrise_rag.query import QueryPipeline
     from earthrise_rag.retrieval import DenseStrategy, NoOpReranker
@@ -97,7 +97,7 @@ def test_create_pipelines_isolates_llm_failure(monkeypatch):
     """LLM creation failure must not prevent retrieval from working."""
     _patch_adapters(monkeypatch)
     monkeypatch.setattr(
-        "api.dependencies._create_llm_client",
+        "earthrise_rag.factories._create_llm_client",
         MagicMock(side_effect=Exception("openai not installed")),
     )
     settings = Settings(
@@ -105,7 +105,7 @@ def test_create_pipelines_isolates_llm_failure(monkeypatch):
         qdrant_url="http://fake:6333",
     )
 
-    from api.dependencies import create_pipelines
+    from earthrise_rag.factories import create_pipelines
     from earthrise_rag.query import QueryPipeline
 
     pipelines = create_pipelines(settings)
@@ -123,7 +123,7 @@ def test_create_pipelines_wires_hybrid_strategy(monkeypatch):
         qdrant_url="http://fake:6333",
     )
 
-    from api.dependencies import create_pipelines
+    from earthrise_rag.factories import create_pipelines
     from earthrise_rag.retrieval import HybridStrategy, NoOpReranker
 
     pipelines = create_pipelines(settings)
@@ -138,7 +138,7 @@ def test_create_pipelines_wires_hybrid_strategy(monkeypatch):
 def test_create_indexing_pipeline_registers_pdf_and_json(monkeypatch):
     _patch_adapters(monkeypatch)
     monkeypatch.setattr(
-        "api.dependencies._load_video_chapter_map",
+        "earthrise_rag.factories._load_video_chapter_map",
         dict,
     )
     settings = Settings(
@@ -146,7 +146,7 @@ def test_create_indexing_pipeline_registers_pdf_and_json(monkeypatch):
         qdrant_url="http://fake:6333",
     )
 
-    from api.dependencies import create_indexing_pipeline
+    from earthrise_rag.factories import create_indexing_pipeline
 
     pipeline = create_indexing_pipeline(settings)
 
@@ -167,7 +167,7 @@ def test_create_reranker_factory_wires_cross_encoder(monkeypatch):
     mock_ce_class.return_value = mock_ce_instance
 
     with patch("sentence_transformers.CrossEncoder", mock_ce_class):
-        from api.dependencies import _create_reranker
+        from earthrise_rag.factories import _create_reranker
         from earthrise_rag.retrieval.rerankers import LocalCrossEncoderReranker
 
         settings = Settings(
@@ -188,7 +188,7 @@ def test_create_reranker_factory_wires_cross_encoder(monkeypatch):
 def test_create_reranker_factory_rejects_empty_model_name():
     import pytest
 
-    from api.dependencies import _create_reranker
+    from earthrise_rag.factories import _create_reranker
 
     settings = Settings(
         reranker_provider="local_cross_encoder",
@@ -201,7 +201,7 @@ def test_create_reranker_factory_rejects_empty_model_name():
 
 
 def test_create_reranker_factory_tolerates_empty_model_when_noop():
-    from api.dependencies import _create_reranker
+    from earthrise_rag.factories import _create_reranker
     from earthrise_rag.retrieval import NoOpReranker
 
     settings = Settings(
@@ -226,7 +226,7 @@ def test_create_reranker_factory_rejects_multi_label_model():
     mock_ce_class.return_value = mock_ce_instance
 
     with patch("sentence_transformers.CrossEncoder", mock_ce_class):
-        from api.dependencies import _create_reranker
+        from earthrise_rag.factories import _create_reranker
 
         settings = Settings(
             reranker_provider="local_cross_encoder",

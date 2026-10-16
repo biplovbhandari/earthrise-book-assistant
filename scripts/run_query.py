@@ -10,13 +10,8 @@ from __future__ import annotations
 
 import argparse
 import sys
-from pathlib import Path
 
-_repo_root = str(Path(__file__).resolve().parent.parent)
-if _repo_root not in sys.path:
-    sys.path.insert(0, _repo_root)
-
-from earthrise_rag.config import get_settings
+from earthrise_rag.config import TOP_K_MAX, TOP_K_MIN, get_settings
 
 
 def _parse_filters(raw: list[str] | None) -> dict[str, str] | None:
@@ -60,11 +55,14 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    if not 1 <= args.top_k <= 50:
-        print(f"Error: --top-k must be between 1 and 50, got {args.top_k}", file=sys.stderr)
+    if not TOP_K_MIN <= args.top_k <= TOP_K_MAX:
+        print(
+            f"Error: --top-k must be between {TOP_K_MIN} and {TOP_K_MAX}, got {args.top_k}",
+            file=sys.stderr,
+        )
         return 1
 
-    from api.dependencies import create_pipelines
+    from earthrise_rag.factories import create_pipelines
 
     pipelines = create_pipelines(settings)
 
