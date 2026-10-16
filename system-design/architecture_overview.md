@@ -188,6 +188,18 @@ Chat widget calls `/chat` (SSE streaming) on the same origin — no CORS, no API
 Additional endpoints:
 - `/feedback` — user rating on answer quality
 - `/log` — analytics data forwarding
+- `/metrics` — Prometheus metrics (admin-gated)
+
+---
+
+## Pipeline Factories and Readiness
+
+`earthrise_rag.factories` provides pipeline factory functions (`create_pipelines()`, `create_indexing_pipeline()`, and per-component factories).
+The API layer and CLI scripts both import from this module, keeping pipeline construction in one place.
+
+Routes declare readiness requirements via FastAPI `dependencies=[...]`.
+`require_retrieval_ready` and `require_generation_ready` (in `api.dependencies`) return 503 when the required adapters are not configured.
+`QueryPipeline.generation_ready` is the single source of truth for whether all generation adapters are available.
 
 ---
 
@@ -212,6 +224,19 @@ GA4 custom events and Google Sheets integration for the Economic Impact Assessme
 - Same-origin serving eliminates client-side API key exposure
 - System prompt treats retrieved content as reference material, not instructions
 - `LLM_API_KEY` stored as `SecretStr` — never appears in logs
+
+---
+
+## Observability
+
+**Structured logging.**
+JSON output in production (`python-json-logger`), plain text in development.
+Every log line includes a request ID propagated via `contextvars`, matching the `X-Request-ID` response header for end-to-end correlation.
+
+**Monitoring stack.**
+Prometheus scrapes both the Geo-AI Book Assistant app (`/metrics`) and Qdrant's built-in `/metrics` endpoint.
+Grafana reads from Prometheus and loads an auto-provisioned dashboard.
+Both services bind to `127.0.0.1` only - not exposed externally.
 
 ---
 

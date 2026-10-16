@@ -1,3 +1,9 @@
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
   app:
     build:
@@ -21,6 +27,7 @@ services:
         reservations:
           devices:
             - capabilities: [gpu]
+    logging: *default-logging
     restart: unless-stopped
 
   qdrant:
@@ -36,6 +43,7 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
+    logging: *default-logging
     restart: unless-stopped
 
   postgres:
@@ -55,6 +63,7 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
+    logging: *default-logging
     restart: unless-stopped
 
   quarto-builder:
@@ -66,6 +75,7 @@ services:
       - ./book:/book:ro
       - ./widget:/widget:ro
       - book_html:/output
+    logging: *default-logging
 
   book-copy:
     image: alpine:3
@@ -74,6 +84,7 @@ services:
       - book_html:/src:ro
       - ./_book:/dst
     command: sh -c 'cp -a /src/. /dst/'
+    logging: *default-logging
 
   indexer:
     build:
@@ -94,11 +105,49 @@ services:
       - ./data:/app/data
       - ./logs:/app/logs
       - models_cache:/models
+    logging: *default-logging
     deploy:
       resources:
         reservations:
           devices:
             - capabilities: [gpu]
+
+  prometheus:
+    image: prom/prometheus:v3.13.4
+    container_name: geoai-prometheus
+    ports:
+      - "127.0.0.1:9090:9090"
+    volumes:
+      - ./infra/prometheus:/etc/prometheus:ro
+      - .data/prometheus:/prometheus
+    environment:
+      - ADMIN_TOKEN=${ADMIN_TOKEN}
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        echo "$$ADMIN_TOKEN" > /tmp/admin_token
+        exec /bin/prometheus \
+          --config.file=/etc/prometheus/prometheus.yml \
+          --storage.tsdb.retention.time=30d
+    logging: *default-logging
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:13.2.4
+    container_name: geoai-grafana
+    ports:
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - ./infra/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./infra/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - .data/grafana:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
+    logging: *default-logging
+    restart: unless-stopped
 
 volumes:
   models_cache:

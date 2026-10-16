@@ -1,11 +1,15 @@
 from __future__ import annotations
 
+import logging
 import time
+import uuid
 from collections import defaultdict
 
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse
+
+from earthrise_rag.logging_config import request_id as request_id_var
 
 
 def client_ip(request: Request) -> str:
@@ -20,6 +24,71 @@ def client_ip(request: Request) -> str:
     return request.headers.get("CF-Connecting-IP") or (
         request.client.host if request.client else "unknown"
     )
+
+
+class RequestIDMiddleware(BaseHTTPMiddleware):
+    """Assign a unique request ID to each request for log correlation.
+
+    Reads X-Request-ID from the incoming header (Cloudflare or upstream proxy
+    may set one) or generates a new UUID4. Stores it in a ContextVar for the
+    logging filter and adds it to the response headers.
+    """
+
+    async def dispatch(self, request: Request, call_next):
+        rid = request.headers.get("X-Request-ID") or str(uuid.uuid4())
+        request_id_var.set(rid)
+        request.state.request_id = rid
+        response = await call_next(request)
+        response.headers["X-Request-ID"] = rid
+        return response
+
+
+_access_logger = logging.getLogger("access")
+
+_API_PREFIXES = (
+    "/search",
+    "/ask",
+    "/chat",
+    "/health",
+    "/analytics",
+    "/config",
+    "/feedback",
+    "/eval",
+    "/metrics",
+)
+
+
+class AccessLogMiddleware(BaseHTTPMiddleware):
+    """Log one structured line per API request.
+
+    Excludes static file requests (book pages, dashboard assets) to keep
+    access logs focused on API traffic.
+    """
+
+    async def dispatch(self, request: Request, call_next):
+        path = request.url.path
+        if not path.startswith(_API_PREFIXES):
+            return await call_next(request)
+
+        start = time.monotonic()
+        response = await call_next(request)
+        latency_ms = int((time.monotonic() - start) * 1000)
+
+        _access_logger.info(
+            "%s %s %d %dms",
+            request.method,
+            path,
+            response.status_code,
+            latency_ms,
+            extra={
+                "method": request.method,
+                "path": path,
+                "status": response.status_code,
+                "latency_ms": latency_ms,
+                "client_ip": client_ip(request),
+            },
+        )
+        return response
 
 
 class RateLimitMiddleware(BaseHTTPMiddleware):

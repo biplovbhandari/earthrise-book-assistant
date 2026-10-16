@@ -16,6 +16,9 @@ dependencies = [
     "asyncpg>=0.30",
     "pgvector>=0.5",
     "alembic>=1.18",
+    "python-json-logger>=4.2",
+    "prometheus-client>=0.26",
+    "prometheus-fastapi-instrumentator>=8.1",
 ]
 
 [dependency-groups]

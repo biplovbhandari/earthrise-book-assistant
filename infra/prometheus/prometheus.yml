@@ -1,0 +1,20 @@
+# Prometheus scrape configuration for the Geo-AI book assistant.
+# App metrics require Bearer auth (ADMIN_TOKEN); Qdrant exposes /metrics natively.
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: app
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["host.docker.internal:8000"]
+    authorization:
+      type: Bearer
+      credentials_file: /tmp/admin_token
+
+  - job_name: qdrant
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["qdrant:6333"]

@@ -188,6 +188,43 @@ See [system-design/deployment-models.md](system-design/deployment-models.md) for
 Use `just down` to stop all services.
 Use `just clean` to stop services and wipe all data (volumes, Qdrant, Postgres, rendered book) for a fresh start.
 
+## Monitoring
+
+`just services` starts Prometheus (http://localhost:9090) and Grafana (http://localhost:3000) alongside Qdrant and PostgreSQL.
+Grafana is pre-provisioned with a Prometheus datasource and a Geo-AI Book Assistant dashboard covering request rates, latencies, and error breakdowns.
+The `/metrics` endpoint is gated behind `ADMIN_TOKEN`.
+
+## Logging
+
+The app uses JSON structured logging in production (`just serve`) and plain-text formatting in development (`just dev`), detected automatically from the `--reload` flag.
+Each API request gets a `X-Request-ID` header for log correlation. Access logs include method, path, status, and latency.
+
+**Log locations:**
+
+| Log | Location | Rotation |
+|-----|----------|----------|
+| App structured logs | `logs/app/app.log` | `RotatingFileHandler` (10 MB x 5) |
+| App raw stdout/stderr | `logs/app/stdout.log`, `stderr.log` | `newsyslog.d` (daily x 7) |
+| Cloudflare tunnel | `logs/tunnel/tunnel.log`, `tunnel.error.log` | `newsyslog.d` (daily x 7) |
+| Indexing scripts | `logs/scripts/indexing_*.log` | Pruned to 10 most recent |
+| Transcript cleanup | `logs/scripts/cleanup_*.log` | Pruned to 10 most recent |
+| Transcription | `logs/scripts/transcription_*.log` | Pruned to 10 most recent |
+| Docker containers | `docker logs <name>` | Docker driver (10 MB x 3) |
+| DB backups | `backups/backup.log` | Overwritten each run |
+
+In development (`just dev`), app logs go to both the terminal and `logs/app/app.log`.
+In production (launchd), raw uvicorn output goes to `stdout.log`/`stderr.log` while structured logs go to `app.log`.
+
+## Evaluation
+
+`scripts/run_eval.py` runs a retrieval evaluation suite against the index and writes results to the database.
+The analytics dashboard includes an Eval tab that visualizes retrieval quality metrics over time.
+
+## Graceful Shutdown
+
+The production server runs with `--timeout-graceful-shutdown 30`, which drains in-flight SSE streams before exiting.
+This prevents broken streaming responses during deploys and restarts.
+
 ## Project Structure
 
 ```
@@ -201,18 +238,23 @@ earthrise-book-assistant/
 │   ├── retrieval/               # DenseStrategy, HybridStrategy (RRF), NoOpReranker, LocalCrossEncoderReranker
 │   ├── generation/              # LLM client, context builder, system prompt
 │   ├── citations/               # Citation builder
-│   └── query/                   # QueryPipeline (search + ask)
+│   ├── query/                   # QueryPipeline (search + ask)
+│   ├── factories.py             # Pipeline factory functions (shared by API and scripts)
+│   ├── logging_config.py        # Structured logging setup (JSON prod, plain-text dev)
+│   └── script_logging.py        # CLI script logging helpers
 ├── api/                         # FastAPI app
 │   ├── main.py                  # /health, lifespan (DB engine), routers, static book mount
-│   ├── dependencies.py          # Adapter wiring (factories, DB session providers)
-│   ├── middleware.py            # Per-IP rate limiting
+│   ├── dependencies.py          # Readiness guards, DB session providers, admin auth
+│   ├── middleware.py            # Request ID, access logging, per-IP rate limiting
 │   ├── recording.py             # Chat interaction recording (BackgroundTask)
+│   ├── metrics.py               # Custom Prometheus metrics (histograms, counters)
 │   └── routes/                  # /search, /ask, /chat, /feedback, /analytics endpoints
 ├── scripts/
 │   ├── index_book.py            # CLI: index book + PDFs + transcripts into Qdrant
 │   ├── transcribe.py            # CLI: download + transcribe YouTube lectures
 │   ├── clean_transcript.py      # CLI: clean transcripts (4-category filters + corrections)
-│   └── run_query.py             # CLI: search the index
+│   ├── run_query.py             # CLI: search the index
+│   └── run_eval.py              # CLI: run retrieval evaluation suite
 ├── data/
 │   ├── video_chapter_map.yml    # Maps video IDs to book chapters
 │   ├── whisper_prompt.md        # Domain terms for Whisper transcription accuracy
@@ -228,6 +270,9 @@ earthrise-book-assistant/
 ├── docs/deployment/             # Deployment guide
 ├── infra/docker/                # Dockerfiles + entrypoint script
 ├── infra/launchd/               # macOS launchd service config
+├── infra/prometheus/            # Prometheus scrape config
+├── infra/grafana/               # Grafana provisioning (datasource + dashboard)
+├── infra/newsyslog.d/           # Log rotation config (macOS)
 ├── system-design/               # Architecture and deployment docs
 ├── tests/
 ├── book/                        # Git submodule (book source)
