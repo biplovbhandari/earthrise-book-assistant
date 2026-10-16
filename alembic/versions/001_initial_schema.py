@@ -44,21 +44,21 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_conversations")),
-        schema="earthrise",
+        schema="geoai",
     )
     op.create_index(
         op.f("idx_conversations_created_at"),
         "conversations",
         ["created_at"],
         unique=False,
-        schema="earthrise",
+        schema="geoai",
     )
     op.create_index(
         op.f("idx_conversations_visitor_id"),
         "conversations",
         ["visitor_id"],
         unique=False,
-        schema="earthrise",
+        schema="geoai",
     )
     op.create_table(
         "eval_sets",
@@ -72,7 +72,7 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_eval_sets")),
-        schema="earthrise",
+        schema="geoai",
     )
     op.create_table(
         "feedback_rate_limits",
@@ -81,7 +81,7 @@ def upgrade() -> None:
         sa.Column("count", sa.Integer(), nullable=False),
         sa.CheckConstraint("count >= 0", name=op.f("ck_feedback_rate_limits_count_nonneg")),
         sa.PrimaryKeyConstraint("ip_hash", "window_start", name=op.f("pk_feedback_rate_limits")),
-        schema="earthrise",
+        schema="geoai",
     )
     op.create_table(
         "index_runs",
@@ -95,14 +95,14 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_index_runs")),
-        schema="earthrise",
+        schema="geoai",
     )
     op.create_index(
         op.f("idx_index_runs_created_at"),
         "index_runs",
         ["created_at"],
         unique=False,
-        schema="earthrise",
+        schema="geoai",
     )
     op.create_table(
         "prompt_versions",
@@ -118,7 +118,7 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_prompt_versions")),
         sa.UniqueConstraint("hash", name=op.f("uq_prompt_versions_hash")),
-        schema="earthrise",
+        schema="geoai",
     )
     op.create_table(
         "chunks",
@@ -132,22 +132,22 @@ def upgrade() -> None:
         sa.Column("display_label", sa.Text(), nullable=True),
         sa.ForeignKeyConstraint(
             ["index_run_id"],
-            ["earthrise.index_runs.id"],
+            ["geoai.index_runs.id"],
             name=op.f("fk_chunks_index_run_id_index_runs"),
             ondelete="RESTRICT",
         ),
         sa.PrimaryKeyConstraint("chunk_id", name=op.f("pk_chunks")),
-        schema="earthrise",
+        schema="geoai",
     )
     op.create_index(
         op.f("idx_chunks_index_run_id"),
         "chunks",
         ["index_run_id"],
         unique=False,
-        schema="earthrise",
+        schema="geoai",
     )
     op.create_index(
-        op.f("idx_chunks_source_path"), "chunks", ["source_path"], unique=False, schema="earthrise"
+        op.f("idx_chunks_source_path"), "chunks", ["source_path"], unique=False, schema="geoai"
     )
     op.create_table(
         "deployments",
@@ -170,25 +170,25 @@ def upgrade() -> None:
         ),
         sa.ForeignKeyConstraint(
             ["index_run_id"],
-            ["earthrise.index_runs.id"],
+            ["geoai.index_runs.id"],
             name=op.f("fk_deployments_index_run_id_index_runs"),
             ondelete="RESTRICT",
         ),
         sa.ForeignKeyConstraint(
             ["prompt_version_id"],
-            ["earthrise.prompt_versions.id"],
+            ["geoai.prompt_versions.id"],
             name=op.f("fk_deployments_prompt_version_id_prompt_versions"),
             ondelete="RESTRICT",
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_deployments")),
-        schema="earthrise",
+        schema="geoai",
     )
     op.create_index(
         "idx_deployments_is_active",
         "deployments",
         ["is_active"],
         unique=True,
-        schema="earthrise",
+        schema="geoai",
         postgresql_where=sa.text("is_active IS TRUE"),
     )
     op.create_table(
@@ -202,20 +202,20 @@ def upgrade() -> None:
         sa.Column("tags", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
         sa.ForeignKeyConstraint(
             ["eval_set_id"],
-            ["earthrise.eval_sets.id"],
+            ["geoai.eval_sets.id"],
             name=op.f("fk_eval_questions_eval_set_id_eval_sets"),
             ondelete="CASCADE",
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_eval_questions")),
         sa.UniqueConstraint("eval_set_id", "question_key", name="uq_eval_questions_set_key"),
-        schema="earthrise",
+        schema="geoai",
     )
     op.create_index(
         op.f("idx_eval_questions_eval_set_id"),
         "eval_questions",
         ["eval_set_id"],
         unique=False,
-        schema="earthrise",
+        schema="geoai",
     )
     op.create_table(
         "eval_runs",
@@ -238,32 +238,32 @@ def upgrade() -> None:
         ),
         sa.ForeignKeyConstraint(
             ["deployment_id"],
-            ["earthrise.deployments.id"],
+            ["geoai.deployments.id"],
             name=op.f("fk_eval_runs_deployment_id_deployments"),
             ondelete="RESTRICT",
         ),
         sa.ForeignKeyConstraint(
             ["eval_set_id"],
-            ["earthrise.eval_sets.id"],
+            ["geoai.eval_sets.id"],
             name=op.f("fk_eval_runs_eval_set_id_eval_sets"),
             ondelete="RESTRICT",
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_eval_runs")),
-        schema="earthrise",
+        schema="geoai",
     )
     op.create_index(
         op.f("idx_eval_runs_deployment_id"),
         "eval_runs",
         ["deployment_id"],
         unique=False,
-        schema="earthrise",
+        schema="geoai",
     )
     op.create_index(
         op.f("idx_eval_runs_eval_set_id"),
         "eval_runs",
         ["eval_set_id"],
         unique=False,
-        schema="earthrise",
+        schema="geoai",
     )
     op.create_table(
         "interactions",
@@ -285,39 +285,39 @@ def upgrade() -> None:
         sa.CheckConstraint("token_count >= 0", name=op.f("ck_interactions_token_count_nonneg")),
         sa.ForeignKeyConstraint(
             ["conversation_id"],
-            ["earthrise.conversations.id"],
+            ["geoai.conversations.id"],
             name=op.f("fk_interactions_conversation_id_conversations"),
             ondelete="CASCADE",
         ),
         sa.ForeignKeyConstraint(
             ["deployment_id"],
-            ["earthrise.deployments.id"],
+            ["geoai.deployments.id"],
             name=op.f("fk_interactions_deployment_id_deployments"),
             ondelete="RESTRICT",
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_interactions")),
-        schema="earthrise",
+        schema="geoai",
     )
     op.create_index(
         op.f("idx_interactions_conversation_id"),
         "interactions",
         ["conversation_id"],
         unique=False,
-        schema="earthrise",
+        schema="geoai",
     )
     op.create_index(
         op.f("idx_interactions_created_at"),
         "interactions",
         ["created_at"],
         unique=False,
-        schema="earthrise",
+        schema="geoai",
     )
     op.create_index(
         op.f("idx_interactions_deployment_id"),
         "interactions",
         ["deployment_id"],
         unique=False,
-        schema="earthrise",
+        schema="geoai",
     )
     op.create_table(
         "eval_results",
@@ -335,13 +335,13 @@ def upgrade() -> None:
         sa.Column("scores", postgresql.JSONB(astext_type=sa.Text()), nullable=False),
         sa.ForeignKeyConstraint(
             ["eval_run_id"],
-            ["earthrise.eval_runs.id"],
+            ["geoai.eval_runs.id"],
             name=op.f("fk_eval_results_eval_run_id_eval_runs"),
             ondelete="CASCADE",
         ),
         sa.ForeignKeyConstraint(
             ["question_id"],
-            ["earthrise.eval_questions.id"],
+            ["geoai.eval_questions.id"],
             name=op.f("fk_eval_results_question_id_eval_questions"),
             ondelete="SET NULL",
         ),
@@ -349,21 +349,21 @@ def upgrade() -> None:
         sa.UniqueConstraint(
             "eval_run_id", "question_id", name=op.f("uq_eval_results_eval_run_id_question_id")
         ),
-        schema="earthrise",
+        schema="geoai",
     )
     op.create_index(
         op.f("idx_eval_results_eval_run_id"),
         "eval_results",
         ["eval_run_id"],
         unique=False,
-        schema="earthrise",
+        schema="geoai",
     )
     op.create_index(
         op.f("idx_eval_results_question_id"),
         "eval_results",
         ["question_id"],
         unique=False,
-        schema="earthrise",
+        schema="geoai",
     )
     op.create_table(
         "feedback",
@@ -381,23 +381,23 @@ def upgrade() -> None:
         sa.CheckConstraint("rating IN ('up', 'down')", name=op.f("ck_feedback_rating_valid")),
         sa.ForeignKeyConstraint(
             ["interaction_id"],
-            ["earthrise.interactions.id"],
+            ["geoai.interactions.id"],
             name=op.f("fk_feedback_interaction_id_interactions"),
             ondelete="CASCADE",
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_feedback")),
         sa.UniqueConstraint("interaction_id", name=op.f("uq_feedback_interaction_id")),
-        schema="earthrise",
+        schema="geoai",
     )
     op.create_index(
         op.f("idx_feedback_interaction_id"),
         "feedback",
         ["interaction_id"],
         unique=False,
-        schema="earthrise",
+        schema="geoai",
     )
     op.create_index(
-        op.f("idx_feedback_rating"), "feedback", ["rating"], unique=False, schema="earthrise"
+        op.f("idx_feedback_rating"), "feedback", ["rating"], unique=False, schema="geoai"
     )
     op.create_table(
         "interaction_citations",
@@ -412,13 +412,13 @@ def upgrade() -> None:
         ),
         sa.ForeignKeyConstraint(
             ["chunk_id"],
-            ["earthrise.chunks.chunk_id"],
+            ["geoai.chunks.chunk_id"],
             name=op.f("fk_interaction_citations_chunk_id_chunks"),
             ondelete="RESTRICT",
         ),
         sa.ForeignKeyConstraint(
             ["interaction_id"],
-            ["earthrise.interactions.id"],
+            ["geoai.interactions.id"],
             name=op.f("fk_interaction_citations_interaction_id_interactions"),
             ondelete="CASCADE",
         ),
@@ -428,21 +428,21 @@ def upgrade() -> None:
             "citation_index",
             name=op.f("uq_interaction_citations_interaction_id_citation_index"),
         ),
-        schema="earthrise",
+        schema="geoai",
     )
     op.create_index(
         op.f("idx_interaction_citations_chunk_id"),
         "interaction_citations",
         ["chunk_id"],
         unique=False,
-        schema="earthrise",
+        schema="geoai",
     )
     op.create_index(
         op.f("idx_interaction_citations_interaction_id"),
         "interaction_citations",
         ["interaction_id"],
         unique=False,
-        schema="earthrise",
+        schema="geoai",
     )
     op.create_table(
         "interaction_traces",
@@ -454,7 +454,7 @@ def upgrade() -> None:
         sa.CheckConstraint("latency_ms >= 0", name=op.f("ck_interaction_traces_latency_nonneg")),
         sa.ForeignKeyConstraint(
             ["interaction_id"],
-            ["earthrise.interactions.id"],
+            ["geoai.interactions.id"],
             name=op.f("fk_interaction_traces_interaction_id_interactions"),
             ondelete="CASCADE",
         ),
@@ -462,21 +462,21 @@ def upgrade() -> None:
         sa.UniqueConstraint(
             "interaction_id", "stage", name=op.f("uq_interaction_traces_interaction_id_stage")
         ),
-        schema="earthrise",
+        schema="geoai",
     )
     op.create_index(
         op.f("idx_interaction_traces_interaction_id"),
         "interaction_traces",
         ["interaction_id"],
         unique=False,
-        schema="earthrise",
+        schema="geoai",
     )
     op.create_index(
         op.f("idx_interaction_traces_stage"),
         "interaction_traces",
         ["stage"],
         unique=False,
-        schema="earthrise",
+        schema="geoai",
     )
     op.create_table(
         "shared_responses",
@@ -491,87 +491,75 @@ def upgrade() -> None:
         ),
         sa.ForeignKeyConstraint(
             ["interaction_id"],
-            ["earthrise.interactions.id"],
+            ["geoai.interactions.id"],
             name=op.f("fk_shared_responses_interaction_id_interactions"),
             ondelete="CASCADE",
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_shared_responses")),
         sa.UniqueConstraint("interaction_id", name=op.f("uq_shared_responses_interaction_id")),
-        schema="earthrise",
+        schema="geoai",
     )
     # ### end Alembic commands ###
 
 
 def downgrade() -> None:
     # ### commands auto generated by Alembic - please adjust! ###
-    op.drop_table("shared_responses", schema="earthrise")
+    op.drop_table("shared_responses", schema="geoai")
     op.drop_index(
-        op.f("idx_interaction_traces_stage"), table_name="interaction_traces", schema="earthrise"
+        op.f("idx_interaction_traces_stage"), table_name="interaction_traces", schema="geoai"
     )
     op.drop_index(
         op.f("idx_interaction_traces_interaction_id"),
         table_name="interaction_traces",
-        schema="earthrise",
+        schema="geoai",
     )
-    op.drop_table("interaction_traces", schema="earthrise")
+    op.drop_table("interaction_traces", schema="geoai")
     op.drop_index(
         op.f("idx_interaction_citations_interaction_id"),
         table_name="interaction_citations",
-        schema="earthrise",
+        schema="geoai",
     )
     op.drop_index(
         op.f("idx_interaction_citations_chunk_id"),
         table_name="interaction_citations",
-        schema="earthrise",
+        schema="geoai",
     )
-    op.drop_table("interaction_citations", schema="earthrise")
-    op.drop_index(op.f("idx_feedback_rating"), table_name="feedback", schema="earthrise")
-    op.drop_index(op.f("idx_feedback_interaction_id"), table_name="feedback", schema="earthrise")
-    op.drop_table("feedback", schema="earthrise")
+    op.drop_table("interaction_citations", schema="geoai")
+    op.drop_index(op.f("idx_feedback_rating"), table_name="feedback", schema="geoai")
+    op.drop_index(op.f("idx_feedback_interaction_id"), table_name="feedback", schema="geoai")
+    op.drop_table("feedback", schema="geoai")
+    op.drop_index(op.f("idx_eval_results_question_id"), table_name="eval_results", schema="geoai")
+    op.drop_index(op.f("idx_eval_results_eval_run_id"), table_name="eval_results", schema="geoai")
+    op.drop_table("eval_results", schema="geoai")
+    op.drop_index(op.f("idx_interactions_deployment_id"), table_name="interactions", schema="geoai")
+    op.drop_index(op.f("idx_interactions_created_at"), table_name="interactions", schema="geoai")
     op.drop_index(
-        op.f("idx_eval_results_question_id"), table_name="eval_results", schema="earthrise"
+        op.f("idx_interactions_conversation_id"), table_name="interactions", schema="geoai"
     )
+    op.drop_table("interactions", schema="geoai")
+    op.drop_index(op.f("idx_eval_runs_eval_set_id"), table_name="eval_runs", schema="geoai")
+    op.drop_index(op.f("idx_eval_runs_deployment_id"), table_name="eval_runs", schema="geoai")
+    op.drop_table("eval_runs", schema="geoai")
     op.drop_index(
-        op.f("idx_eval_results_eval_run_id"), table_name="eval_results", schema="earthrise"
+        op.f("idx_eval_questions_eval_set_id"), table_name="eval_questions", schema="geoai"
     )
-    op.drop_table("eval_results", schema="earthrise")
-    op.drop_index(
-        op.f("idx_interactions_deployment_id"), table_name="interactions", schema="earthrise"
-    )
-    op.drop_index(
-        op.f("idx_interactions_created_at"), table_name="interactions", schema="earthrise"
-    )
-    op.drop_index(
-        op.f("idx_interactions_conversation_id"), table_name="interactions", schema="earthrise"
-    )
-    op.drop_table("interactions", schema="earthrise")
-    op.drop_index(op.f("idx_eval_runs_eval_set_id"), table_name="eval_runs", schema="earthrise")
-    op.drop_index(op.f("idx_eval_runs_deployment_id"), table_name="eval_runs", schema="earthrise")
-    op.drop_table("eval_runs", schema="earthrise")
-    op.drop_index(
-        op.f("idx_eval_questions_eval_set_id"), table_name="eval_questions", schema="earthrise"
-    )
-    op.drop_table("eval_questions", schema="earthrise")
+    op.drop_table("eval_questions", schema="geoai")
     op.drop_index(
         "idx_deployments_is_active",
         table_name="deployments",
-        schema="earthrise",
+        schema="geoai",
         postgresql_where=sa.text("is_active IS TRUE"),
     )
-    op.drop_table("deployments", schema="earthrise")
-    op.drop_index(op.f("idx_chunks_source_path"), table_name="chunks", schema="earthrise")
-    op.drop_index(op.f("idx_chunks_index_run_id"), table_name="chunks", schema="earthrise")
-    op.drop_table("chunks", schema="earthrise")
-    op.drop_table("prompt_versions", schema="earthrise")
-    op.drop_index(op.f("idx_index_runs_created_at"), table_name="index_runs", schema="earthrise")
-    op.drop_table("index_runs", schema="earthrise")
-    op.drop_table("feedback_rate_limits", schema="earthrise")
-    op.drop_table("eval_sets", schema="earthrise")
-    op.drop_index(
-        op.f("idx_conversations_visitor_id"), table_name="conversations", schema="earthrise"
-    )
-    op.drop_index(
-        op.f("idx_conversations_created_at"), table_name="conversations", schema="earthrise"
-    )
-    op.drop_table("conversations", schema="earthrise")
+    op.drop_table("deployments", schema="geoai")
+    op.drop_index(op.f("idx_chunks_source_path"), table_name="chunks", schema="geoai")
+    op.drop_index(op.f("idx_chunks_index_run_id"), table_name="chunks", schema="geoai")
+    op.drop_table("chunks", schema="geoai")
+    op.drop_table("prompt_versions", schema="geoai")
+    op.drop_index(op.f("idx_index_runs_created_at"), table_name="index_runs", schema="geoai")
+    op.drop_table("index_runs", schema="geoai")
+    op.drop_table("feedback_rate_limits", schema="geoai")
+    op.drop_table("eval_sets", schema="geoai")
+    op.drop_index(op.f("idx_conversations_visitor_id"), table_name="conversations", schema="geoai")
+    op.drop_index(op.f("idx_conversations_created_at"), table_name="conversations", schema="geoai")
+    op.drop_table("conversations", schema="geoai")
     # ### end Alembic commands ###
