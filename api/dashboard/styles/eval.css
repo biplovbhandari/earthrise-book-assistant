@@ -1,20 +1,48 @@
 /* Evaluation tab. The summary cards and score colours (.metric*, .score-*) come from analytics.css; the table, panel and button rules come from layout.css. */
 
-/* Toolbar: the run picker on the left, the controls that start a run on the right */
+/* Toolbar: the run picker and its refresh button on the left, the controls that start a run on the right. Everything lines up on its top edge, because the question list is much taller than the other controls. */
 
 .eval-bar {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 8px 16px;
   padding-bottom: 10px;
 }
 
+/* The refresh button stays beside the run picker and stretches to its height. The picker is hidden while there are no runs, but the button stays so the list can be reloaded. */
+
+.eval-runs {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+  min-width: 0;
+}
+
+/* Quiet icon button that reloads the runs and eval sets. It is grey rather than faded, because faded controls in this toolbar are disabled ones. */
+
+.eval-refresh {
+  padding: 4px 8px;
+  border: 1px solid var(--bd);
+  border-radius: 3px;
+  background: var(--bg);
+  color: var(--tx2);
+  font: inherit;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.eval-refresh:hover {
+  background: var(--bg2);
+  color: var(--tx);
+}
+
 .eval-controls {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px 12px;
   margin-left: auto;
 }
@@ -40,6 +68,63 @@
   font: inherit;
   font-size: 12px;
   font-weight: 400;
+}
+
+/* The question picker is a list that shows several rows at once. Its width is fixed, which keeps the toolbar compact and stops it shifting when the questions load. A long label is cut at the edge of the list; the option's title attribute holds the whole question. */
+
+.eval-question {
+  align-items: flex-start;
+}
+
+.eval-question-label {
+  font-size: 0.8rem;
+  color: var(--tx2);
+  white-space: nowrap;
+  padding-top: 4px;
+}
+
+.eval-checkbox-list {
+  border: 1px solid var(--bd);
+  border-radius: 4px;
+  padding: 4px;
+  max-height: 160px;
+  min-width: 280px;
+  max-width: 400px;
+  overflow-y: auto;
+  background: var(--bg);
+}
+
+.eval-checkbox-list.disabled {
+  opacity: 0.6;
+}
+
+.eval-checkbox-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 3px 4px;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  cursor: pointer;
+  border-radius: 3px;
+}
+
+.eval-checkbox-item:hover {
+  background: var(--bg2);
+}
+
+.eval-checkbox-item input[type="checkbox"] {
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.eval-checkbox-item span {
+  word-break: break-word;
+}
+
+.eval-hint {
+  font-weight: 400;
+  color: var(--tx2);
 }
 
 .eval-field select:disabled,

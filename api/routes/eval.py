@@ -145,7 +145,9 @@ class StartRunRequest(BaseModel):
 
     eval_set_name is the name field of an eval set file.
     When it is omitted, the first eval set file in file name order is run.
-    tags and question_id narrow the run to some of the questions, as the CLI flags do.
+    tags and question_ids narrow the run to some of the questions, as the CLI flags do.
+    Every id in question_ids must exist in the eval set, or no run starts.
+    To run every question, leave question_ids out; an empty list is rejected.
     Unknown fields are rejected so that a misspelled name cannot silently run the default set.
     """
 
@@ -155,7 +157,9 @@ class StartRunRequest(BaseModel):
     tags: list[Annotated[str, Field(min_length=1, max_length=100)]] | None = Field(
         default=None, max_length=50
     )
-    question_id: str | None = Field(default=None, min_length=1, max_length=100)
+    question_ids: list[Annotated[str, Field(min_length=1, max_length=100)]] | None = Field(
+        default=None, min_length=1
+    )
 
 
 class StartRunResponse(BaseModel):
@@ -273,7 +277,7 @@ async def list_set_questions(
     responses={
         404: {"description": "No such eval set"},
         409: {"description": "An eval run is already in progress"},
-        422: {"description": "Invalid request, or the filters select no question"},
+        422: {"description": "Invalid request, an unknown question id, or no question selected"},
         503: {"description": "Database unavailable, or the run could not start"},
     },
 )
@@ -382,8 +386,8 @@ async def _start_or_raise(
 
     Raises:
         HTTPException: 404 when no eval set file matches, 422 when the filters select no
-            question, 503 when the runner's own preconditions fail, and 500 when an eval set
-            file is invalid.
+            question or name a question id the eval set lacks, 503 when the runner's own
+            preconditions fail, and 500 when an eval set file is invalid.
     """
     try:
         eval_set_file = await asyncio.to_thread(_find_eval_set_file, options.eval_set_name)
@@ -392,7 +396,7 @@ async def _start_or_raise(
             raise HTTPException(status_code=404, detail=detail)
         runner = _build_runner(settings, session_factory)
         started = await runner.start_run(
-            eval_set_file, tags=options.tags, question_id=options.question_id, source="api"
+            eval_set_file, tags=options.tags, question_ids=options.question_ids, source="api"
         )
     except NoMatchingQuestionsError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc

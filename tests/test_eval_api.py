@@ -103,7 +103,7 @@ class FakeRunner:
 
     def __init__(self) -> None:
         """Start with no calls recorded and a runner whose start and execution succeed."""
-        self.started_with: list[tuple[Path, list[str] | None, str | None]] = []
+        self.started_with: list[tuple[Path, list[str] | None, list[str] | None]] = []
         self.executed: list[StartedRun] = []
         self.start_error: Exception | None = None
         self.execute_error: Exception | None = None
@@ -112,11 +112,11 @@ class FakeRunner:
         self,
         yaml_path: Path,
         tags: list[str] | None = None,
-        question_id: str | None = None,
+        question_ids: list[str] | None = None,
         source: str = "cli",
     ) -> StartedRun:
         """Record the request, then fail with start_error or return a run with id RUN_ID."""
-        self.started_with.append((yaml_path, tags, question_id))
+        self.started_with.append((yaml_path, tags, question_ids))
         if self.start_error is not None:
             raise self.start_error
         return StartedRun(run_id=RUN_ID, eval_set_name="golden-qa-v1", set_size=3, questions=[])
@@ -509,18 +509,23 @@ def test_post_starts_the_named_eval_set_and_scores_it_in_the_background(client, 
     """The set is found by the name inside its file, filters pass through, and the reply is 202.
 
     The reply carries the id of the run that start_run created, and that same run is executed.
+    Several question ids reach start_run as the one list the caller sent.
     """
     write_eval_set(eval_dir, "a_other.yml", "other-set")
     golden = write_eval_set(eval_dir, "b_golden.yml", "golden-qa-v1")
 
     resp = client.post(
         "/eval/runs",
-        json={"eval_set_name": "golden-qa-v1", "tags": ["chapter-3"], "question_id": "q001"},
+        json={
+            "eval_set_name": "golden-qa-v1",
+            "tags": ["chapter-3"],
+            "question_ids": ["q001", "q003"],
+        },
     )
 
     assert resp.status_code == 202
     assert resp.json() == {"eval_run_id": RUN_ID, "status": "running"}
-    assert runner.started_with == [(golden, ["chapter-3"], "q001")]
+    assert runner.started_with == [(golden, ["chapter-3"], ["q001", "q003"])]
     assert [started.run_id for started in runner.executed] == [RUN_ID]
 
 
@@ -560,6 +565,18 @@ def test_post_rejects_unknown_fields_instead_of_running_the_default_set(client, 
     write_eval_set(eval_dir, "golden.yml", "golden-qa-v1")
 
     resp = client.post("/eval/runs", json={"eval_set": "golden-qa-v1"})
+
+    assert resp.status_code == 422
+    assert runner.started_with == []
+
+
+def test_post_rejects_an_empty_question_ids_list_instead_of_running_every_question(
+    client, runner, eval_dir
+):
+    """An empty list is a mistake, not "all questions": the field is left out for that."""
+    write_eval_set(eval_dir, "golden.yml", "golden-qa-v1")
+
+    resp = client.post("/eval/runs", json={"question_ids": []})
 
     assert resp.status_code == 422
     assert runner.started_with == []

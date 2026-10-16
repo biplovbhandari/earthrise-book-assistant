@@ -64,8 +64,9 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--question",
+        nargs="+",
         metavar="ID",
-        help="Run only the question with this id, for example q001.",
+        help="Run only these questions, for example --question q001 q003.",
     )
     parser.add_argument(
         "--base-url",
@@ -184,7 +185,7 @@ async def _run_all(
         summaries = []
         for path in files:
             try:
-                summaries.append(await runner.run(path, tags=args.tags, question_id=args.question))
+                summaries.append(await runner.run(path, tags=args.tags, question_ids=args.question))
             except NoMatchingQuestionsError as exc:
                 print(f"Skipped {path.name}: {exc}")
     finally:
