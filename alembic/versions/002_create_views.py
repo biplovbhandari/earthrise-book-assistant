@@ -116,7 +116,9 @@ def upgrade() -> None:
 
     op.execute("""
         CREATE VIEW v_eval_run_summary AS
-        SELECT er.id AS eval_run_id, er.eval_set_id, er.deployment_id, er.created_at,
+        SELECT er.id AS eval_run_id, er.eval_set_id, er.deployment_id,
+               er.status, er.source,
+               er.created_at,
                d.label AS deployment_label,
                COUNT(res.id) AS questions_evaluated,
                AVG((res.scores->>'retrieval_precision')::float) AS avg_retrieval_precision,

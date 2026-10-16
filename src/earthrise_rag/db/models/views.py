@@ -118,6 +118,8 @@ class VEvalRunSummary(Base):
     eval_run_id: Mapped[int] = mapped_column(Integer, primary_key=True)
     eval_set_id: Mapped[int] = mapped_column(Integer)
     deployment_id: Mapped[int] = mapped_column(Integer)
+    status: Mapped[str] = mapped_column(Text)
+    source: Mapped[str] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     deployment_label: Mapped[str | None] = mapped_column(Text)
     questions_evaluated: Mapped[int] = mapped_column(Integer)

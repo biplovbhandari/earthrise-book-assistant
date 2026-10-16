@@ -60,6 +60,10 @@ class EvalRun(TimestampMixin, Base):
             "status IN ('pending', 'running', 'completed', 'failed')",
             name="status_valid",
         ),
+        CheckConstraint(
+            "source IN ('cli', 'api')",
+            name="source_valid",
+        ),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -70,6 +74,7 @@ class EvalRun(TimestampMixin, Base):
         ForeignKey("deployments.id", ondelete="RESTRICT"), index=True
     )
     status: Mapped[str] = mapped_column(Text)
+    source: Mapped[str] = mapped_column(Text, default="cli")
     config: Mapped[Any] = mapped_column(JSONB, nullable=True)
 
     eval_set: Mapped["EvalSet"] = relationship(back_populates="runs")

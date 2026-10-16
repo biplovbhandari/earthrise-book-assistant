@@ -63,6 +63,8 @@ class EvalRunSummary(BaseModel):
     eval_run_id: int
     eval_set_id: int
     deployment_id: int
+    status: str
+    source: str
     created_at: datetime
     deployment_label: str | None
     questions_evaluated: int
@@ -390,7 +392,7 @@ async def _start_or_raise(
             raise HTTPException(status_code=404, detail=detail)
         runner = _build_runner(settings, session_factory)
         started = await runner.start_run(
-            eval_set_file, tags=options.tags, question_id=options.question_id
+            eval_set_file, tags=options.tags, question_id=options.question_id, source="api"
         )
     except NoMatchingQuestionsError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc

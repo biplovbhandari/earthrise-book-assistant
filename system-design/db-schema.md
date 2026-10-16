@@ -98,6 +98,7 @@ erDiagram
     eval_questions {
         INT id "PK"
         INT eval_set_id "FK"
+        TEXT question_key "nullable"
         TEXT question
         TEXT expected_answer "nullable"
         JSONB expected_sources
@@ -108,6 +109,7 @@ erDiagram
         INT eval_set_id "FK"
         INT deployment_id "FK"
         TEXT status
+        TEXT source
         JSONB config "nullable"
         TIMESTAMPTZ created_at
     }
@@ -223,6 +225,8 @@ erDiagram
         INT eval_run_id
         INT eval_set_id
         INT deployment_id
+        TEXT status
+        TEXT source
         TIMESTAMPTZ created_at
         TEXT deployment_label
         INT questions_evaluated

@@ -9,7 +9,7 @@ Manual additions (autogenerate limitations):
 
 Revision ID: 001
 Revises:
-Create Date: 2026-10-14
+Create Date: 2026-10-15
 """
 
 from collections.abc import Sequence
@@ -195,6 +195,7 @@ def upgrade() -> None:
         "eval_questions",
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("eval_set_id", sa.Integer(), nullable=False),
+        sa.Column("question_key", sa.Text(), nullable=True),
         sa.Column("question", sa.Text(), nullable=False),
         sa.Column("expected_answer", sa.Text(), nullable=True),
         sa.Column("expected_sources", postgresql.JSONB(astext_type=sa.Text()), nullable=False),
@@ -206,6 +207,7 @@ def upgrade() -> None:
             ondelete="CASCADE",
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_eval_questions")),
+        sa.UniqueConstraint("eval_set_id", "question_key", name="uq_eval_questions_set_key"),
         schema="earthrise",
     )
     op.create_index(
@@ -221,6 +223,7 @@ def upgrade() -> None:
         sa.Column("eval_set_id", sa.Integer(), nullable=False),
         sa.Column("deployment_id", sa.Integer(), nullable=False),
         sa.Column("status", sa.Text(), nullable=False),
+        sa.Column("source", sa.Text(), nullable=False),
         sa.Column("config", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
         sa.Column(
             "created_at",
@@ -228,6 +231,7 @@ def upgrade() -> None:
             server_default=sa.text("now()"),
             nullable=False,
         ),
+        sa.CheckConstraint("source IN ('cli', 'api')", name=op.f("ck_eval_runs_source_valid")),
         sa.CheckConstraint(
             "status IN ('pending', 'running', 'completed', 'failed')",
             name=op.f("ck_eval_runs_status_valid"),

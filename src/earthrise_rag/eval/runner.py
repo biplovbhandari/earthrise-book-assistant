@@ -606,6 +606,7 @@ class EvalRunner:
         yaml_path: Path,
         tags: list[str] | None = None,
         question_id: str | None = None,
+        source: str = "cli",
     ) -> StartedRun:
         """Check a run request and create the run's eval_runs row, without asking any question.
 
@@ -635,7 +636,7 @@ class EvalRunner:
         eval_set_id, synced = await self.sync_to_db(eval_set_data)
         db_ids = {question["id"]: question["db_id"] for question in synced}
         config = await asyncio.to_thread(self.get_config)
-        run_id = await self._create_run_row(eval_set_id, config)
+        run_id = await self._create_run_row(eval_set_id, config, source=source)
         return StartedRun(
             run_id=run_id,
             eval_set_name=eval_set_data["name"],
@@ -689,7 +690,9 @@ class EvalRunner:
         _print_summary(summary)
         return summary
 
-    async def _create_run_row(self, eval_set_id: int, config: dict[str, Any]) -> int:
+    async def _create_run_row(
+        self, eval_set_id: int, config: dict[str, Any], source: str = "cli"
+    ) -> int:
         """Create the eval_runs row for the active deployment, with status 'running'.
 
         Raises:
@@ -709,6 +712,7 @@ class EvalRunner:
                 eval_set_id=eval_set_id,
                 deployment_id=deployment.id,
                 status="running",
+                source=source,
                 config=config,
             )
             session.add(run)

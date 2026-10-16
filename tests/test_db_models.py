@@ -166,6 +166,7 @@ def test_check_constraints():
         "ck_feedback_rating_valid": "rating",
         "ck_deployments_strategy_valid": "retrieval_strategy",
         "ck_eval_runs_status_valid": "status",
+        "ck_eval_runs_source_valid": "source",
         "ck_interactions_token_count_nonneg": "token_count",
         "ck_interactions_latency_nonneg": "latency_ms",
         "ck_interaction_citations_citation_index_nonneg": "citation_index",

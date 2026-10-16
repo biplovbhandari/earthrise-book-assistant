@@ -131,7 +131,7 @@ def test_upgrade_creates_all_tables_and_views(temp_db):
 
 
 def test_upgrade_adds_a_nullable_question_key_unique_per_eval_set(temp_db):
-    """Migration 003 adds a nullable question_key under the constraint name the ORM declares."""
+    """The schema includes a nullable question_key with a unique constraint per eval set."""
     _alembic_cmd(temp_db, "upgrade", "head")
 
     column = _query(temp_db, _QUESTION_KEY_SQL)

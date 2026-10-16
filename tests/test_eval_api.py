@@ -113,6 +113,7 @@ class FakeRunner:
         yaml_path: Path,
         tags: list[str] | None = None,
         question_id: str | None = None,
+        source: str = "cli",
     ) -> StartedRun:
         """Record the request, then fail with start_error or return a run with id RUN_ID."""
         self.started_with.append((yaml_path, tags, question_id))
@@ -246,6 +247,8 @@ def test_runs_returns_summaries_newest_first(client, session):
                 eval_run_id=2,
                 eval_set_id=1,
                 deployment_id=3,
+                status="completed",
+                source="cli",
                 created_at=NOW,
                 deployment_label="v1",
                 questions_evaluated=15,
@@ -258,6 +261,8 @@ def test_runs_returns_summaries_newest_first(client, session):
                 eval_run_id=1,
                 eval_set_id=1,
                 deployment_id=3,
+                status="running",
+                source="api",
                 created_at=older,
                 deployment_label=None,
                 questions_evaluated=0,
@@ -279,6 +284,8 @@ def test_runs_returns_summaries_newest_first(client, session):
         "eval_run_id": 2,
         "eval_set_id": 1,
         "deployment_id": 3,
+        "status": "completed",
+        "source": "cli",
         "deployment_label": "v1",
         "questions_evaluated": 15,
         "avg_retrieval_precision": 0.45,
@@ -290,6 +297,8 @@ def test_runs_returns_summaries_newest_first(client, session):
         "eval_run_id": 1,
         "eval_set_id": 1,
         "deployment_id": 3,
+        "status": "running",
+        "source": "api",
         "deployment_label": None,
         "questions_evaluated": 0,
         "avg_retrieval_precision": None,
