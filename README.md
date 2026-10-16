@@ -204,8 +204,8 @@ Each API request gets a `X-Request-ID` header for log correlation. Access logs i
 | Log | Location | Rotation |
 |-----|----------|----------|
 | App structured logs | `logs/app/app.log` | `RotatingFileHandler` (10 MB x 5) |
-| App raw stdout/stderr | `logs/app/stdout.log`, `stderr.log` | `newsyslog.d` (daily x 7) |
-| Cloudflare tunnel | `logs/tunnel/tunnel.log`, `tunnel.error.log` | `newsyslog.d` (daily x 7) |
+| App raw stdout/stderr | `logs/app/stdout.log`, `stderr.log` | `just log-rotate` (>10 MB, keep 7) |
+| Cloudflare tunnel | `logs/tunnel/tunnel.log`, `tunnel.error.log` | `just log-rotate` (>10 MB, keep 7) |
 | Indexing scripts | `logs/scripts/indexing_*.log` | Pruned to 10 most recent |
 | Transcript cleanup | `logs/scripts/cleanup_*.log` | Pruned to 10 most recent |
 | Transcription | `logs/scripts/transcription_*.log` | Pruned to 10 most recent |
@@ -272,7 +272,6 @@ geoai-book-assistant/
 ├── infra/launchd/               # macOS launchd service config
 ├── infra/prometheus/            # Prometheus scrape config
 ├── infra/grafana/               # Grafana provisioning (datasource + dashboard)
-├── infra/newsyslog.d/           # Log rotation config (macOS)
 ├── system-design/               # Architecture and deployment docs
 ├── tests/
 ├── book/                        # Git submodule (book source)

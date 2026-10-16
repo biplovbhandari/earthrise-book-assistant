@@ -15,6 +15,7 @@
     <array>
         <string>HOMEBREW_PREFIX/bin/just</string>
         <string>db-backup</string>
+        <string>log-rotate</string>
     </array>
 
     <key>WorkingDirectory</key>

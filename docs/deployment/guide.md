@@ -136,11 +136,13 @@ ADMIN_TOKEN=<generate with: python3 -c "import secrets; print(secrets.token_urls
 EMBEDDING_DIMENSION=1024
 RERANKER_PROVIDER=local_cross_encoder
 RETRIEVAL_STRATEGY=hybrid
+QDRANT_COLLECTION=geoai_book
 RATE_LIMIT_PER_MINUTE=30
 MAX_CONCURRENT_LLM=1
+GRAFANA_ADMIN_PASSWORD=admin
 ```
 
-`ADMIN_TOKEN` protects the `/analytics/*` endpoints.
+`ADMIN_TOKEN` protects the `/analytics/*` and `/metrics` endpoints.
 Requests must include `Authorization: Bearer <token>`.
 If left empty, all analytics endpoints return 403.
 
@@ -157,8 +159,10 @@ ADMIN_TOKEN=<generate with: python3 -c "import secrets; print(secrets.token_urls
 EMBEDDING_DIMENSION=1024
 RERANKER_PROVIDER=local_cross_encoder
 RETRIEVAL_STRATEGY=hybrid
+QDRANT_COLLECTION=geoai_book
 RATE_LIMIT_PER_MINUTE=30
 MAX_CONCURRENT_LLM=1
+GRAFANA_ADMIN_PASSWORD=admin
 ```
 
 On Linux, `LLM_BASE_URL` uses the Docker bridge gateway (`172.17.0.1`) and `DATABASE_URL` uses the Docker service name (`postgres`) because the app runs inside Docker.
@@ -168,12 +172,12 @@ On Linux, `LLM_BASE_URL` uses the Docker bridge gateway (`172.17.0.1`) and `DATA
 ### macOS
 
 ```bash
-just services       # Docker: Qdrant + PostgreSQL
+just services       # Docker: Qdrant + PostgreSQL + Prometheus + Grafana
 just db-migrate     # Apply database migrations
 just serve          # Native: uvicorn in production mode with Metal GPU
 ```
 
-`just serve` starts the API without hot-reload, bound to all interfaces.
+`just serve` starts the API without hot-reload, bound to all interfaces, with graceful shutdown (`--timeout-graceful-shutdown 30` drains in-flight SSE streams before exit).
 `just dev` is available for development (adds hot-reload).
 The embedding model and reranker run on the Metal GPU via MPS.
 
@@ -191,7 +195,7 @@ cp infra/launchd/com.geoai.assistant.plist ~/Library/LaunchAgents/
 launchctl load ~/Library/LaunchAgents/com.geoai.assistant.plist
 ```
 
-This auto-starts the app on login, restarts on crash, and logs to `logs/app.log`.
+This auto-starts the app on login, restarts on crash, and logs to `logs/app/stdout.log` (raw uvicorn output) and `logs/app/app.log` (structured JSON via RotatingFileHandler).
 To stop: `launchctl unload ~/Library/LaunchAgents/com.geoai.assistant.plist`.
 
 ### Linux
@@ -251,6 +255,8 @@ Check that:
 The book with chat widget is at http://localhost:8000/.
 The analytics dashboard is at http://localhost:8000/dashboard/ (enter `ADMIN_TOKEN` to connect).
 The Qdrant dashboard is at http://localhost:6333/dashboard.
+The Grafana dashboard is at http://localhost:3000 (admin/admin or `GRAFANA_ADMIN_PASSWORD`).
+The Prometheus UI is at http://localhost:9090 (check Targets page to verify scrape health).
 
 ## 7. Public access with Cloudflare Tunnel
 
@@ -383,24 +389,56 @@ Database migrations run automatically on restart via the entrypoint script.
 
 ## 9. Monitoring
 
-Check application health:
+### Health check
 
 ```bash
 curl -s localhost:8000/health | python3 -m json.tool
 ```
 
-View logs:
+### Prometheus and Grafana
+
+`just services` starts Prometheus (localhost:9090) and Grafana (localhost:3000) alongside Qdrant and PostgreSQL.
+
+Prometheus scrapes two targets every 15 seconds:
+- The app at `host.docker.internal:8000/metrics` (admin-gated, token from `ADMIN_TOKEN` via docker-compose)
+- Qdrant at `qdrant:6333/metrics` (native, no auth)
+
+Grafana ships with a pre-provisioned dashboard ("Geo-AI Book Assistant") showing request rate, latency percentiles, error rate, LLM generation duration, retrieval duration, and Qdrant operations.
+
+### Structured logging
+
+The app uses JSON structured logging in production (`just serve`) and plain text in dev (`just dev`).
+Every API request gets a `X-Request-ID` header for log correlation.
+Access logs include method, path, status, latency, and client IP.
+
+### Log locations
+
+| Log | Location | Rotation |
+|-----|----------|----------|
+| App structured logs | `logs/app/app.log` | RotatingFileHandler (10 MB x 5) |
+| App raw stdout/stderr | `logs/app/stdout.log`, `stderr.log` | `just log-rotate` (>10 MB, keep 7) |
+| Cloudflare tunnel | `logs/tunnel/tunnel.log`, `tunnel.error.log` | `just log-rotate` (>10 MB, keep 7) |
+| Indexing scripts | `logs/scripts/indexing_*.log` | Pruned to 10 most recent |
+| Transcript scripts | `logs/scripts/cleanup_*.log`, `transcription_*.log` | Pruned to 10 most recent |
+| Docker containers | `docker logs <name>` | Docker driver (10 MB x 3) |
+| DB backups | `backups/backup.log` | Overwritten each run |
+
+### Log rotation
+
+Launchd logs (stdout, stderr, tunnel) are rotated by `just log-rotate`, which runs nightly alongside `just db-backup` via the `com.geoai.db-backup` plist.
+The recipe uses copytruncate: files over 10 MB are copied with a timestamp, gzipped, and the original is truncated.
+No sudo required. Keeps 7 rotated copies per file.
+
+App structured logs (`logs/app/app.log`) are rotated automatically by Python's RotatingFileHandler.
+Script logs are pruned to 10 most recent per prefix on each run.
+
+### Docker service logs
 
 ```bash
-# macOS: uvicorn logs are in the terminal (just serve) or logs/app.log (launchd)
-# Docker services:
-docker compose logs -f qdrant     # vector DB logs
-docker compose logs -f postgres   # database logs
-
-# Linux (full Docker):
-docker compose logs -f app        # API logs
-docker compose logs -f qdrant     # vector DB logs
-docker compose logs -f postgres   # database logs
+docker compose logs -f qdrant       # vector DB logs
+docker compose logs -f postgres     # database logs
+docker compose logs -f prometheus   # metrics collector logs
+docker compose logs -f grafana      # dashboard logs
 ```
 
 Check Qdrant dashboard at http://localhost:6333/dashboard for collection stats and indexed chunk counts.
