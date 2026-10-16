@@ -1,4 +1,5 @@
 import logging
+import sys
 import threading
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -6,12 +7,15 @@ from pathlib import Path
 from fastapi import Depends, FastAPI
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
+from prometheus_fastapi_instrumentator import Instrumentator
 from pydantic import BaseModel
 from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+from starlette.responses import Response as StarletteResponse
 
 from api.dependencies import check_generation_ready, check_retrieval_ready, require_admin_token
-from api.middleware import RateLimitMiddleware
+from api.middleware import AccessLogMiddleware, RateLimitMiddleware, RequestIDMiddleware
 from api.routes.analytics import router as analytics_router
 from api.routes.ask import router as ask_router
 from api.routes.chat import router as chat_router
@@ -24,6 +28,7 @@ from earthrise_rag.db.bootstrap import ensure_active_deployment
 from earthrise_rag.db.engine import check_db_schema_status, create_db_engine, create_session_factory
 from earthrise_rag.db.models import EvalRun
 from earthrise_rag.factories import create_pipelines
+from earthrise_rag.logging_config import configure_logging
 
 logger = logging.getLogger(__name__)
 
@@ -52,6 +57,9 @@ async def _sweep_orphaned_api_runs(
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     app.state.settings = get_settings()
+
+    is_dev = "--reload" in sys.argv
+    configure_logging(json=not is_dev, level="INFO")
 
     try:
         app.state.pipelines = create_pipelines(app.state.settings)
@@ -118,6 +126,14 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+Instrumentator().instrument(app)
+
+
+@app.get("/metrics", include_in_schema=False, dependencies=[Depends(require_admin_token)])
+async def metrics():
+    """Prometheus metrics endpoint, admin-gated."""
+    return StarletteResponse(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
+
 
 @app.get("/health")
 async def health():
@@ -181,6 +197,8 @@ app.add_middleware(
     RateLimitMiddleware,
     max_requests=get_settings().rate_limit_per_minute,
 )
+app.add_middleware(AccessLogMiddleware)
+app.add_middleware(RequestIDMiddleware)
 
 app.include_router(ask_router)
 app.include_router(chat_router)

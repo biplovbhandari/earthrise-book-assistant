@@ -5,6 +5,7 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, Request
 
 from api.dependencies import acquire_llm_slot, require_generation_ready, require_retrieval_ready
+from api.metrics import llm_generation_seconds, retrieval_seconds
 from api.routes.validators import QuestionFiltersMixin
 from earthrise_rag.models.answer import Answer
 
@@ -32,6 +33,8 @@ def ask(request: Request, body: AskRequest):
     llm_semaphore = acquire_llm_slot(request)
     try:
         result = pipelines.query.ask(body.question, body.filters)
+        retrieval_seconds.observe(result.retrieval_ms / 1000)
+        llm_generation_seconds.observe(result.generation_ms / 1000)
     except Exception:
         logger.exception("Generation failed")
         raise HTTPException(status_code=503, detail="generation failed")

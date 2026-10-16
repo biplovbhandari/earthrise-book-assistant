@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field, field_validator
 from starlette.background import BackgroundTask
 
 from api.dependencies import acquire_llm_slot, require_generation_ready, require_retrieval_ready
+from api.metrics import llm_generation_seconds, retrieval_seconds
 from api.recording import RecordingContext, record_interaction
 from api.routes.validators import QuestionFiltersMixin
 
@@ -158,6 +159,10 @@ def chat(request: Request, body: ChatRequest):
                 llm_semaphore.release()
         except Exception:
             logger.exception("Failed to release LLM semaphore for %s", ctx.interaction_id)
+        if ctx.retrieval_ms:
+            retrieval_seconds.observe(ctx.retrieval_ms / 1000)
+        if ctx.generation_wall_ms:
+            llm_generation_seconds.observe(ctx.generation_wall_ms / 1000)
         try:
             if not (can_record and ctx.saw_done):
                 return
