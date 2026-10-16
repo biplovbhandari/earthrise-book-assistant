@@ -89,7 +89,7 @@ log-rotate:
     done
     # Prune old rotated copies
     for logfile in logs/app/stdout.log logs/app/stderr.log logs/tunnel/tunnel.log logs/tunnel/tunnel.error.log; do
-        ls -1t "${logfile}".*.gz 2>/dev/null | tail -n +"$((keep + 1))" | xargs rm -f 2>/dev/null
+        ls -1t "${logfile}".*.gz 2>/dev/null | tail -n +"$((keep + 1))" | xargs rm -f 2>/dev/null || true
     done
 
 # Restore PostgreSQL from a backup file (replaces current data)
