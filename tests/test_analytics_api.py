@@ -359,6 +359,16 @@ def test_auth_wrong_token_returns_401(auth_client):
     assert resp.json() == {"detail": "Invalid token"}
 
 
+def test_auth_non_ascii_token_returns_401(auth_client):
+    """A token with non-ASCII characters is rejected as invalid rather than raising an error."""
+    resp = auth_client.get(
+        "/analytics/overview", headers={b"authorization": "Bearer café".encode()}
+    )
+
+    assert resp.status_code == 401
+    assert resp.json() == {"detail": "Invalid token"}
+
+
 def test_auth_correct_token_passes(auth_client):
     """A valid token passes auth (then hits 503 because DB is disabled - that's expected)."""
     resp = auth_client.get("/analytics/overview", headers={"authorization": "Bearer correct-token"})

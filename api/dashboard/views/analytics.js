@@ -223,7 +223,7 @@ export function useAnalytics(session, onAuthError) {
         }
         const run = session.id;
         try {
-            config.value = await apiGet('/analytics/config', session.token, isRecord);
+            config.value = await apiGet('/config', session.token, isRecord);
         } catch (err) {
             if (run !== session.id) {
                 return;

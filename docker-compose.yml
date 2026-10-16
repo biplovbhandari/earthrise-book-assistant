@@ -5,7 +5,7 @@ services:
       dockerfile: infra/docker/Dockerfile.app
     profiles: ["gpu"]
     ports:
-      - "8000:8000"
+      - "${APP_PORT:-8000}:${APP_PORT:-8000}"
     depends_on:
       qdrant:
         condition: service_healthy

@@ -20,9 +20,9 @@ def _table(name: str):
     return Base.metadata.tables[f"{Base.metadata.schema}.{name}"]
 
 
-def test_all_15_tables_registered():
-    """All 15 tables are present in Base.metadata."""
-    table_names = {t.name for t in Base.metadata.tables.values()}
+def test_table_models_registered():
+    """Every table ORM model is imported and visible in Base.metadata."""
+    table_names = {t.name for t in Base.metadata.tables.values() if not t.info.get("is_view")}
     assert table_names == {
         "conversations",
         "interactions",
@@ -42,6 +42,20 @@ def test_all_15_tables_registered():
     }
 
 
+def test_view_models_registered():
+    """Every view ORM model is imported and visible in Base.metadata."""
+    view_names = {t.name for t in Base.metadata.tables.values() if t.info.get("is_view")}
+    assert view_names == {
+        "v_interaction_summary",
+        "v_daily_stats",
+        "v_citation_heatmap",
+        "v_retrieval_gaps",
+        "v_deployment_metrics",
+        "v_conversation_summary",
+        "v_eval_run_summary",
+    }
+
+
 def _get_fk_map():
     """Build a map of (table, column) -> (target_table, ondelete)."""
     fk_map = {}
@@ -52,10 +66,9 @@ def _get_fk_map():
     return fk_map
 
 
-def test_all_15_foreign_keys():
-    """All 15 FK relationships have correct targets and ON DELETE behavior."""
+def test_fk_cascade_behavior():
+    """FK relationships have correct targets and ON DELETE behavior."""
     fk_map = _get_fk_map()
-    assert len(fk_map) == 15
 
     expected = {
         ("interactions", "conversation_id"): ("conversations", "CASCADE"),
@@ -88,8 +101,8 @@ def _get_all_indexes():
     return indexes
 
 
-def test_all_20_indexes():
-    """All 20 named indexes are present."""
+def test_indexes_registered():
+    """Named indexes are present for query performance."""
     expected_names = {
         "idx_conversations_visitor_id",
         "idx_conversations_created_at",
@@ -125,14 +138,15 @@ def test_partial_unique_index_on_deployments():
     assert "is_active" in where
 
 
-def test_all_6_unique_constraints():
-    """All 6 UNIQUE constraints are present with correct columns."""
+def test_unique_constraints():
+    """UNIQUE constraints are present with correct columns."""
     expected = {
         ("feedback", frozenset(["interaction_id"])),
         ("prompt_versions", frozenset(["hash"])),
         ("shared_responses", frozenset(["interaction_id"])),
         ("interaction_citations", frozenset(["interaction_id", "citation_index"])),
         ("interaction_traces", frozenset(["interaction_id", "stage"])),
+        ("eval_questions", frozenset(["eval_set_id", "question_key"])),
         ("eval_results", frozenset(["eval_run_id", "question_id"])),
     }
 
@@ -146,12 +160,13 @@ def test_all_6_unique_constraints():
     assert found == expected
 
 
-def test_all_8_check_constraints():
-    """All 8 named CHECK constraints enforce domain rules with correct expressions."""
+def test_check_constraints():
+    """CHECK constraints enforce domain rules with correct expressions."""
     expected = {
         "ck_feedback_rating_valid": "rating",
         "ck_deployments_strategy_valid": "retrieval_strategy",
         "ck_eval_runs_status_valid": "status",
+        "ck_eval_runs_source_valid": "source",
         "ck_interactions_token_count_nonneg": "token_count",
         "ck_interactions_latency_nonneg": "latency_ms",
         "ck_interaction_citations_citation_index_nonneg": "citation_index",
@@ -181,6 +196,12 @@ def test_eval_results_question_id_nullable():
     """question_id is nullable for ON DELETE SET NULL from eval_questions."""
     table = _table("eval_results")
     assert table.columns["question_id"].nullable
+
+
+def test_eval_questions_question_key_nullable():
+    """question_key is nullable so rows saved before the column existed stay valid."""
+    table = _table("eval_questions")
+    assert table.columns["question_key"].nullable
 
 
 def test_query_embedding_not_null():

@@ -3,16 +3,18 @@ import threading
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
 
-from api.dependencies import create_pipelines
+from api.dependencies import create_pipelines, require_admin_token
 from api.middleware import RateLimitMiddleware
 from api.routes.analytics import router as analytics_router
 from api.routes.ask import router as ask_router
 from api.routes.chat import check_generation_ready, check_retrieval_ready
 from api.routes.chat import router as chat_router
+from api.routes.eval import router as eval_router
 from api.routes.feedback import router as feedback_router
 from api.routes.search import router as search_router
 from earthrise_rag import __version__
@@ -119,6 +121,35 @@ async def health():
     }
 
 
+class PipelineConfig(BaseModel):
+    """Active retrieval and generation settings, read from the environment."""
+
+    retrieval_strategy: str
+    retrieval_top_k: int
+    reranker_provider: str
+    reranker_model_name: str
+    embedding_model_name: str
+    rrf_k: int
+    llm_provider: str
+    llm_model: str
+
+
+@app.get("/config", response_model=PipelineConfig, dependencies=[Depends(require_admin_token)])
+async def pipeline_config():
+    """Return the active retrieval and generation configuration to an admin."""
+    s = get_settings()
+    return PipelineConfig(
+        retrieval_strategy=s.retrieval_strategy,
+        retrieval_top_k=s.retrieval_top_k,
+        reranker_provider=s.reranker_provider,
+        reranker_model_name=s.reranker_model_name,
+        embedding_model_name=s.embedding_model_name,
+        rrf_k=s.rrf_k,
+        llm_provider=s.llm_provider,
+        llm_model=s.llm_model,
+    )
+
+
 app.add_middleware(
     RateLimitMiddleware,
     max_requests=get_settings().rate_limit_per_minute,
@@ -129,6 +160,7 @@ app.include_router(chat_router)
 app.include_router(search_router)
 app.include_router(feedback_router)
 app.include_router(analytics_router)
+app.include_router(eval_router, prefix="/eval")
 
 # --- Static file mounts (catch-all book mount must be last) ---
 

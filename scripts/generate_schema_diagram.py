@@ -36,6 +36,20 @@ DOMAIN_GROUPS = {
     ],
 }
 
+VIEW_GROUPS = {
+    "Analytics": [
+        "v_interaction_summary",
+        "v_daily_stats",
+        "v_citation_heatmap",
+        "v_retrieval_gaps",
+        "v_conversation_summary",
+        "v_deployment_metrics",
+    ],
+    "Evaluation": [
+        "v_eval_run_summary",
+    ],
+}
+
 
 def _col_type(col) -> str:
     """Map SQLAlchemy column type to a short label."""
@@ -77,10 +91,15 @@ def _ondelete_label(ondelete: str) -> str:
     return labels.get(ondelete, ondelete)
 
 
+def _is_view(table) -> bool:
+    """Check if a SQLAlchemy table is a view ORM model."""
+    return table.info.get("is_view", False)
+
+
 def generate_mermaid() -> str:
-    """Generate Mermaid ER diagram from Base.metadata."""
+    """Generate Mermaid ER diagram for tables (not views) from Base.metadata."""
     lines = ["erDiagram"]
-    tables = {t.name: t for t in Base.metadata.sorted_tables}
+    tables = {t.name: t for t in Base.metadata.sorted_tables if not _is_view(t)}
     fk_relationships = []
 
     for group_name, table_names in DOMAIN_GROUPS.items():
@@ -109,6 +128,23 @@ def generate_mermaid() -> str:
     return "\n".join(lines)
 
 
+def generate_views_mermaid() -> str:
+    """Generate a separate Mermaid ER diagram for views from Base.metadata."""
+    lines = ["erDiagram"]
+    views = {t.name: t for t in Base.metadata.sorted_tables if _is_view(t)}
+
+    for group_name, view_names in VIEW_GROUPS.items():
+        lines.append(f"    %% --- {group_name} ---")
+        for name in view_names:
+            view = views[name]
+            lines.append(f"    {name} {{")
+            for col in view.columns:
+                col_type = _col_type(col)
+                lines.append(f"        {col_type} {col.name}")
+            lines.append("    }")
+    return "\n".join(lines)
+
+
 def main():
     parser = argparse.ArgumentParser(description="Generate Mermaid ER diagram from ORM models.")
     parser.add_argument(
@@ -119,18 +155,28 @@ def main():
     )
     args = parser.parse_args()
 
-    mermaid = generate_mermaid()
+    tables_mermaid = generate_mermaid()
+    views_mermaid = generate_views_mermaid()
     schema = Base.metadata.schema or "public"
-    table_count = len(Base.metadata.sorted_tables)
+    all_tables = Base.metadata.sorted_tables
+    table_count = sum(1 for t in all_tables if not _is_view(t))
+    view_count = sum(1 for t in all_tables if _is_view(t))
 
     content = (
         f"# Database Schema\n\n"
         f"PostgreSQL 17 + pgvector.\n"
-        f"{table_count} tables in the `{schema}` schema.\n"
+        f"{table_count} tables and {view_count} views in the `{schema}` schema.\n"
         f"Auto-generated from SQLAlchemy ORM models.\n"
         f"Regenerate with `uv run python scripts/generate_schema_diagram.py`.\n\n"
+        f"## Tables\n\n"
         f"```mermaid\n"
-        f"{mermaid}\n"
+        f"{tables_mermaid}\n"
+        f"```\n\n"
+        f"## Views\n\n"
+        f"Pre-aggregated analytics and evaluation summaries.\n"
+        f"Defined in Alembic migrations as raw SQL; mapped by read-only ORM models.\n\n"
+        f"```mermaid\n"
+        f"{views_mermaid}\n"
         f"```\n"
     )
 

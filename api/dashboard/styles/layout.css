@@ -81,6 +81,37 @@ header h1 {
   font-size: 11px;
 }
 
+/* Tabs. The active tab's underline sits over the bar's own bottom border. */
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin: 6px 0 12px;
+  border-bottom: 1px solid var(--bd);
+}
+
+.tabs .tab {
+  margin-bottom: -1px;
+  padding: 6px 12px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: var(--tx2);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.tabs .tab:hover {
+  color: var(--tx);
+}
+
+.tabs .tab.on {
+  border-bottom-color: var(--ac);
+  color: var(--tx);
+  font-weight: 600;
+}
+
 /* Placeholder and error text. .err must stay after .empty and .subline so it wins on color. */
 
 .empty {

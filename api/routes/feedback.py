@@ -20,6 +20,7 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.dependencies import require_db_session
+from api.middleware import client_ip
 from earthrise_rag.db.models import Feedback, FeedbackRateLimit, Interaction
 
 router = APIRouter(tags=["feedback"])
@@ -131,8 +132,7 @@ async def submit_feedback(
     if interaction_id is None:
         raise HTTPException(status_code=404, detail="Interaction not found")
 
-    client_ip = request.client.host if request.client else "unknown"
-    ip_hash = _hash_ip(client_ip)
+    ip_hash = _hash_ip(client_ip(request))
     window_start = _window_start(datetime.now(UTC))
     if not await _consume_rate_limit(session, ip_hash, window_start):
         raise HTTPException(

@@ -1,0 +1,196 @@
+# Golden Q&A set for evaluating the book assistant.
+# expected_sources are path prefixes matched against each retrieved chunk's source_path.
+#   Book content (notebooks, companion PDFs, markdown): book/<chapter>/<lesson>/...
+#   Video transcripts: data/transcripts/<video_id>.json (video IDs map to chapters in data/video_chapter_map.yml)
+# List a source only if the expected answer relies on it, so retrieval precision and recall stay meaningful.
+
+name: golden-qa-v1
+description: Core Q&A set for EarthRISE book assistant evaluation
+
+questions:
+  - id: q001
+    question: "What is semantic segmentation in the context of remote sensing?"
+    expected_answer: |
+      Semantic segmentation assigns a class label to every pixel of an image, producing a map instead of a single label per image.
+      In the book it is applied to crop mapping (rice in Bhutan), selective logging detection from very-high-resolution imagery, and deforestation detection with a foundation model.
+      Models are trained on image patches paired with label masks.
+      The main architecture is U-Net, a patch-based encoder-decoder network, which the crop mapping chapter compares with a pixel-level DNN, while the deforestation chapter uses a Vision Transformer encoder from the Clay foundation model.
+      A good answer links the general definition to these remote sensing examples.
+    expected_sources:
+      - "book/03_Semantic_Segmentation"
+    tags: ["chapter-3", "segmentation", "core-concept", "content-notebook"]
+    notes: "The book has no standalone definition of semantic segmentation (chapter 3 consists of three applied lessons), so a good answer combines the general definition with the book's examples."
+
+  - id: q002
+    question: "how to do crop mapping using ML/AI?"
+    expected_answer: |
+      The book maps rice in Paro, Bhutan as a deep learning semantic segmentation problem.
+      Inputs are high-resolution Planet NICFI monthly mosaics (red, green, blue and near-infrared) from before and during the growing season, optionally combined with elevation and Sentinel-1 radar data, prepared with Google Earth Engine.
+      Training labels come from sampled points and patches, using the regional land cover product (RLCMS) as weak labels for the non-rice classes plus manually digitized rice paddies, with the sampling designed to handle class imbalance.
+      A patch-based U-Net is compared with a point-based DNN using the SERVIR ACES package, and the U-Net performs better.
+      Results are also checked against an independent validation dataset collected separately, which scores noticeably lower than the training and validation metrics, so independent validation is recommended.
+    expected_sources:
+      - "book/03_Semantic_Segmentation/01__Crop_Mapping"
+    tags: ["chapter-3", "crop-mapping", "known-truncation", "content-notebook", "content-pdf"]
+    notes: "Response has been observed to truncate mid-sentence"
+
+  - id: q003
+    question: "how is ethics applied in applied geoai?"
+    expected_answer: |
+      The ethics chapter presents a 12-step framework for ethically co-developing GeoAI projects with end-users, organized into three iterative phases: foundation and scoping, iterative co-design, and sustaining impact and learning.
+      Key principles include intellectual humility, trust built through inclusive stakeholder engagement, accountability and transparency, attention to power, participation and data sovereignty, and questioning whether deep learning or GeoAI is needed at all.
+      Success is defined beyond accuracy metrics, including who is represented or left out, and model bias, uncertainty and limitations are communicated openly.
+      The chapter also covers practical challenges such as limited resources, diverse expectations and engagement overload, and illustrates the framework with applied case studies.
+    expected_sources:
+      - "book/11_Ethics"
+    tags: ["chapter-11", "ethics", "known-retrieval-miss", "known-citation-relevance", "content-text"]
+    notes: "Known retrieval miss: doesn't retrieve ch 11, cites generic sources"
+
+  - id: q004
+    question: "Why does the Bhutan rice mapping chapter use Planet imagery instead of Sentinel-2?"
+    expected_answer: |
+      Persistent cloud cover over Bhutan, especially in the monsoon growing season, limits the usable optical observations from Sentinel-2 and Landsat.
+      The Planet NICFI monthly mosaics are analysis-ready, cloud-corrected composites with red, green, blue and near-infrared bands at about 4.8 m resolution.
+      High spatial resolution also matters because Bhutan has small farm holdings and complex terrain.
+      The study uses a pre-growing-season and a growing-season composite so that rice can be separated from the surrounding evergreen forest, and it tests elevation and Sentinel-1 radar as optional extra inputs.
+    expected_sources:
+      - "book/03_Semantic_Segmentation/01__Crop_Mapping"
+      - "data/transcripts/l3Tv5UBlw9I.json" # chapter 3.1 video
+    tags: ["chapter-3", "crop-mapping", "data-selection", "content-pdf", "content-video"]
+
+  - id: q005
+    question: "How can deep learning detect selective logging in the Amazon from satellite imagery?"
+    expected_answer: |
+      Selective logging removes only a few valuable trees, so it is hard to see in medium-resolution imagery such as Sentinel-2 or Landsat, the disturbance fades within about 2-3 months as the forest regrows, and heavy cloud cover limits optical observations.
+      The chapter instead uses very-high-resolution (0.5 m) SkySat imagery from Planet Labs, with hand-digitized logging polygons as labels.
+      Detection is framed as binary semantic segmentation (1 = logging, 0 = background) using a modified U-Net trained on 128 x 128 pixel patches exported from Google Earth Engine as TFRecords and run in Google Colab.
+      The trained model segments logging in new scenes far faster than manual digitization, but it has limits such as grid artifacts at patch boundaries and confusing water with logging, which overlapping patches and more training data could reduce.
+    expected_sources:
+      - "book/03_Semantic_Segmentation/02__Selective_Logging_Detection"
+    tags: ["chapter-3", "selective-logging", "forest-monitoring", "content-notebook"]
+
+  - id: q006
+    question: "How does the Clay foundation model detect deforestation from satellite images?"
+    expected_answer: |
+      The chapter trains a segmentation model on top of the Clay foundation model, a Vision Transformer pretrained on large amounts of satellite imagery.
+      Inputs are pairs of Sentinel-2 image chips from before and after the forest loss, downloaded from Google Earth Engine, plus binary deforestation label masks, with Cambodia as the study area.
+      The pretrained Clay encoder, which is kept frozen, extracts features from the before and after images, cross-attention compares them, and a decoder produces a pixel-level deforestation mask.
+      Training combines binary cross-entropy, Dice and Tversky losses in PyTorch Lightning, and performance is measured with IoU, F1, precision and recall on held-out validation data.
+    expected_sources:
+      - "book/03_Semantic_Segmentation/03__Clay_Deforestation_Segmentation_Model"
+      - "data/transcripts/DnPosJ6IJ0Y.json" # chapter 3.3 video
+    tags: ["chapter-3", "foundation-models", "deforestation", "content-notebook", "content-video"]
+    notes: "The notebook and the slide deck give different loss weights, so answers should not be judged on specific weight values."
+
+  - id: q007
+    question: "Can the Clay deforestation model trained on Cambodia be used in other regions?"
+    expected_answer: |
+      The tutorial model is trained on deforestation examples from Cambodia, so it is most reliable for that area and may also work in nearby parts of Southeast Asia.
+      For regions that are very different, such as Brazil, Europe or the United States, the model would likely need to be fine-tuned with local data, because the forest and deforestation patterns it has learned may not match.
+      The Clay foundation model itself is sensor-agnostic and can ingest imagery from sources such as Sentinel, Planet or MODIS, but the task-specific segmentation model still has to be trained for the question being asked.
+    expected_sources:
+      - "data/transcripts/DnPosJ6IJ0Y.json" # chapter 3.3 video
+    tags: ["chapter-3", "foundation-models", "deforestation", "transfer", "content-video"]
+    notes: "Video-only content: the geographic transfer caveat does not appear in the notebook or the slide deck."
+
+  - id: q008
+    question: "How does the book use deep learning to predict crop yield?"
+    expected_answer: |
+      Chapter 5.1 predicts county-level soybean yield in Illinois, Indiana and Iowa with time series deep learning models (LSTM and 1D-CNN, plus Gaussian process regression as a probabilistic baseline).
+      Inputs are satellite-derived vegetation indices such as EVI2 together with weather and soil variables, aggregated over six crop growth stages derived from satellite phenology instead of fixed calendar weeks or months, so the inputs match crop biology.
+      The models output a mean yield and a standard deviation, trained with a negative log-likelihood loss, so each prediction carries an uncertainty estimate.
+      The motivation is that process-based crop models need extensive field inputs and calibration and are hard to scale, while standard deep learning models use widely available remote sensing, climate and soil data but give single deterministic values without error bounds.
+    expected_sources:
+      - "book/05_Time_Series/01__Soybean_Yield_Prediction"
+      - "data/transcripts/0mqivFOlF1k.json" # chapter 5.1 video
+    tags: ["chapter-5", "yield-prediction", "time-series", "uncertainty", "content-notebook", "content-pdf", "content-video"]
+    notes: "The process-based versus empirical model background appears only in the video transcript."
+
+  - id: q009
+    question: "How are Bayesian neural networks used for active fire detection?"
+    expected_answer: |
+      Chapter 6.1 uses Bayesian neural networks (BNNs), whose weights and biases are probability distributions instead of fixed values, to classify satellite active fire detections (VIIRS and MODIS hotspots from NASA FIRMS) as true or false positives while quantifying uncertainty.
+      Hotspots are labeled using known fire perimeters, and the case studies use Canada's 2023 fire season.
+      Case Study A uses a point-prediction BNN that outputs one probability per detection, and a threshold on that score pre-screens likely false positives in VIIRS data.
+      Case Study B uses a probabilistic BNN that outputs a distribution, so its standard deviation gives a confidence measure for each detection, and it compares uncertainty between MODIS and VIIRS sources.
+      The tutorial also shows how balancing classes by undersampling and tuning hyperparameters affect performance.
+    expected_sources:
+      - "book/06_Eco_Process_Sim/01__Active_Fire_Detection"
+      - "data/transcripts/e6lqjTUAvmI.json" # chapter 6.1 video
+    tags: ["chapter-6", "active-fire", "bayesian-neural-network", "uncertainty", "content-notebook", "content-pdf", "content-video"]
+
+  - id: q010
+    question: "Why would I use an Earth observation foundation model instead of training my own model?"
+    expected_answer: |
+      An Earth observation foundation model is a large model pretrained on vast amounts of unlabeled satellite data, usually with self-supervised learning such as masked reconstruction, so it learns general-purpose representations of the Earth's surface.
+      Reusing one lowers training cost, speeds development through ready-to-use embeddings, keeps accuracy reasonable with little labeled data, and lets one model serve many tasks.
+      Many are open source and trained on multispectral data, which makes them better backbones than ImageNet-trained models.
+      The trade-off is that they usually do not match a bespoke model, but they can get roughly 90% of the way there with about 10% of the effort.
+      They are less suitable when labels are abundant and the task is simple, when compute is constrained, or when interpretability is the top priority.
+    expected_sources:
+      - "book/10_Future/01__Evaluating_Foundation_Models_Trained_with_Earth_Observation_Data"
+      - "data/transcripts/kINuYpZroPA.json" # chapter 10.1 video
+    tags: ["chapter-10", "foundation-models", "core-concept", "content-notebook", "content-video"]
+
+  - id: q011
+    question: "How do you benchmark Earth observation foundation models for wildfire monitoring?"
+    expected_answer: |
+      Chapter 10.2 benchmarks foundation models on two wildfire tasks, segmenting burn scars (HLS Burn Scars dataset) and classifying burn severity (MTBS dataset), using the PANGAEA benchmarking framework.
+      It trains five decoder types (linear probe, FCN, SegFormer, UperNet and MUSTER) on top of three frozen encoders (CROMA, DOFA and Prithvi 1.0), and explains how comparing frozen, unfrozen and randomly initialized encoders shows whether pretraining helps.
+      Beyond task scores such as F1 and IoU, it analyzes the encoders themselves: weight-matrix quality, compute and memory cost, and embedding structure using UMAP projections, KNN graphs and data kernels.
+      Burn scar segmentation works reasonably well, with CROMA combinations strongest overall, while burn severity is much harder for all models, and the chapter stresses fair comparison under the same data splits and settings.
+    expected_sources:
+      - "book/10_Future/02__Comprehensive_EOFM_Benchmarking"
+      - "data/transcripts/c7_GxZ6apqY.json" # chapter 10.2 video
+    tags: ["chapter-10", "foundation-models", "wildfire", "benchmarking", "known-truncation", "content-notebook", "content-video"]
+    notes: "Response has been observed to cut off mid-sentence (listed under content quality issues in the roadmap)."
+
+  - id: q012
+    question: "What are the 12 steps for ethically co-developing GeoAI projects?"
+    expected_answer: |
+      The ethics chapter organizes its 12 steps into three iterative phases.
+      Phase 1, foundation and scoping (steps 1-4): define purpose and success, build the core team, commit to flexibility, and clarify roles and decision-making.
+      Phase 2, iterative co-design (steps 5-10): question the need for deep learning or GeoAI, engage and expand the user network, co-design the project, re-assess risks and sustainability, implement responsibly, and share initial results.
+      Phase 3, sustaining impact and learning (steps 11-12): finalize with transparency, then reflect, debrief and audit.
+    expected_sources:
+      - "book/11_Ethics"
+    tags: ["chapter-11", "ethics", "control", "content-text"]
+    notes: "Control for q003: it uses the chapter's own wording, so a miss here would point to an indexing or chunking problem in chapter 11 rather than a vague query."
+
+  - id: q013
+    question: "Who is the book written for and what background do I need?"
+    expected_answer: |
+      The book is a practitioner's guide for remote sensing analysts, Earth scientists, environmental specialists and GIS professionals who want to apply deep learning to Earth observation.
+      It assumes meaningful geospatial expertise, including familiarity with satellite imagery, raster and vector data and common Earth observation workflows, but only limited formal background in deep learning or AI.
+      Readers can follow the chapters in order or jump to the applied chapters that match their theme, and each chapter pairs conceptual background with executable Jupyter notebooks.
+    expected_sources:
+      - "book/index.md"
+    tags: ["front-matter", "audience", "control", "content-text"]
+    notes: "Positive control: the editors' introduction is the correct source here, unlike questions where it was cited over specific chapters."
+
+  - id: q014
+    question: "How does the book handle uncertainty in deep learning predictions?"
+    expected_answer: |
+      Two chapters address uncertainty quantification.
+      In the soybean yield chapter (5.1), probabilistic LSTM and 1D-CNN models output a mean and a standard deviation trained with a negative log-likelihood loss, and a Gaussian process regression baseline provides uncertainty naturally.
+      The resulting uncertainty is mapped and is higher in boundary regions and at extreme yield values.
+      In the active fire chapter (6.1), Bayesian neural networks place probability distributions over their weights, and a probabilistic BNN outputs a distribution whose standard deviation expresses confidence for each fire detection, which helps flag likely false positives and compare MODIS and VIIRS sources.
+      Both chapters argue that uncertainty estimates make predictions more useful for decision making than single point values.
+    expected_sources:
+      - "book/05_Time_Series/01__Soybean_Yield_Prediction"
+      - "book/06_Eco_Process_Sim/01__Active_Fire_Detection"
+    tags: ["chapter-5", "chapter-6", "uncertainty", "cross-chapter", "content-notebook", "content-pdf"]
+
+  - id: q015
+    question: "What is the Geo-AI Working Group and how is it related to this book?"
+    expected_answer: |
+      The Geospatial-Artificial Intelligence Working Group (Geo-AI WG) produced this book as the third pillar (Knowledge Sharing) of its mission, alongside Building Capacity and Application Development.
+      The group grew out of the 2019 Data Science Exchange held with the Google Geo for Good Summit, where scientists and practitioners began developing ML workflows using Google Earth Engine with real-world data.
+      Subsequent exchanges (2021 virtual, 2022 at Google Bay View) formalized the working group and focused on deploying trained models.
+      The February 2025 work planning meeting at the National Space Science and Technology Center aligned the group's roadmap with the Earth Action strategic framework.
+      Members have chaired dedicated sessions at AGU since 2022.
+      The book sits in a lineage of open community-authored resources alongside the SAR Handbook and the Google Earth Engine Book.
+    expected_sources:
+      - "book/index.md"
+    tags: ["front-matter", "geo-ai-wg", "content-text"]
+    notes: "Tests retrieval from the introduction."

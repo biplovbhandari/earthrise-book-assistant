@@ -4,8 +4,8 @@
     var currentCitations = null;
     var hasOpenedChat = false;
     var userHasScrolled = false;
-    var STORAGE_KEY_VISITOR = 'earthrise-visitor-id';
-    var STORAGE_KEY_CONVERSATION = 'earthrise-conversation-id';
+    var STORAGE_KEY_VISITOR = 'geoai-book-visitor-id';
+    var STORAGE_KEY_CONVERSATION = 'geoai-book-conversation-id';
     var visitorId = null;
     var conversationId = null;
     var currentInteractionId = null;
@@ -16,14 +16,14 @@
         "How does semantic segmentation differ from object detection?",
         "What is transfer learning and how is it applied to Earth observation?"
     ];
-    var panel = document.getElementById('earthrise-chat-panel');
-    var toggle = document.getElementById('earthrise-chat-toggle');
-    var closeBtn = document.getElementById('earthrise-chat-close');
-    var newChatBtn = document.getElementById('earthrise-chat-new');
-    var suggestions = document.getElementById('earthrise-chat-suggestions');
-    var messagesEl = document.getElementById('earthrise-chat-messages');
-    var statusEl = document.getElementById('earthrise-chat-status');
-    var form = document.getElementById('earthrise-chat-form');
+    var panel = document.getElementById('geoai-chat-panel');
+    var toggle = document.getElementById('geoai-chat-toggle');
+    var closeBtn = document.getElementById('geoai-chat-close');
+    var newChatBtn = document.getElementById('geoai-chat-new');
+    var suggestions = document.getElementById('geoai-chat-suggestions');
+    var messagesEl = document.getElementById('geoai-chat-messages');
+    var statusEl = document.getElementById('geoai-chat-status');
+    var form = document.getElementById('geoai-chat-form');
     var textarea = form.querySelector('textarea');
     var sendBtn = form.querySelector('button[type="submit"]');
 
@@ -360,7 +360,7 @@
 
     function renderActions(bubble, rawText, citations, interactionId) {
         var container = document.createElement('div');
-        container.className = 'er-feedback';
+        container.className = 'gai-feedback';
         var copyText = rawText;
         if (citations && citations.length) {
             copyText += '\n\nSources\n' + formatSourcesText(citations);
@@ -398,7 +398,7 @@
         var checkIcon = '<svg viewBox="0 0 24 24" width="14" height="14"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>';
         var btn = document.createElement('button');
         btn.type = 'button';
-        btn.className = 'er-copy-btn';
+        btn.className = 'gai-copy-btn';
         btn.setAttribute('aria-label', 'Copy');
         btn.innerHTML = copyIcon;
         btn.addEventListener('click', function() {
@@ -416,12 +416,12 @@
     function renderFeedbackButtons(container, interactionId, bubble) {
         var thumbsUp = document.createElement('button');
         thumbsUp.type = 'button';
-        thumbsUp.className = 'er-feedback-btn';
+        thumbsUp.className = 'gai-feedback-btn';
         thumbsUp.setAttribute('aria-label', 'Helpful');
         thumbsUp.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M2 20h2V8H2v12zm20-11a2 2 0 0 0-2-2h-6.31l.95-4.57.03-.32a1.5 1.5 0 0 0-.44-1.06L13.17 0 6.59 6.59A2 2 0 0 0 6 8v10a2 2 0 0 0 2 2h9a2 2 0 0 0 1.84-1.22l3.02-7.05A2 2 0 0 0 22 11V9z"/></svg>';
         var thumbsDown = document.createElement('button');
         thumbsDown.type = 'button';
-        thumbsDown.className = 'er-feedback-btn';
+        thumbsDown.className = 'gai-feedback-btn';
         thumbsDown.setAttribute('aria-label', 'Not helpful');
         thumbsDown.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M22 4h-2v12h2V4zM2 15a2 2 0 0 0 2 2h6.31l-.95 4.57-.03.32a1.5 1.5 0 0 0 .44 1.06L10.83 24l6.58-6.59A2 2 0 0 0 18 16V6a2 2 0 0 0-2-2H7a2 2 0 0 0-1.84 1.22l-3.02 7.05A2 2 0 0 0 2 13v2z"/></svg>';
         container.appendChild(thumbsUp);
@@ -446,7 +446,7 @@
             thumbsDown.classList.toggle('active', rating === 'down');
             if (rating === 'down' && !commentBox) {
                 commentBox = document.createElement('div');
-                commentBox.className = 'er-feedback-comment';
+                commentBox.className = 'gai-feedback-comment';
                 var input = document.createElement('textarea');
                 input.placeholder = 'What was wrong? (optional)';
                 input.rows = 2;

@@ -10,12 +10,15 @@ from typing import Literal
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field, field_validator
+from qdrant_client.http.exceptions import UnexpectedResponse
 from starlette.background import BackgroundTask
 
 from api.recording import RecordingContext, record_interaction
 from api.routes.validators import QuestionFiltersMixin
 
 logger = logging.getLogger(__name__)
+
+_QDRANT_ERRORS = (UnexpectedResponse,)
 
 router = APIRouter()
 
@@ -71,6 +74,8 @@ def check_retrieval_ready(pipelines) -> tuple[bool, str]:
         if pipelines.vector_store.count() == 0:
             return False, "retrieval not ready"
     except (ConnectionError, OSError, RuntimeError):
+        return False, "retrieval not ready"
+    except _QDRANT_ERRORS:
         return False, "retrieval not ready"
     return True, ""
 

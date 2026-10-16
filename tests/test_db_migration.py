@@ -28,6 +28,15 @@ _TABLES_SQL = (
     f" WHERE schemaname = '{_SCHEMA}' AND tablename != 'alembic_version'"
 )
 _VIEWS_SQL = f"SELECT viewname FROM pg_views WHERE schemaname = '{_SCHEMA}'"
+_QUESTION_KEY_SQL = (
+    "SELECT is_nullable FROM information_schema.columns"
+    f" WHERE table_schema = '{_SCHEMA}' AND table_name = 'eval_questions'"
+    " AND column_name = 'question_key'"
+)
+_EVAL_QUESTIONS_UNIQUE_SQL = (
+    "SELECT conname FROM pg_constraint"
+    f" WHERE conrelid = '{_SCHEMA}.eval_questions'::regclass AND contype = 'u'"
+)
 
 
 def _parse_server_url(url: str) -> tuple[str, str, str, int]:
@@ -119,6 +128,17 @@ def test_upgrade_creates_all_tables_and_views(temp_db):
         "v_conversation_summary",
         "v_eval_run_summary",
     }
+
+
+def test_upgrade_adds_a_nullable_question_key_unique_per_eval_set(temp_db):
+    """The schema includes a nullable question_key with a unique constraint per eval set."""
+    _alembic_cmd(temp_db, "upgrade", "head")
+
+    column = _query(temp_db, _QUESTION_KEY_SQL)
+    assert [row["is_nullable"] for row in column] == ["YES"]
+
+    constraints = _query(temp_db, _EVAL_QUESTIONS_UNIQUE_SQL)
+    assert [row["conname"] for row in constraints] == ["uq_eval_questions_set_key"]
 
 
 def test_downgrade_and_reupgrade(temp_db):

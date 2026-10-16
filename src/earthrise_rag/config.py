@@ -26,7 +26,7 @@ class Settings(BaseSettings):
     rrf_k: int = Field(default=60, ge=1, le=200)
 
     llm_provider: str = "openai_compatible"
-    llm_base_url: str = "https://proxy.fast.luna.nasa.gov/v1"
+    llm_base_url: str = "http://localhost:11434/v1"
     llm_api_key: SecretStr = SecretStr("")
     llm_model: str = ""
     llm_timeout_seconds: float = Field(default=60.0, ge=1.0, le=300.0)
@@ -42,6 +42,7 @@ class Settings(BaseSettings):
     rate_limit_per_minute: int = Field(default=30, ge=1, le=1000)
     max_concurrent_llm: int = Field(default=1, ge=1, le=8)
 
+    app_port: int = Field(default=8000, ge=1, le=65535)
     app_env: str = "development"
 
 
