@@ -1,6 +1,6 @@
 # Deployment Guide
 
-Deploy the EarthRISE book assistant on a single machine.
+Deploy the Geo-AI book assistant on a single machine.
 This guide covers macOS (Mac Mini / Apple Silicon) and Linux deployment paths.
 
 For model selection and memory budgets, see [deployment-models.md](../../system-design/deployment-models.md).
@@ -105,8 +105,8 @@ brew install uv
 ## 1. Clone the repository
 
 ```bash
-git clone --recurse-submodules https://github.com/biplovbhandari/earthrise-book-assistant.git
-cd earthrise-book-assistant
+git clone --recurse-submodules https://github.com/biplovbhandari/geoai-book-assistant.git
+cd geoai-book-assistant
 ```
 
 ## 2. Install dependencies (macOS only)
@@ -131,7 +131,7 @@ Edit `.env` with deployment settings.
 LLM_MODEL=qwen3:8b
 LLM_BASE_URL=http://localhost:11434/v1
 LLM_API_KEY=ollama
-DATABASE_URL=postgresql+asyncpg://earthrise:earthrise@localhost:5432/earthrise
+DATABASE_URL=postgresql+asyncpg://geoai:geoai@localhost:5432/geoai
 ADMIN_TOKEN=<generate with: python3 -c "import secrets; print(secrets.token_urlsafe(32))">
 EMBEDDING_DIMENSION=1024
 RERANKER_PROVIDER=local_cross_encoder
@@ -152,7 +152,7 @@ On macOS, `LLM_BASE_URL` and `DATABASE_URL` use `localhost` because the app runs
 LLM_MODEL=qwen3:8b
 LLM_BASE_URL=http://172.17.0.1:11434/v1
 LLM_API_KEY=ollama
-DATABASE_URL=postgresql+asyncpg://earthrise:earthrise@postgres:5432/earthrise
+DATABASE_URL=postgresql+asyncpg://geoai:geoai@postgres:5432/geoai
 ADMIN_TOKEN=<generate with: python3 -c "import secrets; print(secrets.token_urlsafe(32))">
 EMBEDDING_DIMENSION=1024
 RERANKER_PROVIDER=local_cross_encoder
@@ -183,16 +183,16 @@ To run as a persistent service that survives reboots:
 mkdir -p logs
 
 # Copy the template and edit paths
-cp infra/launchd/com.earthrise.assistant.plist ~/Library/LaunchAgents/
-# Edit ~/Library/LaunchAgents/com.earthrise.assistant.plist:
-#   Replace REPO_PATH with your clone location (e.g. /Users/yourname/earthrise-book-assistant)
+cp infra/launchd/com.geoai.assistant.plist ~/Library/LaunchAgents/
+# Edit ~/Library/LaunchAgents/com.geoai.assistant.plist:
+#   Replace REPO_PATH with your clone location (e.g. /Users/yourname/geoai-book-assistant)
 #   Replace HOMEBREW_PREFIX with /opt/homebrew (Apple Silicon) or /usr/local (Intel)
 
-launchctl load ~/Library/LaunchAgents/com.earthrise.assistant.plist
+launchctl load ~/Library/LaunchAgents/com.geoai.assistant.plist
 ```
 
 This auto-starts the app on login, restarts on crash, and logs to `logs/app.log`.
-To stop: `launchctl unload ~/Library/LaunchAgents/com.earthrise.assistant.plist`.
+To stop: `launchctl unload ~/Library/LaunchAgents/com.geoai.assistant.plist`.
 
 ### Linux
 
@@ -279,7 +279,7 @@ This opens a browser to authorize your Cloudflare account.
 ### Create a tunnel
 
 ```bash
-cloudflared tunnel create earthrise
+cloudflared tunnel create geoai
 ```
 
 Note the tunnel ID from the output (a UUID like `abc123de-...`).
@@ -293,26 +293,26 @@ tunnel: <TUNNEL_ID>
 credentials-file: ~/.cloudflared/<TUNNEL_ID>.json
 
 ingress:
-  - hostname: earthrise.yourdomain.com
+  - hostname: geoai.yourdomain.com
     service: http://localhost:8000
   - service: http_status:404
 ```
 
-Replace `<TUNNEL_ID>` with your tunnel ID and `earthrise.yourdomain.com` with your domain.
+Replace `<TUNNEL_ID>` with your tunnel ID and `geoai.yourdomain.com` with your domain.
 
 ### Create DNS record
 
 ```bash
-cloudflared tunnel route dns earthrise earthrise.yourdomain.com
+cloudflared tunnel route dns geoai geoai.yourdomain.com
 ```
 
 ### Start the tunnel
 
 ```bash
-cloudflared tunnel run earthrise
+cloudflared tunnel run geoai
 ```
 
-The app is now reachable at `https://earthrise.yourdomain.com`.
+The app is now reachable at `https://geoai.yourdomain.com`.
 
 ### Run as a service (persistent)
 
@@ -322,15 +322,15 @@ To keep the tunnel running after logout:
 
 ```bash
 # Copy the template and edit paths
-cp infra/launchd/com.cloudflare.tunnel.plist ~/Library/LaunchAgents/
-# Edit ~/Library/LaunchAgents/com.cloudflare.tunnel.plist:
-#   Replace REPO_PATH with your clone location (e.g. /Users/yourname/earthrise-book-assistant)
+cp infra/launchd/com.geoai.tunnel.plist ~/Library/LaunchAgents/
+# Edit ~/Library/LaunchAgents/com.geoai.tunnel.plist:
+#   Replace REPO_PATH with your clone location (e.g. /Users/yourname/geoai-book-assistant)
 #   Replace HOMEBREW_PREFIX with /opt/homebrew (Apple Silicon) or /usr/local (Intel)
 
-launchctl load ~/Library/LaunchAgents/com.cloudflare.tunnel.plist
+launchctl load ~/Library/LaunchAgents/com.geoai.tunnel.plist
 ```
 
-To stop: `launchctl unload ~/Library/LaunchAgents/com.cloudflare.tunnel.plist`.
+To stop: `launchctl unload ~/Library/LaunchAgents/com.geoai.tunnel.plist`.
 
 **macOS (admin user):**
 
@@ -359,12 +359,12 @@ just render-book
 just index
 
 # Restart the app service
-launchctl unload ~/Library/LaunchAgents/com.earthrise.assistant.plist
-launchctl load ~/Library/LaunchAgents/com.earthrise.assistant.plist
+launchctl unload ~/Library/LaunchAgents/com.geoai.assistant.plist
+launchctl load ~/Library/LaunchAgents/com.geoai.assistant.plist
 
 # Restart the tunnel (only if tunnel config changed)
-launchctl unload ~/Library/LaunchAgents/com.cloudflare.tunnel.plist
-launchctl load ~/Library/LaunchAgents/com.cloudflare.tunnel.plist
+launchctl unload ~/Library/LaunchAgents/com.geoai.tunnel.plist
+launchctl load ~/Library/LaunchAgents/com.geoai.tunnel.plist
 ```
 
 If the update includes database schema changes, run `just db-migrate` before restarting the app.
@@ -415,22 +415,22 @@ Back up PostgreSQL on demand:
 just db-backup
 ```
 
-This writes a timestamped compressed dump to `backups/` (e.g. `backups/earthrise_20261001_020000.sql.gz`).
+This writes a timestamped compressed dump to `backups/` (e.g. `backups/geoai_20261001_020000.sql.gz`).
 
 To schedule nightly backups at 2 AM via launchd (recommended over cron - launchd catches up on missed runs after sleep or shutdown):
 
 ```bash
-cp infra/launchd/com.earthrise.db-backup.plist ~/Library/LaunchAgents/
-# Edit ~/Library/LaunchAgents/com.earthrise.db-backup.plist:
-#   Replace REPO_PATH with your clone location (e.g. /Users/yourname/earthrise-book-assistant)
+cp infra/launchd/com.geoai.db-backup.plist ~/Library/LaunchAgents/
+# Edit ~/Library/LaunchAgents/com.geoai.db-backup.plist:
+#   Replace REPO_PATH with your clone location (e.g. /Users/yourname/geoai-book-assistant)
 #   Replace HOMEBREW_PREFIX with /opt/homebrew (Apple Silicon) or /usr/local (Intel)
 #   Replace DOCKER_BIN with the output of: dirname $(which docker)
 
-launchctl load ~/Library/LaunchAgents/com.earthrise.db-backup.plist
+launchctl load ~/Library/LaunchAgents/com.geoai.db-backup.plist
 ```
 
 Logs go to `backups/backup.log`.
-To stop: `launchctl unload ~/Library/LaunchAgents/com.earthrise.db-backup.plist`.
+To stop: `launchctl unload ~/Library/LaunchAgents/com.geoai.db-backup.plist`.
 
 Each backup run automatically prunes old files, keeping the 30 most recent.
 At nightly frequency this gives 30 days of history with no manual cleanup.
@@ -438,7 +438,7 @@ At nightly frequency this gives 30 days of history with no manual cleanup.
 To restore from a backup (replaces all data in the database):
 
 ```bash
-just db-restore backups/earthrise_20261001_020000.sql.gz
+just db-restore backups/geoai_20261001_020000.sql.gz
 ```
 
 If the backup predates a schema change, run `just db-migrate` after restoring.

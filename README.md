@@ -1,4 +1,4 @@
-# earthrise-book-assistant
+# geoai-book-assistant
 
 Book viewer and retrieval-augmented generation (RAG) assistant for the [EarthRISE Applied AI and Deep Learning Book](https://nasa-earthrise.github.io/EarthRISE-Applied-Artificial-Intelligence-and-Deep-Learning-Book/).
 Serves Quarto-rendered chapters alongside a search and generation API.
@@ -22,7 +22,7 @@ Serves Quarto-rendered chapters alongside a search and generation API.
 
 ```bash
 git clone --recurse-submodules <repo-url>
-cd earthrise-book-assistant
+cd geoai-book-assistant
 cp .env.example .env
 ```
 
@@ -116,7 +116,7 @@ Pass flags to target a specific video or force re-transcription.
 Run `just transcribe --help` for the full list.
 
 For faster GPU transcription, use the Colab notebook at `notebooks/transcribe_gpu.ipynb`
-([![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/biplovbhandari/earthrise-book-assistant/blob/main/notebooks/transcribe_gpu.ipynb)).
+([![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/biplovbhandari/geoai-book-assistant/blob/main/notebooks/transcribe_gpu.ipynb)).
 Prepare audio for upload with `just transcribe --download-only`.
 
 After transcribing, map each video to its book chapter in `data/video_chapter_map.yml`:
@@ -161,7 +161,7 @@ Integration tests exercise a real PostgreSQL database, so they are not part of `
 
 ```bash
 docker compose up postgres -d
-TEST_DATABASE_URL=postgresql+asyncpg://earthrise:earthrise@localhost:5432/earthrise \
+TEST_DATABASE_URL=postgresql+asyncpg://geoai:geoai@localhost:5432/geoai \
   uv run pytest -m integration -v
 ```
 
@@ -228,8 +228,8 @@ This prevents broken streaming responses during deploys and restarts.
 ## Project Structure
 
 ```
-earthrise-book-assistant/
-├── src/earthrise_rag/           # Python package (RAG logic)
+geoai-book-assistant/
+├── src/geoai_rag/           # Python package (RAG logic)
 │   ├── config.py                # Pydantic BaseSettings, env-driven
 │   ├── interfaces.py            # Shared protocols (Embedder, SparseEmbedder, VectorStore, ...)
 │   ├── models/                  # Chunk, ScoredChunk, Document, Answer, Citation, IndexResult
