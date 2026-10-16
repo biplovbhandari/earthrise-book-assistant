@@ -24,14 +24,14 @@ import logging
 import re
 import sys
 import unicodedata
-from datetime import UTC, datetime
 from pathlib import Path
 
 import yaml
 
+from earthrise_rag.script_logging import setup_script_logging
+
 TRANSCRIPT_DIR = Path("data/transcripts")
 CORRECTIONS_FILE = Path("data/transcript_corrections.yml")
-LOG_DIR = Path("logs")
 
 logger = logging.getLogger(__name__)
 
@@ -50,16 +50,6 @@ _HALLUCINATION_RE = re.compile("|".join(_HALLUCINATION_PATTERNS), re.IGNORECASE)
 _MIN_SEGMENT_LENGTH = 3
 
 _HALLUCINATION_TAIL_SKIP = 10
-
-
-def _setup_logging() -> None:
-    """Configure console + timestamped file logging."""
-    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
-    LOG_DIR.mkdir(exist_ok=True)
-    timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
-    handler = logging.FileHandler(LOG_DIR / f"cleanup_{timestamp}.log")
-    handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s: %(message)s"))
-    logging.getLogger().addHandler(handler)
 
 
 def load_corrections(path: Path) -> dict[str, str]:
@@ -266,7 +256,7 @@ def _log_results(filename: str, results: dict[str, list[dict]]) -> int:
 
 def main() -> int:
     """Apply cleanup to one or all transcripts."""
-    _setup_logging()
+    setup_script_logging("cleanup")
 
     parser = argparse.ArgumentParser(description="Clean Whisper transcripts.")
     parser.add_argument(

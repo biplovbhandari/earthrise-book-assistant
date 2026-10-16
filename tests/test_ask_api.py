@@ -24,6 +24,8 @@ def _make_answer(chunks=None):
 
 
 class _FakeQueryPipeline:
+    generation_ready = True
+
     def __init__(self, ask_result):
         self._context_builder = object()
         self._llm_client = self

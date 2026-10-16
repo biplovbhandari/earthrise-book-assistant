@@ -11,47 +11,47 @@ _YOUTUBE_WATCH_RE = re.compile(r"https://www\.youtube\.com/watch\?v=[A-Za-z0-9_-
 _LEADING_DIGITS_RE = re.compile(r"^\d+_+")
 
 
+def source_path_to_book_url(source_path: str) -> str:
+    """Convert a repo-relative source path to a book HTML URL.
+
+    Accepts only paths rooted at ``book/`` that end with a renderable
+    extension.  The ``book/`` prefix is stripped, the file extension is
+    swapped for ``.html``, and the remainder is percent-encoded and
+    prepended with ``/``.
+
+    Returns an empty string for any path that is absent, not under
+    ``book/``, has a non-renderable extension, or contains traversal
+    sequences, protocol-relative double-slashes, backslashes, or ASCII
+    control characters.
+    """
+    if not source_path or not source_path.startswith("book/"):
+        return ""
+
+    path = source_path[5:]  # strip "book/" prefix
+
+    if (
+        path.startswith("/")
+        or "//" in path
+        or "\\" in path
+        or ".." in path.split("/")
+        or any(ord(c) < 32 or ord(c) == 127 for c in path)
+    ):
+        return ""
+
+    if not any(path.endswith(ext) for ext in _RENDERABLE_EXTENSIONS):
+        return ""
+
+    for ext in _RENDERABLE_EXTENSIONS:
+        if path.endswith(ext):
+            path = path[: -len(ext)] + ".html"
+            break
+
+    path = quote(path, safe="/")
+    return f"/{path}"
+
+
 class DefaultCitationBuilder:
     """Builds one citation per retrieved chunk from chunk metadata."""
-
-    @staticmethod
-    def _source_path_to_url(source_path: str) -> str:
-        """Convert a repo-relative source path to a book HTML URL.
-
-        Accepts only paths rooted at ``book/`` that end with a renderable
-        extension.  The ``book/`` prefix is stripped, the file extension is
-        swapped for ``.html``, and the remainder is percent-encoded and
-        prepended with ``/``.
-
-        Returns an empty string for any path that is absent, not under
-        ``book/``, has a non-renderable extension, or contains traversal
-        sequences, protocol-relative double-slashes, backslashes, or ASCII
-        control characters.
-        """
-        if not source_path or not source_path.startswith("book/"):
-            return ""
-
-        path = source_path[5:]  # strip "book/" prefix
-
-        if (
-            path.startswith("/")
-            or "//" in path
-            or "\\" in path
-            or ".." in path.split("/")
-            or any(ord(c) < 32 or ord(c) == 127 for c in path)
-        ):
-            return ""
-
-        if not any(path.endswith(ext) for ext in _RENDERABLE_EXTENSIONS):
-            return ""
-
-        for ext in _RENDERABLE_EXTENSIONS:
-            if path.endswith(ext):
-                path = path[: -len(ext)] + ".html"
-                break
-
-        path = quote(path, safe="/")
-        return f"/{path}"
 
     @staticmethod
     def _humanize_dir_name(name: str) -> str:
@@ -120,7 +120,7 @@ class DefaultCitationBuilder:
             watch_link = str(meta.get("watch_link") or "").strip()
             source_type = scored.chunk.source_type
 
-            url = self._source_path_to_url(source_path)
+            url = source_path_to_book_url(source_path)
             if not url:
                 url = self._watch_link_url(watch_link)
 

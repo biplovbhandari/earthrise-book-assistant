@@ -12,7 +12,6 @@ from api.recording import (
     _build_chunk_and_citation_rows,
     _build_trace_rows,
     _derive_chunk_display,
-    _source_path_to_book_url,
 )
 
 
@@ -67,17 +66,6 @@ class TestDeriveChunkDisplay:
         """Explicit None in metadata should fall back to 'unknown', not 'None'."""
         label, _url = _derive_chunk_display("book_text", {"source_path": None})
         assert label == "unknown"
-
-
-class TestSourcePathToBookUrl:
-    def test_book_path(self):
-        assert (
-            _source_path_to_book_url("book/03_Segmentation/index.qmd")
-            == "/03_Segmentation/index.html"
-        )
-
-    def test_non_book_path(self):
-        assert _source_path_to_book_url("data/transcripts/vid.json") is None
 
 
 class TestBuildChunkAndCitationRows:

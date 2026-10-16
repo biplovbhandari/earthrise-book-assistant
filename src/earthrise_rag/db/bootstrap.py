@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import hashlib
 import logging
-from pathlib import Path
 from typing import Any
 
 from sqlalchemy import select, text
@@ -11,10 +10,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from earthrise_rag.config import Settings
 from earthrise_rag.db.models.infrastructure import Deployment, IndexRun, PromptVersion
+from earthrise_rag.generation.context_builder import SYSTEM_PROMPT
 
 logger = logging.getLogger(__name__)
-
-_PROMPT_PATH = Path(__file__).parent.parent / "generation" / "PROMPT.md"
 
 # Matches OpenAICompatibleClient.chat()/chat_stream() default temperature.
 # Settings has no temperature field, so the deployment snapshot hardcodes it.
@@ -88,14 +86,9 @@ async def _get_active_deployment(session: AsyncSession) -> tuple[int, int] | Non
 
 
 def _read_prompt() -> tuple[str, str]:
-    """Read PROMPT.md and return (sha256_hexdigest, content).
-
-    Content is stripped to match SYSTEM_PROMPT in generation/context_builder.py,
-    so the stored hash identifies exactly the text sent to the LLM.
-    """
-    content = _PROMPT_PATH.read_text().strip()
-    prompt_hash = hashlib.sha256(content.encode("utf-8")).hexdigest()
-    return prompt_hash, content
+    """Return (sha256_hexdigest, content) of the system prompt."""
+    prompt_hash = hashlib.sha256(SYSTEM_PROMPT.encode("utf-8")).hexdigest()
+    return prompt_hash, SYSTEM_PROMPT
 
 
 async def _upsert_prompt_version(session: AsyncSession, prompt_hash: str, content: str) -> int:

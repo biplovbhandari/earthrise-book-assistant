@@ -7,18 +7,16 @@ import time
 import uuid
 from typing import Literal
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field, field_validator
-from qdrant_client.http.exceptions import UnexpectedResponse
 from starlette.background import BackgroundTask
 
+from api.dependencies import acquire_llm_slot, require_generation_ready, require_retrieval_ready
 from api.recording import RecordingContext, record_interaction
 from api.routes.validators import QuestionFiltersMixin
 
 logger = logging.getLogger(__name__)
-
-_QDRANT_ERRORS = (UnexpectedResponse,)
 
 router = APIRouter()
 
@@ -33,12 +31,10 @@ class ChatMessage(BaseModel):
     content: str = Field(..., min_length=1)
 
 
-class ChatRequest(QuestionFiltersMixin, BaseModel):
+class ChatRequest(QuestionFiltersMixin):
     """Incoming chat question with optional history and filters."""
 
-    question: str = Field(..., min_length=1, max_length=2000)
     history: list[ChatMessage] = Field(default_factory=list)
-    filters: dict[str, str | int | bool] | None = None
     conversation_id: uuid.UUID | None = None
     visitor_id: uuid.UUID | None = None
     ga4_client_id: str | None = Field(default=None, max_length=64)
@@ -63,53 +59,9 @@ class ChatRequest(QuestionFiltersMixin, BaseModel):
         return v
 
 
-def check_retrieval_ready(pipelines) -> tuple[bool, str]:
-    """Check vector store is populated.
-
-    Returns a (ready, reason) tuple where reason is empty when ready is True.
-    """
-    if pipelines is None or getattr(pipelines, "vector_store", None) is None:
-        return False, "retrieval not ready"
-    try:
-        if pipelines.vector_store.count() == 0:
-            return False, "retrieval not ready"
-    except (ConnectionError, OSError, RuntimeError):
-        return False, "retrieval not ready"
-    except _QDRANT_ERRORS:
-        return False, "retrieval not ready"
-    return True, ""
-
-
-def check_generation_ready(pipelines) -> tuple[bool, str]:
-    """Check all generation adapters are present.
-
-    Returns a (ready, reason) tuple where reason is empty when ready is True.
-    """
-    if pipelines is None or getattr(pipelines, "query", None) is None:
-        return False, "pipelines not initialized"
-    q = pipelines.query
-    if q._context_builder is None or q._llm_client is None or q._citation_builder is None:
-        return False, "generation adapters incomplete"
-    return True, ""
-
-
-def check_chat_ready(pipelines) -> tuple[bool, str]:
-    """Check retrieval + generation + streaming readiness.
-
-    Returns a (ready, reason) tuple where reason is empty when ready is True.
-    """
-    ready, reason = check_retrieval_ready(pipelines)
-    if not ready:
-        return ready, reason
-    ready, reason = check_generation_ready(pipelines)
-    if not ready:
-        return ready, reason
-    if not callable(getattr(pipelines.query._llm_client, "chat_stream", None)):
-        return False, "streaming not supported"
-    return True, ""
-
-
-@router.post("/chat")
+@router.post(
+    "/chat", dependencies=[Depends(require_retrieval_ready), Depends(require_generation_ready)]
+)
 def chat(request: Request, body: ChatRequest):
     """Stream a RAG answer as server-sent events, recording it in the background.
 
@@ -120,11 +72,9 @@ def chat(request: Request, body: ChatRequest):
     retrieval query and persists the interaction -- this runs after the response
     has been sent, so a recording failure never affects the delivered answer.
     """
-    pipelines = getattr(request.app.state, "pipelines", None)
-    ready, reason = check_chat_ready(pipelines)
-    if not ready:
-        raise HTTPException(status_code=503, detail=reason)
-    assert pipelines is not None and pipelines.query is not None
+    pipelines = request.app.state.pipelines
+    if not callable(getattr(pipelines.query._llm_client, "chat_stream", None)):
+        raise HTTPException(status_code=503, detail="streaming not supported")
 
     interaction_id = uuid.uuid4()
     conversation_id = body.conversation_id or uuid.uuid4()
@@ -154,9 +104,7 @@ def chat(request: Request, body: ChatRequest):
 
     history_dicts = [{"role": m.role, "content": m.content} for m in body.history]
 
-    llm_semaphore = getattr(request.app.state, "llm_semaphore", None)
-    if llm_semaphore is not None and not llm_semaphore.acquire(timeout=120):
-        raise HTTPException(status_code=503, detail="LLM busy. Please try again later.")
+    llm_semaphore = acquire_llm_slot(request)
 
     def event_stream():
         """Yield SSE-formatted events from the streaming pipeline.

@@ -1,10 +1,13 @@
 from typing import Literal
 
-from earthrise_rag.citations.citation_builder import DefaultCitationBuilder
+from earthrise_rag.citations.citation_builder import (
+    DefaultCitationBuilder,
+    source_path_to_book_url,
+)
 from earthrise_rag.models.chunk import Chunk
 from earthrise_rag.models.scored_chunk import ScoredChunk
 
-_url = DefaultCitationBuilder._source_path_to_url
+_url = source_path_to_book_url
 _humanize = DefaultCitationBuilder._humanize_dir_name
 _filename = DefaultCitationBuilder._filename_label
 _label = DefaultCitationBuilder._build_display_label

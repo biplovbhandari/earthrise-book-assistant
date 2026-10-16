@@ -14,34 +14,18 @@ from __future__ import annotations
 import argparse
 import logging
 import sys
-from datetime import UTC, datetime
 from pathlib import Path
-
-# Ensure repo root is on sys.path so `api.dependencies` is importable
-_repo_root = str(Path(__file__).resolve().parent.parent)
-if _repo_root not in sys.path:
-    sys.path.insert(0, _repo_root)
 
 import yaml
 
 from earthrise_rag.config import get_settings
 from earthrise_rag.models.index_result import IndexResult
+from earthrise_rag.script_logging import setup_script_logging
 
 logger = logging.getLogger(__name__)
 
 SKIP_FILES = {"404.qmd", "CONTRIBUTING.md", "README.md"}
 TRANSCRIPT_DIR = Path("data/transcripts")
-LOG_DIR = Path("logs")
-
-
-def _setup_logging() -> None:
-    """Configure console + timestamped file logging under logs/."""
-    logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
-    LOG_DIR.mkdir(exist_ok=True)
-    timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
-    file_handler = logging.FileHandler(LOG_DIR / f"indexing_{timestamp}.log")
-    file_handler.setFormatter(logging.Formatter("%(asctime)s %(name)s %(levelname)s: %(message)s"))
-    logging.getLogger().addHandler(file_handler)
 
 
 def _load_quarto_config(source_dir: Path) -> dict | None:
@@ -150,9 +134,20 @@ def _discover_transcripts(transcript_dir: Path) -> list[tuple[str, str]]:
     return sorted(pairs)
 
 
+def _index_one(pipeline, actual_path: str, source_path: str) -> IndexResult:
+    """Index a single source file, returning an IndexResult even on failure."""
+    try:
+        result = pipeline.index_source(actual_path, source_path)
+        logger.info("%s: %s (%d chunks)", source_path, result.status, result.chunks_indexed)
+        return result
+    except Exception as e:
+        logger.error("Failed to index %s: %s", source_path, e)
+        return IndexResult(source_path=source_path, status="failed", error=str(e))
+
+
 def main() -> int:
     """Index book chapters, companion PDFs, and transcripts into Qdrant."""
-    _setup_logging()
+    setup_script_logging("indexing")
 
     parser = argparse.ArgumentParser(description="Index book content into Qdrant.")
     parser.add_argument(
@@ -194,7 +189,7 @@ def main() -> int:
         # before deleting the real collection (destructive). If any step fails
         # the old dense index stays intact.
         try:
-            from api.dependencies import _create_sparse_embedder
+            from earthrise_rag.factories import _create_sparse_embedder
 
             sparse_embedder = _create_sparse_embedder(settings)
             test_emb = sparse_embedder.embed(["preflight test"])[0]
@@ -245,7 +240,7 @@ def main() -> int:
                 "Collection '%s' does not exist, nothing to delete", settings.qdrant_collection
             )
 
-    from api.dependencies import create_indexing_pipeline
+    from earthrise_rag.factories import create_indexing_pipeline
 
     pipeline = create_indexing_pipeline(settings)
 
@@ -265,33 +260,15 @@ def main() -> int:
             )
             continue
 
-        try:
-            result = pipeline.index_source(actual_path, source_path)
-            results.append(result)
-            logger.info("%s: %s (%d chunks)", source_path, result.status, result.chunks_indexed)
-        except Exception as e:
-            logger.error("Failed to index %s: %s", source_path, e)
-            results.append(IndexResult(source_path=source_path, status="failed", error=str(e)))
+        results.append(_index_one(pipeline, actual_path, source_path))
 
     companion_pdfs = _discover_companion_pdfs(source_dir)
     for actual_path, source_path in companion_pdfs:
-        try:
-            result = pipeline.index_source(actual_path, source_path)
-            results.append(result)
-            logger.info("%s: %s (%d chunks)", source_path, result.status, result.chunks_indexed)
-        except Exception as e:
-            logger.error("Failed to index %s: %s", source_path, e)
-            results.append(IndexResult(source_path=source_path, status="failed", error=str(e)))
+        results.append(_index_one(pipeline, actual_path, source_path))
 
     transcripts = _discover_transcripts(TRANSCRIPT_DIR)
     for actual_path, source_path in transcripts:
-        try:
-            result = pipeline.index_source(actual_path, source_path)
-            results.append(result)
-            logger.info("%s: %s (%d chunks)", source_path, result.status, result.chunks_indexed)
-        except Exception as e:
-            logger.error("Failed to index %s: %s", source_path, e)
-            results.append(IndexResult(source_path=source_path, status="failed", error=str(e)))
+        results.append(_index_one(pipeline, actual_path, source_path))
 
     # Summary
     total = len(results)
