@@ -255,7 +255,7 @@ Check that:
 The book with chat widget is at http://localhost:8000/.
 The analytics dashboard is at http://localhost:8000/dashboard/ (enter `ADMIN_TOKEN` to connect).
 The Qdrant dashboard is at http://localhost:6333/dashboard.
-The Grafana dashboard is at http://localhost:3000 (admin/admin or `GRAFANA_ADMIN_PASSWORD`).
+The Grafana dashboard is at http://localhost:3000 (or `GRAFANA_PORT`, admin/admin or `GRAFANA_ADMIN_PASSWORD`).
 The Prometheus UI is at http://localhost:9090 (check Targets page to verify scrape health).
 
 ## 7. Public access with Cloudflare Tunnel
@@ -397,7 +397,7 @@ curl -s localhost:8000/health | python3 -m json.tool
 
 ### Prometheus and Grafana
 
-`just services` starts Prometheus (localhost:9090) and Grafana (localhost:3000) alongside Qdrant and PostgreSQL.
+`just services` starts Prometheus (localhost:9090) and Grafana (localhost:3000, configurable via `GRAFANA_PORT`) alongside Qdrant and PostgreSQL.
 
 Prometheus scrapes two targets every 15 seconds:
 - The app at `host.docker.internal:8000/metrics` (admin-gated, token from `ADMIN_TOKEN` via docker-compose)
@@ -421,11 +421,11 @@ Access logs include method, path, status, latency, and client IP.
 | Indexing scripts | `logs/scripts/indexing_*.log` | Pruned to 10 most recent |
 | Transcript scripts | `logs/scripts/cleanup_*.log`, `transcription_*.log` | Pruned to 10 most recent |
 | Docker containers | `docker logs <name>` | Docker driver (10 MB x 3) |
-| DB backups | `backups/backup.log` | Overwritten each run |
+| DB backups / nightly | `backups/nightly.log` | Overwritten each run |
 
 ### Log rotation
 
-Launchd logs (stdout, stderr, tunnel) are rotated by `just log-rotate`, which runs nightly alongside `just db-backup` via the `com.geoai.db-backup` plist.
+Launchd logs (stdout, stderr, tunnel) are rotated by `just log-rotate`, which runs nightly alongside `just db-backup` via the `com.geoai.nightly` plist.
 The recipe uses copytruncate: files over 10 MB are copied with a timestamp, gzipped, and the original is truncated.
 No sudo required. Keeps 7 rotated copies per file.
 
@@ -458,17 +458,17 @@ This writes a timestamped compressed dump to `backups/` (e.g. `backups/geoai_202
 To schedule nightly backups at 2 AM via launchd (recommended over cron - launchd catches up on missed runs after sleep or shutdown):
 
 ```bash
-cp infra/launchd/com.geoai.db-backup.plist ~/Library/LaunchAgents/
-# Edit ~/Library/LaunchAgents/com.geoai.db-backup.plist:
+cp infra/launchd/com.geoai.nightly.plist ~/Library/LaunchAgents/
+# Edit ~/Library/LaunchAgents/com.geoai.nightly.plist:
 #   Replace REPO_PATH with your clone location (e.g. /Users/yourname/geoai-book-assistant)
 #   Replace HOMEBREW_PREFIX with /opt/homebrew (Apple Silicon) or /usr/local (Intel)
 #   Replace DOCKER_BIN with the output of: dirname $(which docker)
 
-launchctl load ~/Library/LaunchAgents/com.geoai.db-backup.plist
+launchctl load ~/Library/LaunchAgents/com.geoai.nightly.plist
 ```
 
-Logs go to `backups/backup.log`.
-To stop: `launchctl unload ~/Library/LaunchAgents/com.geoai.db-backup.plist`.
+Logs go to `backups/nightly.log`.
+To stop: `launchctl unload ~/Library/LaunchAgents/com.geoai.nightly.plist`.
 
 Each backup run automatically prunes old files, keeping the 30 most recent.
 At nightly frequency this gives 30 days of history with no manual cleanup.
