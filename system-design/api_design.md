@@ -32,6 +32,7 @@ Exact request/response shapes live in the code (Pydantic models); this document 
 | Prompts | List, detail, create (content-addressed SHA-256 dedup) |
 | Evaluation | Eval sets CRUD, eval questions CRUD, run evaluation, view results |
 | Index Runs | List history (read-only, indexing triggered via CLI) |
+| Metrics | `GET /metrics` — Prometheus exposition format (`text/plain`). Not in OpenAPI schema. |
 
 ---
 
@@ -89,6 +90,11 @@ Poll `GET /admin/eval-runs/{id}` to check status.
 **DB recording is atomic.**
 Interactions, citations, and traces are written in one transaction after streaming completes.
 The admin never sees partial interactions (response without traces, interaction without citations).
+
+**`X-Request-ID` on all responses.**
+Every API response includes an `X-Request-ID` header.
+If the incoming request carries one, it is forwarded; otherwise the server generates a UUID4.
+The same ID propagates through structured logs for end-to-end request correlation.
 
 **Admin auth is a single Bearer token.**
 Validated against `ADMIN_TOKEN` environment variable.
