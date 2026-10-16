@@ -27,10 +27,10 @@
     <true/>
 
     <key>StandardOutPath</key>
-    <string>REPO_PATH/logs/app.log</string>
+    <string>REPO_PATH/logs/app/stdout.log</string>
 
     <key>StandardErrorPath</key>
-    <string>REPO_PATH/logs/app.error.log</string>
+    <string>REPO_PATH/logs/app/stderr.log</string>
 
     <key>EnvironmentVariables</key>
     <dict>

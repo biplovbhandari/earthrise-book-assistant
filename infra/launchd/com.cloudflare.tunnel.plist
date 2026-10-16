@@ -25,9 +25,9 @@
     <true/>
 
     <key>StandardOutPath</key>
-    <string>REPO_PATH/logs/tunnel.log</string>
+    <string>REPO_PATH/logs/tunnel/tunnel.log</string>
 
     <key>StandardErrorPath</key>
-    <string>REPO_PATH/logs/tunnel.error.log</string>
+    <string>REPO_PATH/logs/tunnel/tunnel.error.log</string>
 </dict>
 </plist>
