@@ -9,7 +9,7 @@
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>com.geoai.db-backup</string>
+    <string>com.geoai.nightly</string>
 
     <key>ProgramArguments</key>
     <array>
@@ -30,10 +30,10 @@
     </dict>
 
     <key>StandardOutPath</key>
-    <string>REPO_PATH/backups/backup.log</string>
+    <string>REPO_PATH/backups/nightly.log</string>
 
     <key>StandardErrorPath</key>
-    <string>REPO_PATH/backups/backup.log</string>
+    <string>REPO_PATH/backups/nightly.log</string>
 
     <key>EnvironmentVariables</key>
     <dict>

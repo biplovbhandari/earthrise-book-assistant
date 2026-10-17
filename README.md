@@ -190,7 +190,7 @@ Use `just clean` to stop services and wipe all data (volumes, Qdrant, Postgres, 
 
 ## Monitoring
 
-`just services` starts Prometheus (http://localhost:9090) and Grafana (http://localhost:3000) alongside Qdrant and PostgreSQL.
+`just services` starts Prometheus (http://localhost:9090) and Grafana (http://localhost:3000, configurable via `GRAFANA_PORT`) alongside Qdrant and PostgreSQL.
 Grafana is pre-provisioned with a Prometheus datasource and a Geo-AI Book Assistant dashboard covering request rates, latencies, and error breakdowns.
 The `/metrics` endpoint is gated behind `ADMIN_TOKEN`.
 
@@ -210,7 +210,7 @@ Each API request gets a `X-Request-ID` header for log correlation. Access logs i
 | Transcript cleanup | `logs/scripts/cleanup_*.log` | Pruned to 10 most recent |
 | Transcription | `logs/scripts/transcription_*.log` | Pruned to 10 most recent |
 | Docker containers | `docker logs <name>` | Docker driver (10 MB x 3) |
-| DB backups | `backups/backup.log` | Overwritten each run |
+| DB backups / nightly | `backups/nightly.log` | Overwritten each run |
 
 In development (`just dev`), app logs go to both the terminal and `logs/app/app.log`.
 In production (launchd), raw uvicorn output goes to `stdout.log`/`stderr.log` while structured logs go to `app.log`.
